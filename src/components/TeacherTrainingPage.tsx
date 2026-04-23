@@ -1,0 +1,192 @@
+"use client";
+
+import { Bell, ChevronDown, ChevronRight, Calendar, Plus } from "lucide-react";
+
+const blue = "#2563eb";
+
+const focusStyle = { borderColor: blue, boxShadow: "0 0 0 4px rgba(37,99,235,0.1)" };
+const blurStyle  = { borderColor: "#e5e7eb", boxShadow: "none" };
+const inputCls   = "w-full bg-white border border-gray-200 rounded-[10px] px-3.5 py-2.5 text-sm outline-none transition-all";
+
+function Field({ label, required, full, children }: {
+  label: string; required?: boolean; full?: boolean; children: React.ReactNode;
+}) {
+  return (
+    <div className={full ? "md:col-span-2" : ""}>
+      <label className="block text-sm font-semibold mb-2" style={{ color: "#1d1d1f" }}>
+        {required && <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>}
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function Input({ placeholder = "" }: { placeholder?: string }) {
+  return (
+    <input
+      type="text"
+      placeholder={placeholder}
+      className={inputCls}
+      onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
+      onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
+    />
+  );
+}
+
+function DateInput() {
+  return (
+    <div className="relative">
+      <Input />
+      <Calendar className="w-4 h-4 absolute right-3.5 top-3 text-gray-400 pointer-events-none" />
+    </div>
+  );
+}
+
+function Select({ options }: { options: string[] }) {
+  return (
+    <div className="relative">
+      <select
+        className={inputCls + " appearance-none"}
+        onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
+        onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
+      >
+        <option value=""></option>
+        {options.map((o) => <option key={o}>{o}</option>)}
+      </select>
+      <ChevronDown className="w-4 h-4 absolute right-3.5 top-3 text-gray-400 pointer-events-none" />
+    </div>
+  );
+}
+
+export function TeacherTrainingPage() {
+  return (
+    <div
+      className="flex flex-col h-full overflow-hidden"
+      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif', color: "#1d1d1f" }}
+    >
+      {/* Header */}
+      <header
+        className="flex items-center justify-between px-8 shrink-0 border-b border-gray-100"
+        style={{ height: 64, background: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", zIndex: 10 }}
+      >
+        <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-semibold transition-colors">
+          发起流程 <ChevronDown className="w-4 h-4 opacity-50" />
+        </button>
+
+        <div className="flex items-center gap-1.5 text-sm" style={{ color: "#9ca3af" }}>
+          <span className="hover:text-gray-600 cursor-pointer transition-colors">教师基础档案</span>
+          <ChevronRight className="w-3.5 h-3.5" />
+          <span style={{ color: "#374151", fontWeight: 500 }}>教师培训</span>
+        </div>
+
+        <div className="flex items-center gap-5">
+          <div className="relative cursor-pointer">
+            <Bell className="w-5 h-5 text-gray-400 hover:text-gray-700 transition-colors" />
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
+          </div>
+          <div className="w-9 h-9 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-white cursor-pointer hover:scale-105 transition-transform">
+            卢
+          </div>
+        </div>
+      </header>
+
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto bg-[#f5f5f7] pb-24">
+        <main className="max-w-6xl mx-auto mt-10 px-6">
+
+          {/* Decorative title — blue theme */}
+          <div className="flex items-center justify-center gap-5 mb-12">
+            <div className="h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${blue}, transparent)` }} />
+            <div
+              className="flex items-center gap-3 px-12 py-2 text-white text-sm font-semibold tracking-[0.2em]"
+              style={{ backgroundColor: blue, clipPath: "polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%)", boxShadow: "0 4px 12px rgba(37,99,235,0.2)" }}
+            >
+              <span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" />
+              培训信息
+              <span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" />
+            </div>
+            <div className="h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${blue}, transparent)` }} />
+          </div>
+
+          {/* Form card */}
+          <div className="rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white">
+
+            {/* Row 1 — cream: 培训渠道 + 培训名称 */}
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6" style={{ backgroundColor: "#fffcf2" }}>
+              <Field label="培训渠道" required>
+                <Select options={["校内培训", "校外培训"]} />
+              </Field>
+              <Field label="培训名称" required>
+                <Input />
+              </Field>
+            </div>
+
+            {/* Row 2 — white: 培训开始时间 + 培训结束时间 */}
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
+              <Field label="培训开始时间" required>
+                <DateInput />
+              </Field>
+              <Field label="培训结束时间" required>
+                <DateInput />
+              </Field>
+            </div>
+
+            {/* Row 3 — cream: 主讲人 + 参训人员 */}
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6" style={{ backgroundColor: "#fffcf2" }}>
+              <Field label="主讲人" required>
+                <Input />
+              </Field>
+              <Field label="参训人员" required>
+                <button
+                  className="w-full border border-dashed border-gray-300 bg-white rounded-[10px] px-3.5 py-2.5 flex items-center justify-center gap-1.5 text-sm text-gray-500 transition-all hover:border-blue-400 hover:text-blue-600"
+                  style={{ minHeight: 44 }}
+                >
+                  <Plus className="w-4 h-4 opacity-60" /> 选择成员
+                </button>
+              </Field>
+            </div>
+
+            {/* Row 4 — white: 具体人数 + 培训形式 */}
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
+              <Field label="具体人数" required>
+                <Input />
+              </Field>
+              <Field label="培训形式" required>
+                <Select options={["线上培训", "线下培训"]} />
+              </Field>
+            </div>
+
+            {/* Row 5 — cream: 备注（全宽） */}
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12" style={{ backgroundColor: "#fffcf2" }}>
+              <Field label="备注" full>
+                <textarea
+                  rows={5}
+                  className="w-full bg-white border border-gray-200 rounded-[10px] px-3.5 py-2.5 text-sm outline-none transition-all resize-none"
+                  onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
+                  onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
+                />
+              </Field>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      {/* Fixed footer */}
+      <div
+        className="shrink-0 flex gap-3 px-10 py-4"
+        style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderTop: "1px dashed #e5e7eb" }}
+      >
+        <button
+          className="px-8 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:translate-y-px"
+          style={{ backgroundColor: blue, boxShadow: "0 4px 12px rgba(37,99,235,0.15)" }}
+        >
+          提交
+        </button>
+        <button className="px-8 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all">
+          保存草稿
+        </button>
+      </div>
+    </div>
+  );
+}

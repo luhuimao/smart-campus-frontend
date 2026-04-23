@@ -47,3 +47,24 @@ next-env.d.ts
 
 # Local temp files
 temp/
+src/temp.html
+
+# Logs
+*.log
+logs/
+
+# Package manager locks (keep only one — delete if using npm)
+yarn.lock
+pnpm-lock.yaml
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Cache
+.cache/
+.turbo/
+.eslintcache
+
+# Docker (local only)
+docker-compose.override.yml
