@@ -4,8 +4,8 @@ import {
   Bell, ChevronRight, ChevronLeft, ChevronDown,
   Plus, Upload, Trash2, History, Search, Filter,
   Eye, ArrowUpDown, LayoutGrid, RefreshCw, MoreHorizontal,
-  List, MoveHorizontal,
-} from "lucide-react";
+  List, MoveHorizontal } from "lucide-react";
+import { PageHeader } from "./PageHeader";
 
 const teal = "#00b095";
 
@@ -31,36 +31,19 @@ function LighthouseEmpty() {
   );
 }
 
-export function LearningAnalysisTablePage() {
+export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   return (
     <div
       className="flex flex-col h-full overflow-hidden"
       style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif', color: "#1d1d1f" }}
     >
-      {/* Header */}
-      <header
-        className="flex items-center justify-between px-8 shrink-0 border-b border-gray-100"
-        style={{ height: 64, background: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", zIndex: 10 }}
-      >
-        <div className="flex items-center gap-1.5 text-sm" style={{ color: "#9ca3af" }}>
-          <span className="hover:text-gray-600 cursor-pointer transition-colors">学情分析</span>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <span style={{ color: "#374151", fontWeight: 500 }}>学情分析表</span>
-        </div>
-
-        <div className="flex items-center gap-5">
-          <div className="relative cursor-pointer">
-            <Bell className="w-5 h-5 text-gray-400 hover:text-gray-700 transition-colors" />
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
-          </div>
-          <div className="w-9 h-9 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-white cursor-pointer hover:scale-105 transition-transform">
-            卢
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        breadcrumbs={[{ label: "学情分析" }, { label: "学情分析表", active: true }]}
+        onMenuOpen={onMenuOpen}
+      />
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden flex flex-col p-5 bg-[#f5f5f7]">
+      <div className="flex-1 overflow-hidden flex flex-col p-3 md:p-5 bg-[#f5f5f7]">
 
         {/* Toolbar */}
         <div
@@ -125,7 +108,7 @@ export function LearningAnalysisTablePage() {
 
         {/* Table */}
         <div
-          className="bg-white flex-1 overflow-auto"
+          className="bg-white flex-1 overflow-x-auto overflow-y-auto"
           style={{ borderLeft: "1px solid #f3f4f6", borderRight: "1px solid #f3f4f6" }}
         >
           <table className="w-full border-collapse">

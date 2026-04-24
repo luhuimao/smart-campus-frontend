@@ -1,7 +1,8 @@
 "use client";
 
-import { Bell, ChevronDown, ChevronRight, ChevronLeft, ChevronsLeft, Calendar, Info } from "lucide-react";
+import { Bell, ChevronDown, ChevronRight, ChevronLeft, ChevronsLeft, Calendar, Info, Menu } from "lucide-react";
 import { useState } from "react";
+import { PageHeader, FlowButton } from "./PageHeader";
 
 const teal = "#00b095";
 
@@ -86,7 +87,7 @@ function Pagination({ total = 0 }: { total?: number }) {
   );
 }
 
-export function ScienceFestDashboard() {
+export function ScienceFestDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [calView, setCalView] = useState<"week" | "month">("week");
 
   return (
@@ -94,32 +95,13 @@ export function ScienceFestDashboard() {
       className="flex flex-col h-full overflow-hidden"
       style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif', color: "#1d1d1f" }}
     >
-      {/* Header */}
-      <header
-        className="flex items-center justify-between px-8 shrink-0 border-b border-gray-100"
-        style={{ height: 64, background: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", zIndex: 10 }}
-      >
-        <div className="flex items-center gap-1.5 text-sm" style={{ color: "#9ca3af" }}>
-          <span className="hover:text-gray-600 cursor-pointer transition-colors">教师组织参与的活动</span>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <span className="hover:text-gray-600 cursor-pointer transition-colors">科技节活动</span>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <span style={{ color: "#374151", fontWeight: 500 }}>科技节活动看板</span>
-        </div>
-
-        <div className="flex items-center gap-5">
-          <div className="relative cursor-pointer">
-            <Bell className="w-5 h-5 text-gray-400 hover:text-gray-700 transition-colors" />
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
-          </div>
-          <div className="w-9 h-9 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-white cursor-pointer hover:scale-105 transition-transform">
-            卢
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        breadcrumbs={[{ label: "教师组织参与的活动" }, { label: "科技节活动" }, { label: "科技节活动看板", active: true }]}
+        onMenuOpen={onMenuOpen}
+      />
 
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto bg-[#f5f5f7] p-5 space-y-4">
+      <div className="flex-1 overflow-y-auto bg-[#f5f5f7] p-3 md:p-5 space-y-4">
 
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

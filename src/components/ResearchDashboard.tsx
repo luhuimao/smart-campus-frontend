@@ -2,7 +2,7 @@
 
 import {
   LayoutGrid, Search, Bell, FilePenLine, PieChart, Users2,
-  TrendingUp, Plus, Share2, Download, BarChart3,
+  TrendingUp, Plus, Share2, Download, BarChart3, Menu,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -29,7 +29,7 @@ const filters = [
   { label: "学科分类", options: ["全部学科"] },
 ];
 
-export function ResearchDashboard() {
+export function ResearchDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [activeTab, setActiveTab] = useState<"research" | "lesson">("research");
 
   return (
@@ -37,10 +37,13 @@ export function ResearchDashboard() {
 
       {/* Top Nav */}
       <header
-        className="flex items-center justify-between px-8 shrink-0 border-b border-gray-200/30"
+        className="flex items-center justify-between px-4 md:px-8 shrink-0 border-b border-gray-200/30"
         style={{ height: 64, ...glass, zIndex: 10 }}
       >
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 md:gap-6">
+          <button className="md:hidden p-2 -ml-1 rounded-xl hover:bg-gray-100 transition-colors" onClick={onMenuOpen}>
+            <Menu className="w-5 h-5 text-gray-600" />
+          </button>
           <div className="flex items-center gap-2">
             {/* <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center text-white shadow-sm">
               <LayoutGrid className="w-5 h-5" />

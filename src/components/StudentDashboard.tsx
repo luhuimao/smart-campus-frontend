@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, PlusCircle, User, ChevronLeft, ChevronRight, Bell } from "lucide-react";
+import { Users, PlusCircle, User, ChevronLeft, ChevronRight, Bell, Menu } from "lucide-react";
 import { useState } from "react";
 
 const glass = {
@@ -43,7 +43,7 @@ const tableRows = [
 
 const timeFilters = ["今日", "本周", "本月", "今年"];
 
-export function StudentDashboard() {
+export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [activeTab, setActiveTab] = useState(0);
   const [activeTime, setActiveTime] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
@@ -55,10 +55,13 @@ export function StudentDashboard() {
     >
       {/* Top Nav */}
       <header
-        className="flex items-center justify-between px-8 shrink-0 border-b border-gray-200/30"
+        className="flex items-center justify-between px-4 md:px-8 shrink-0 border-b border-gray-200/30"
         style={{ height: 64, background: "rgba(255,255,255,0.8)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", zIndex: 10 }}
       >
         <div className="flex items-center gap-3">
+          <button className="md:hidden p-2 -ml-1 rounded-xl hover:bg-gray-100 transition-colors" onClick={onMenuOpen}>
+            <Menu className="w-5 h-5 text-gray-600" />
+          </button>
           <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
             <Users className="w-5 h-5" />
           </div>

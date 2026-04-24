@@ -1,6 +1,7 @@
 "use client";
 
-import { Bell, ChevronRight, ChevronDown, Calendar, Plus, QrCode, Upload } from "lucide-react";
+import { Bell, ChevronRight, ChevronDown, Calendar, Plus, QrCode, Upload, Menu } from "lucide-react";
+import { PageHeader, FlowButton } from "./PageHeader";
 
 const teal = "#00b095";
 
@@ -63,43 +64,22 @@ function Textarea({ rows = 6, placeholder = "" }: { rows?: number; placeholder?:
   );
 }
 
-export function ScienceFestFormPage() {
+export function ScienceFestFormPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   return (
     <div
       className="flex flex-col h-full overflow-hidden"
       style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif', color: "#1d1d1f" }}
     >
-      {/* Header */}
-      <header
-        className="flex items-center justify-between px-8 shrink-0 border-b border-gray-100"
-        style={{ height: 64, background: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", zIndex: 10 }}
-      >
-        {/* 左侧占位保持居中 */}
-        <div className="w-24" />
-
-        <div className="flex items-center gap-1.5 text-sm" style={{ color: "#9ca3af" }}>
-          <span className="hover:text-gray-600 cursor-pointer transition-colors">教师组织参与的活动</span>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <span className="hover:text-gray-600 cursor-pointer transition-colors">科技节活动</span>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <span style={{ color: "#374151", fontWeight: 500 }}>科技节活动登记</span>
-        </div>
-
-        <div className="flex items-center gap-5">
-          <div className="relative cursor-pointer">
-            <Bell className="w-5 h-5 text-gray-400 hover:text-gray-700 transition-colors" />
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
-          </div>
-          <div className="w-9 h-9 rounded-full bg-rose-500 flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-white cursor-pointer hover:scale-105 transition-transform">
-            卢
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        centered
+        breadcrumbs={[{ label: "教师组织参与的活动" }, { label: "科技节活动" }, { label: "科技节活动登记", active: true }]}
+        onMenuOpen={onMenuOpen}
+      />
 
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto bg-[#f5f5f7] pb-24">
-        <main className="max-w-5xl mx-auto mt-10 px-6">
-          <div className="rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white p-10">
+        <main className="max-w-5xl mx-auto mt-4 md:mt-10 px-3 md:px-6">
+          <div className="rounded-2xl md:rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white p-5 md:p-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
 
               {/* 活动名称 */}
