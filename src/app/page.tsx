@@ -20,8 +20,10 @@ import { ScienceFestFormPage } from "@/components/ScienceFestFormPage";
 import { LessonPrepRecordPage } from "@/components/LessonPrepRecordPage";
 import { LearningAnalysisTablePage } from "@/components/LearningAnalysisTablePage";
 import { LessonPrepAnalysisPage } from "@/components/LessonPrepAnalysisPage";
+import { ResearchActivityAnalysisPage } from "@/components/ResearchActivityAnalysisPage";
+import { ResearchActivityRecordPage } from "@/components/ResearchActivityRecordPage";
 
-export type PageKey = "research-dashboard" | "student-dashboard" | "teacher-cert" | "title-info" | "honor-title" | "award-record" | "paper" | "project" | "works" | "teacher-training" | "work-history" | "education" | "part-time" | "science-fest-dashboard" | "science-fest-form" | "lesson-prep-record" | "learning-analysis-table" | "lesson-prep-analysis";
+export type PageKey = "research-dashboard" | "student-dashboard" | "teacher-cert" | "title-info" | "honor-title" | "award-record" | "paper" | "project" | "works" | "teacher-training" | "work-history" | "education" | "part-time" | "science-fest-dashboard" | "science-fest-form" | "lesson-prep-record" | "learning-analysis-table" | "lesson-prep-analysis" | "research-activity-analysis" | "research-activity-record";
 
 export default function Home() {
   const [activePage, setActivePage] = useState<PageKey>("research-dashboard");
@@ -64,7 +66,9 @@ export default function Home() {
         {activePage === "science-fest-form"       && <ScienceFestFormPage onMenuOpen={onMenuOpen} />}
         {activePage === "lesson-prep-record"      && <LessonPrepRecordPage onMenuOpen={onMenuOpen} />}
         {activePage === "learning-analysis-table" && <LearningAnalysisTablePage onMenuOpen={onMenuOpen} />}
-        {activePage === "lesson-prep-analysis"    && <LessonPrepAnalysisPage onMenuOpen={onMenuOpen} />}
+        {activePage === "lesson-prep-analysis"        && <LessonPrepAnalysisPage onMenuOpen={onMenuOpen} />}
+        {activePage === "research-activity-analysis" && <ResearchActivityAnalysisPage onMenuOpen={onMenuOpen} />}
+        {activePage === "research-activity-record"   && <ResearchActivityRecordPage onMenuOpen={onMenuOpen} />}
       </div>
     </div>
   );

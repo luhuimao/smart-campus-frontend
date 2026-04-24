@@ -8,8 +8,11 @@ const MONTHS = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","
 
 function pad(n: number) { return String(n).padStart(2, "0"); }
 
+function formatDate(d: Date) {
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
 function formatDateTime(d: Date) {
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${formatDate(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function buildCalendar(year: number, month: number) {
@@ -56,9 +59,10 @@ interface CalendarPanelProps {
   onClose: () => void;
   rangeStart?: Date | null;
   rangeEnd?: Date | null;
+  dateOnly?: boolean;
 }
 
-function CalendarPanel({ value, onChange, onClose, rangeStart, rangeEnd }: CalendarPanelProps) {
+function CalendarPanel({ value, onChange, onClose, rangeStart, rangeEnd, dateOnly }: CalendarPanelProps) {
   const today = new Date();
   const init  = value ?? today;
   const [view,    setView]    = useState({ year: init.getFullYear(), month: init.getMonth() });
@@ -71,6 +75,7 @@ function CalendarPanel({ value, onChange, onClose, rangeStart, rangeEnd }: Calen
   function selectDay(day: number) {
     const d = new Date(view.year, view.month, day, hour, minute);
     setPending(d);
+    if (dateOnly) { onChange(new Date(view.year, view.month, day)); onClose(); }
   }
 
   function confirm() {
@@ -143,24 +148,32 @@ function CalendarPanel({ value, onChange, onClose, rangeStart, rangeEnd }: Calen
         })}
       </div>
 
-      {/* Time picker */}
-      <div className="mt-3 pt-3 border-t border-gray-100">
-        <div className="flex items-center justify-center gap-2">
-          <Clock size={13} style={{ color: "#9ca3af" }} />
-          <TimeColumn value={hour}   max={23} onChange={setHour} />
-          <span style={{ fontSize: 16, fontWeight: 700, color: "#374151", marginBottom: 2 }}>:</span>
-          <TimeColumn value={minute} max={59} onChange={setMinute} />
+      {/* Time picker + footer — hidden in dateOnly mode */}
+      {!dateOnly && (
+        <>
+          <div className="mt-3 pt-3 border-t border-gray-100">
+            <div className="flex items-center justify-center gap-2">
+              <Clock size={13} style={{ color: "#9ca3af" }} />
+              <TimeColumn value={hour}   max={23} onChange={setHour} />
+              <span style={{ fontSize: 16, fontWeight: 700, color: "#374151", marginBottom: 2 }}>:</span>
+              <TimeColumn value={minute} max={59} onChange={setMinute} />
+            </div>
+          </div>
+          <div className="mt-3 flex justify-between items-center">
+            <button onClick={() => { const n = new Date(); setPending(n); setHour(n.getHours()); setMinute(n.getMinutes()); }}
+              style={{ fontSize: 12, color: "#13c2c2" }} className="hover:underline">此刻</button>
+            <button onClick={confirm}
+              className="px-4 py-1 rounded-lg text-white transition-colors"
+              style={{ fontSize: 12, background: "#13c2c2" }}>确定</button>
+          </div>
+        </>
+      )}
+      {dateOnly && (
+        <div className="mt-2 pt-2 border-t border-gray-100 flex justify-end">
+          <button onClick={() => { onChange(today); onClose(); }}
+            style={{ fontSize: 12, color: "#13c2c2" }} className="hover:underline">今天</button>
         </div>
-      </div>
-
-      {/* Footer */}
-      <div className="mt-3 flex justify-between items-center">
-        <button onClick={() => { const n = new Date(); setPending(n); setHour(n.getHours()); setMinute(n.getMinutes()); }}
-          style={{ fontSize: 12, color: "#13c2c2" }} className="hover:underline">此刻</button>
-        <button onClick={confirm}
-          className="px-4 py-1 rounded-lg text-white transition-colors"
-          style={{ fontSize: 12, background: "#13c2c2" }}>确定</button>
-      </div>
+      )}
     </div>
   );
 }
@@ -182,9 +195,11 @@ interface DatePickerProps {
   value?: Date | null;
   onChange?: (d: Date | null) => void;
   placeholder?: string;
+  dateOnly?: boolean;
 }
 
-export function DatePicker({ value, onChange, placeholder = "请选择日期时间" }: DatePickerProps) {
+export function DatePicker({ value, onChange, placeholder, dateOnly }: DatePickerProps) {
+  const defaultPlaceholder = dateOnly ? "请选择日期" : "请选择日期时间";
   const [open,     setOpen]     = useState(false);
   const [internal, setInternal] = useState<Date | null>(value ?? null);
   const ref = useRef<HTMLDivElement>(null);
@@ -201,12 +216,12 @@ export function DatePicker({ value, onChange, placeholder = "请选择日期时�
         style={{ border: "1px solid #e5e7eb", padding: "6px 10px", background: "white", fontSize: 13 }}>
         <Calendar size={13} style={{ color: "#9ca3af", flexShrink: 0 }} />
         <span style={{ color: date ? "#374151" : "#9ca3af", flex: 1 }}>
-          {date ? formatDateTime(date) : placeholder}
+          {date ? (dateOnly ? formatDate(date) : formatDateTime(date)) : (placeholder ?? defaultPlaceholder)}
         </span>
       </div>
       {open && (
         <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 300 }}>
-          <CalendarPanel value={date ?? null} onChange={handleChange} onClose={() => setOpen(false)} />
+          <CalendarPanel value={date ?? null} onChange={handleChange} onClose={() => setOpen(false)} dateOnly={dateOnly} />
         </div>
       )}
     </div>

@@ -8,6 +8,7 @@ const treeItems = [
   { icon: Folder, label: "教科研看板",        active: false, iconColor: "#f97316", children: undefined },
   { icon: Folder, label: "教师评价",          active: false, iconColor: "#f97316", children: ["教师所带班级排名", "班主任所带文明班级", "班主任所带文明宿舍"] },
   { icon: Folder, label: "教师基础档案",      active: false, iconColor: "#f97316", children: ["教师资格证", "职称信息", "荣誉称号", "获奖记录", "论文", "课题", "著作", "教师培训", "工作履历", "教育经历", "教学兼职"] },
+  { icon: Folder, label: "教研活动",          active: false, iconColor: "#f97316", children: ["教研活动数据分析", "教研活动记录"] },
   { icon: Folder, label: "备课活动",          active: false, iconColor: "#f97316", children: ["备课组活动记录", "备课活动数据分析"] },
   { icon: Folder, label: "教师组织参与的活动", active: false, iconColor: "#f97316", children: [{ label: "科技节活动", children: ["科技节活动看板", "科技节活动登记"] }] },
   { icon: Folder, label: "星级教师、星级班主任", active: false, iconColor: "#f97316", children: undefined },
@@ -201,6 +202,8 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
                             "工作履历": "work-history",
                             "教育经历": "education",
                             "教学兼职": "part-time",
+                            "教研活动数据分析": "research-activity-analysis",
+                            "教研活动记录": "research-activity-record",
                             "备课组活动记录": "lesson-prep-record",
                             "备课活动数据分析": "lesson-prep-analysis",
                           };
