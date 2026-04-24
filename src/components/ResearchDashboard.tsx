@@ -4,7 +4,7 @@ import {
   LayoutGrid, Search, Bell, FilePenLine, PieChart, Users2,
   TrendingUp, Plus, Share2, Download, BarChart3, Menu,
 } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 
 const glass = {
   background: "rgba(255,255,255,0.8)",
@@ -13,12 +13,12 @@ const glass = {
   border: "1px solid rgba(255,255,255,0.3)",
 } as const;
 
-const quickEntries = [
-  { icon: FilePenLine, label: "添加教研记录", bg: "bg-blue-50", color: "text-blue-600", hover: "group-hover:bg-blue-600" },
-  { icon: PieChart,    label: "教研数据分析", bg: "bg-purple-50", color: "text-purple-600", hover: "group-hover:bg-purple-600" },
-  { icon: Users2,      label: "添加备课活动", bg: "bg-indigo-50", color: "text-indigo-600", hover: "group-hover:bg-indigo-600" },
-  { icon: TrendingUp,  label: "备课数据分析", bg: "bg-pink-50", color: "text-pink-600", hover: "group-hover:bg-pink-600" },
-  { icon: Plus,        label: "查看更多",     bg: "bg-gray-50", color: "text-gray-400", hover: "group-hover:bg-gray-800" },
+const quickEntries: { icon: React.ElementType; label: string; bg: string; color: string; hover: string; target: PageKey | null }[] = [
+  { icon: FilePenLine, label: "添加教研记录", bg: "bg-blue-50", color: "text-blue-600", hover: "group-hover:bg-blue-600", target: "research-activity-record" },
+  { icon: PieChart,    label: "教研数据分析", bg: "bg-purple-50", color: "text-purple-600", hover: "group-hover:bg-purple-600", target: "research-activity-analysis" },
+  { icon: Users2,      label: "添加备课活动", bg: "bg-indigo-50", color: "text-indigo-600", hover: "group-hover:bg-indigo-600", target: "lesson-prep-record" },
+  { icon: TrendingUp,  label: "备课数据分析", bg: "bg-pink-50", color: "text-pink-600", hover: "group-hover:bg-pink-600", target: "lesson-prep-analysis" },
+  { icon: Plus,        label: "查看更多",     bg: "bg-gray-50", color: "text-gray-400", hover: "group-hover:bg-gray-800", target: null },
 ];
 
 const filters = [
@@ -29,7 +29,9 @@ const filters = [
   { label: "学科分类", options: ["全部学科"] },
 ];
 
-export function ResearchDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
+import type { PageKey } from "@/app/page";
+
+export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () => void; onNavigate?: (page: PageKey) => void }) {
   const [activeTab, setActiveTab] = useState<"research" | "lesson">("research");
 
   return (
@@ -120,8 +122,8 @@ export function ResearchDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
-              {quickEntries.map(({ icon: Icon, label, bg, color, hover }) => (
-                <div key={label} className="flex flex-col items-center gap-4 group cursor-pointer">
+              {quickEntries.map(({ icon: Icon, label, bg, color, hover, target }) => (
+                <div key={label} className="flex flex-col items-center gap-4 group cursor-pointer" onClick={() => target && onNavigate?.(target)}>
                   <div className={`w-16 h-16 ${bg} rounded-[24px] flex items-center justify-center ${color} ${hover} group-hover:text-white transition-all duration-300 shadow-sm apple-hover`}>
                     <Icon className="w-7 h-7" />
                   </div>

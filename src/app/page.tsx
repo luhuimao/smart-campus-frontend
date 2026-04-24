@@ -50,7 +50,7 @@ export default function Home() {
 
       <div style={{ flex: 1, height: "100vh", overflow: "hidden" }}>
         {activePage === "student-dashboard"       && <StudentDashboard onMenuOpen={onMenuOpen} />}
-        {activePage === "research-dashboard"      && <ResearchDashboard onMenuOpen={onMenuOpen} />}
+        {activePage === "research-dashboard"      && <ResearchDashboard onMenuOpen={onMenuOpen} onNavigate={setActivePage} />}
         {activePage === "teacher-cert"            && <TeacherCertPage onMenuOpen={onMenuOpen} />}
         {activePage === "title-info"              && <TitleInfoPage onMenuOpen={onMenuOpen} />}
         {activePage === "honor-title"             && <HonorTitlePage onMenuOpen={onMenuOpen} />}
