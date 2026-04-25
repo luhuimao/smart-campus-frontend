@@ -155,8 +155,8 @@ const COLUMNS: ColDef<Row>[] = [
   { key: "headTeacher",   label: "班主任" },
   { key: "gradeDirector", label: "级部主任" },
   { key: "submitter",     label: "提交人" },
-  { key: "submitTime",    label: "提交时间", cellColor: "#6b7280", textSize: "text-xs" },
-  { key: "updateTime",    label: "更新时间", cellColor: "#6b7280", textSize: "text-xs" },
+  { key: "submitTime",    label: "提交时间", cellColor: "#6b7280", textSize: "text-sm" },
+  { key: "updateTime",    label: "更新时间", cellColor: "#6b7280", textSize: "text-sm" },
 ];
 
 export function CivilizedClassPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
@@ -184,7 +184,7 @@ export function CivilizedClassPage({ onMenuOpen }: { onMenuOpen?: () => void }) 
 
             {/* 左：主操作 */}
             <button
-              className="flex items-center gap-1.5 text-white text-sm font-medium px-3 h-8 rounded-lg transition-all hover:opacity-90 active:translate-y-px shrink-0"
+              className="flex items-center gap-1.5 text-white text-[15px] font-medium px-3 h-8 rounded-lg transition-all hover:opacity-90 active:translate-y-px shrink-0"
               style={{ background: teal }}
               onClick={() => setModalOpen(true)}
             >
@@ -219,7 +219,7 @@ export function CivilizedClassPage({ onMenuOpen }: { onMenuOpen?: () => void }) 
 
             <button
               className="flex items-center gap-1 h-8 px-2.5 rounded-lg text-sm transition-all hover:bg-black/[0.05] shrink-0"
-              style={{ color: "#8c8c8c" }}
+              style={{ color: "#8c8c8c", fontSize: 15 }}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />

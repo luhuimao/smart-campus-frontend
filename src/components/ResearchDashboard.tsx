@@ -3,6 +3,7 @@
 import {
   LayoutGrid, Search, Bell, FilePenLine, PieChart, Users2,
   TrendingUp, Plus, Share2, Download, BarChart3, Menu,
+  RefreshCw, ArrowUpDown, Maximize2, Upload,
 } from "lucide-react";
 import React, { useState } from "react";
 
@@ -15,10 +16,10 @@ const glass = {
 
 const quickEntries: { icon: React.ElementType; label: string; bg: string; color: string; hover: string; target: PageKey | null }[] = [
   { icon: FilePenLine, label: "添加教研记录", bg: "bg-blue-50", color: "text-blue-600", hover: "group-hover:bg-blue-600", target: "research-activity-record" },
-  { icon: PieChart,    label: "教研数据分析", bg: "bg-purple-50", color: "text-purple-600", hover: "group-hover:bg-purple-600", target: "research-activity-analysis" },
-  { icon: Users2,      label: "添加备课活动", bg: "bg-indigo-50", color: "text-indigo-600", hover: "group-hover:bg-indigo-600", target: "lesson-prep-record" },
-  { icon: TrendingUp,  label: "备课数据分析", bg: "bg-pink-50", color: "text-pink-600", hover: "group-hover:bg-pink-600", target: "lesson-prep-analysis" },
-  { icon: Plus,        label: "查看更多",     bg: "bg-gray-50", color: "text-gray-400", hover: "group-hover:bg-gray-800", target: null },
+  { icon: PieChart, label: "教研数据分析", bg: "bg-purple-50", color: "text-purple-600", hover: "group-hover:bg-purple-600", target: "research-activity-analysis" },
+  { icon: Users2, label: "添加备课活动", bg: "bg-indigo-50", color: "text-indigo-600", hover: "group-hover:bg-indigo-600", target: "lesson-prep-record" },
+  { icon: TrendingUp, label: "备课数据分析", bg: "bg-pink-50", color: "text-pink-600", hover: "group-hover:bg-pink-600", target: "lesson-prep-analysis" },
+  { icon: Plus, label: "查看更多", bg: "bg-gray-50", color: "text-gray-400", hover: "group-hover:bg-gray-800", target: null },
 ];
 
 const filters = [
@@ -33,9 +34,64 @@ import type { PageKey } from "@/app/page";
 
 export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () => void; onNavigate?: (page: PageKey) => void }) {
   const [activeTab, setActiveTab] = useState<"research" | "lesson">("research");
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  const moreActions: { icon: React.ElementType; label: string; bg: string; color: string; hover: string; target: PageKey }[] = [
+    { icon: FilePenLine, label: "添加教研记录", bg: "bg-blue-50", color: "text-blue-600", hover: "group-hover:bg-blue-600", target: "research-activity-record" },
+    { icon: PieChart, label: "教研数据分析", bg: "bg-purple-50", color: "text-purple-600", hover: "group-hover:bg-purple-600", target: "research-activity-analysis" },
+    { icon: Users2, label: "添加备课活动", bg: "bg-indigo-50", color: "text-indigo-600", hover: "group-hover:bg-indigo-600", target: "lesson-prep-record" },
+    { icon: TrendingUp, label: "备课数据分析", bg: "bg-pink-50", color: "text-pink-600", hover: "group-hover:bg-pink-600", target: "lesson-prep-analysis" },
+    { icon: FilePenLine, label: "添加科技活动记录", bg: "bg-emerald-50", color: "text-emerald-600", hover: "group-hover:bg-emerald-600", target: "science-fest-form" },
+    { icon: BarChart3, label: "科技节活动看板", bg: "bg-orange-50", color: "text-orange-600", hover: "group-hover:bg-orange-600", target: "science-fest-dashboard" },
+  ];
 
   return (
     <div className="flex flex-col h-full overflow-hidden" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif' }}>
+
+      {/* ── 查看更多 悬浮层 ── */}
+      {moreOpen && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}
+          onClick={() => setMoreOpen(false)}
+        >
+          <div
+            className="rounded-[32px] p-8 shadow-2xl w-full max-w-lg mx-4"
+            style={{ background: "rgba(255,255,255,0.96)", border: "1px solid rgba(255,255,255,0.4)" }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-7">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-4 bg-blue-500 rounded-full" />
+                <h3 className="text-lg font-bold text-gray-500 uppercase tracking-widest">快捷入口</h3>
+              </div>
+              <button
+                onClick={() => setMoreOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <div className="grid grid-cols-3 gap-6">
+              {moreActions.map(({ icon: Icon, label, bg, color, hover, target }) => (
+                <div
+                  key={label}
+                  className="flex flex-col items-center gap-3 group cursor-pointer"
+                  onClick={() => { setMoreOpen(false); onNavigate?.(target); }}
+                >
+                  <div className={`w-14 h-14 ${bg} rounded-[20px] flex items-center justify-center ${color} ${hover} group-hover:text-white transition-all duration-300 shadow-sm apple-hover`}>
+                    <Icon className="w-6 h-6" />
+                  </div>
+                  <span className="text-sm font-bold text-gray-600 text-center leading-tight">{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {/* Top Nav */}
       <header
@@ -123,7 +179,14 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
               {quickEntries.map(({ icon: Icon, label, bg, color, hover, target }) => (
-                <div key={label} className="flex flex-col items-center gap-4 group cursor-pointer" onClick={() => target && onNavigate?.(target)}>
+                <div
+                  key={label}
+                  className="flex flex-col items-center gap-4 group cursor-pointer"
+                  onClick={() => {
+                    if (label === "查看更多") { setMoreOpen(true); return; }
+                    if (target) onNavigate?.(target);
+                  }}
+                >
                   <div className={`w-16 h-16 ${bg} rounded-[24px] flex items-center justify-center ${color} ${hover} group-hover:text-white transition-all duration-300 shadow-sm apple-hover`}>
                     <Icon className="w-7 h-7" />
                   </div>
@@ -134,24 +197,82 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
           </section>
 
           {/* Filters */}
-          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-            {filters.map(({ label, options }) => (
-              <div key={label} className="p-5 rounded-[24px] apple-hover border border-white/60" style={glass}>
-                <p className="text-sm font-black text-gray-400 uppercase mb-3 tracking-widest">{label}</p>
-                <select
-                  className="w-full appearance-none bg-white/40 border-none rounded-xl px-4 py-2.5 text-base font-bold outline-none cursor-pointer"
-                  style={{
-                    backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")",
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "right 0.75rem center",
-                    backgroundSize: "1rem",
-                  }}
-                >
-                  {options.map((o) => <option key={o}>{o}</option>)}
-                </select>
-              </div>
-            ))}
-          </section>
+          {(() => {
+            const valueSelectStyle = {
+              backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 0.6rem center",
+              backgroundSize: "0.85rem",
+              paddingRight: "1.6rem",
+            };
+            const opStyle = {
+              width: 76,
+              paddingLeft: 7,
+              paddingRight: 20,
+              paddingTop: 5,
+              paddingBottom: 5,
+              border: "1px solid rgba(0,0,0,0.07)",
+              backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23b0b7bf'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 0.3rem center",
+              backgroundSize: "0.6rem",
+            };
+
+            function FilterCard({ label, options }: { label: string; options: string[] }) {
+              const [op, setOp] = useState("等于");
+              const hideValue = op === "为空" || op === "不为空";
+              return (
+                <div className="px-4 pt-4 pb-5 rounded-[20px] apple-hover border border-white/60 flex flex-col gap-3" style={glass}>
+                  {/* 标题行：label + 条件运算符 */}
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <p className="text-sm font-black text-gray-400 uppercase tracking-wider flex-1 min-w-0 truncate">
+                      {label}
+                    </p>
+                    <select
+                      value={op}
+                      onChange={e => setOp(e.target.value)}
+                      className="appearance-none shrink-0 text-xs font-semibold text-gray-500 bg-black/[0.04] rounded-lg outline-none cursor-pointer hover:bg-black/[0.07] transition-colors"
+                      style={opStyle as React.CSSProperties}
+                    >
+                      <option>等于</option>
+                      <option>不等于</option>
+                      <option>等于任意一个</option>
+                      <option>不等于任意一个</option>
+                      <option>包含</option>
+                      <option>不包含</option>
+                      <option>为空</option>
+                      <option>不为空</option>
+                    </select>
+                  </div>
+
+                  {/* 值下拉框 — 为空/不为空时隐藏 */}
+                  <div
+                    className="overflow-hidden transition-all duration-200"
+                    style={{ maxHeight: hideValue ? 0 : 60, opacity: hideValue ? 0 : 1 }}
+                  >
+                    <select
+                      className="w-full appearance-none bg-white/40 border-none rounded-xl px-3 py-2.5 text-base font-bold text-gray-700 outline-none cursor-pointer"
+                      style={valueSelectStyle as React.CSSProperties}
+                    >
+                      {options.map((o) => <option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                {filters.map(({ label, options }) => (
+                  <FilterCard key={label} label={label} options={options} />
+                ))}
+              </section>
+            );
+          })()}
+
+
+
+
 
           {/* Main Data View */}
           <section className="rounded-[40px] shadow-sm overflow-hidden flex flex-col" style={{ ...glass, minHeight: 500 }}>
@@ -161,13 +282,13 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                   className={`pb-4 px-4 text-lg font-bold${activeTab === "research" ? " macos-tab-active" : " text-gray-400 hover:text-gray-600 transition-colors"}`}
                   onClick={() => setActiveTab("research")}
                 >
-                  教研记录汇总
+                  教研记录
                 </button>
                 <button
                   className={`pb-4 px-4 text-lg font-bold${activeTab === "lesson" ? " macos-tab-active" : " text-gray-400 hover:text-gray-600 transition-colors"}`}
                   onClick={() => setActiveTab("lesson")}
                 >
-                  备课活动周报
+                  备课记录
                 </button>
               </div>
               <div className="ml-auto flex gap-3 pb-4">
@@ -180,38 +301,685 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
               </div>
             </div>
 
-            <div className="p-10 flex-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
-                <div className="space-y-1">
-                  <p className="text-sm font-black text-gray-400 uppercase tracking-[0.15em]">教研活动总数</p>
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-6xl font-black text-gray-900">128</span>
-                    <span className="text-sm font-bold text-emerald-500">+12%</span>
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-black text-gray-400 uppercase tracking-[0.15em]">累计教研时长</p>
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-6xl font-black text-gray-900">342<small className="text-xl">h</small></span>
-                    <span className="text-sm font-bold text-blue-500">达标</span>
-                  </div>
-                </div>
-              </div>
+            <div className="p-8 flex-1 space-y-8">
 
-              <div className="w-full h-80 rounded-[32px] border-2 border-dashed border-gray-200/60 flex flex-col items-center justify-center gap-4 group cursor-pointer hover:border-blue-400 transition-all duration-500 bg-gray-50/50">
-                <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center text-gray-300 group-hover:text-blue-500 group-hover:rotate-12 transition-all shadow-sm">
-                  <BarChart3 className="w-10 h-10" />
+              {/* ── 教研记录 Tab ── */}
+              {activeTab === "research" && (
+                <div className="space-y-6">
+
+                  {/* 顶部：教研活动总数 + 教研次数（复用 GlassCard 交互效果） */}
+                  {(() => {
+                    function ResearchGlassCard({ colSpan, title, actions, children }: { colSpan: string; title?: string; actions?: { Icon: React.ElementType; tip: string }[]; children: React.ReactNode }) {
+                      const ref = React.useRef<HTMLDivElement>(null);
+                      const [tilt, setTilt] = React.useState({ rx: 0, ry: 0, gx: 50, gy: 50, active: false });
+                      const [pressed, setPressed] = React.useState(false);
+                      const [ripples, setRipples] = React.useState<{ id: number; x: number; y: number }[]>([]);
+
+                      function onMove(e: React.MouseEvent<HTMLDivElement>) {
+                        const el = ref.current; if (!el) return;
+                        const rect = el.getBoundingClientRect();
+                        const x = (e.clientX - rect.left) / rect.width;
+                        const y = (e.clientY - rect.top)  / rect.height;
+                        setTilt({ rx: -(y - 0.5) * 10, ry: (x - 0.5) * 10, gx: x * 100, gy: y * 100, active: true });
+                      }
+                      function onLeave() { setTilt({ rx: 0, ry: 0, gx: 50, gy: 50, active: false }); setPressed(false); }
+                      function onMouseDown(e: React.MouseEvent<HTMLDivElement>) {
+                        setPressed(true);
+                        const el = ref.current; if (!el) return;
+                        const rect = el.getBoundingClientRect();
+                        const id = Date.now();
+                        setRipples(prev => [...prev, { id, x: e.clientX - rect.left, y: e.clientY - rect.top }]);
+                        setTimeout(() => setRipples(prev => prev.filter(r => r.id !== id)), 650);
+                      }
+                      function onMouseUp() { setPressed(false); }
+                      const scale = pressed ? 0.97 : tilt.active ? 1.02 : 1;
+
+                      return (
+                        <div ref={ref} onMouseMove={onMove} onMouseLeave={onLeave} onMouseDown={onMouseDown} onMouseUp={onMouseUp}
+                          className={`${colSpan} rounded-[28px] cursor-pointer select-none flex flex-col`}
+                          style={{
+                            background: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.4)",
+                            boxShadow: pressed ? "0 4px 8px rgba(0,0,0,0.08)" : tilt.active ? "0 20px 40px rgba(0,0,0,0.10)" : "none",
+                            transform: `perspective(900px) rotateX(${pressed ? 0 : tilt.rx}deg) rotateY(${pressed ? 0 : tilt.ry}deg) scale(${scale})`,
+                            transition: pressed ? "transform 0.06s ease-out, box-shadow 0.1s ease" : tilt.active ? "transform 0.08s ease-out, box-shadow 0.2s ease" : "transform 0.45s cubic-bezier(0.23,1,0.32,1), box-shadow 0.3s ease",
+                            position: "relative", willChange: "transform",
+                          }}
+                        >
+                          <div className="pointer-events-none absolute inset-0 rounded-[28px] overflow-hidden" style={{ zIndex: 0 }}>
+                            <div className="absolute inset-0" style={{ background: tilt.active && !pressed ? `radial-gradient(circle at ${tilt.gx}% ${tilt.gy}%, rgba(255,255,255,0.4) 0%, transparent 60%)` : "none", transition: "background 0.08s ease" }} />
+                            {ripples.map(r => (
+                              <span key={r.id} className="absolute rounded-full" style={{ width: 60, height: 60, left: r.x - 30, top: r.y - 30, background: "rgba(0,0,0,0.12)", animation: "researchRipple 0.6s cubic-bezier(0,0.5,0.5,1) forwards" }} />
+                            ))}
+                          </div>
+                          {title && (
+                            <div className="px-4 py-3 border-b border-gray-100/60 relative z-10 shrink-0">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <p className="text-sm font-bold text-gray-600 flex-1 min-w-0 truncate" title={title}>{title}</p>
+                                {actions && (
+                                  <div className="flex items-center gap-0.5 shrink-0 transition-all duration-200" style={{ opacity: tilt.active ? 1 : 0, pointerEvents: tilt.active ? "auto" : "none" }}>
+                                    {actions.map(({ Icon, tip }) => (
+                                      <div key={tip} className="relative group/tip">
+                                        <button onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()}
+                                          className="w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-black/[0.06] transition-colors">
+                                          <Icon size={12} />
+                                        </button>
+                                        <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 z-50">
+                                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-800/90" />
+                                          <div className="px-2 py-1 bg-gray-800/90 text-white text-xs font-medium rounded-md whitespace-nowrap">{tip}</div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          <div className="relative z-10 p-6 flex-1 flex flex-col">{children}</div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        {/* 教研活动总数 */}
+                        <ResearchGlassCard colSpan="lg:col-span-3" title="教研活动总数" actions={[{ Icon: Upload, tip: "导出" }, { Icon: Maximize2, tip: "放大" }]}>
+                          <div className="flex-1 flex items-center justify-center">
+                            <span className="font-black text-gray-900 leading-none" style={{ fontSize: 100 }}>0</span>
+                          </div>
+                        </ResearchGlassCard>
+
+                        {/* 教研次数折线图 */}
+                        <ResearchGlassCard colSpan="lg:col-span-9" title="教研次数" actions={[{ Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]}>
+                          <div className="flex-1 flex flex-col items-center justify-center gap-3">
+                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(0,0,0,0.03)" }}>
+                              <BarChart3 className="w-6 h-6 text-gray-300" />
+                            </div>
+                            <p className="text-sm text-gray-400">暂无数据</p>
+                          </div>
+                        </ResearchGlassCard>
+                      </div>
+                    );
+                  })()}
+
+                  {/* 中部：教研活动学科分布 + 教研活动趋势（GlassCard 交互） */}
+                  {(() => {
+                    function MidGlassCard({ title, actions, children }: { title: string; actions?: { Icon: React.ElementType; tip: string }[]; children: React.ReactNode }) {
+                      const ref = React.useRef<HTMLDivElement>(null);
+                      const [tilt, setTilt] = React.useState({ rx: 0, ry: 0, gx: 50, gy: 50, active: false });
+                      const [pressed, setPressed] = React.useState(false);
+                      const [ripples, setRipples] = React.useState<{ id: number; x: number; y: number }[]>([]);
+
+                      function onMove(e: React.MouseEvent<HTMLDivElement>) {
+                        const el = ref.current; if (!el) return;
+                        const rect = el.getBoundingClientRect();
+                        const x = (e.clientX - rect.left) / rect.width;
+                        const y = (e.clientY - rect.top) / rect.height;
+                        setTilt({ rx: -(y - 0.5) * 10, ry: (x - 0.5) * 10, gx: x * 100, gy: y * 100, active: true });
+                      }
+                      function onLeave() { setTilt({ rx: 0, ry: 0, gx: 50, gy: 50, active: false }); setPressed(false); }
+                      function onMouseDown(e: React.MouseEvent<HTMLDivElement>) {
+                        setPressed(true);
+                        const el = ref.current; if (!el) return;
+                        const rect = el.getBoundingClientRect();
+                        const id = Date.now();
+                        setRipples(prev => [...prev, { id, x: e.clientX - rect.left, y: e.clientY - rect.top }]);
+                        setTimeout(() => setRipples(prev => prev.filter(r => r.id !== id)), 650);
+                      }
+                      function onMouseUp() { setPressed(false); }
+                      const scale = pressed ? 0.97 : tilt.active ? 1.02 : 1;
+
+                      return (
+                        <div ref={ref} onMouseMove={onMove} onMouseLeave={onLeave} onMouseDown={onMouseDown} onMouseUp={onMouseUp}
+                          className="rounded-[28px] cursor-pointer select-none flex flex-col"
+                          style={{
+                            background: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.4)", minHeight: 240,
+                            boxShadow: pressed ? "0 4px 8px rgba(0,0,0,0.08)" : tilt.active ? "0 20px 40px rgba(0,0,0,0.10)" : "none",
+                            transform: `perspective(900px) rotateX(${pressed ? 0 : tilt.rx}deg) rotateY(${pressed ? 0 : tilt.ry}deg) scale(${scale})`,
+                            transition: pressed ? "transform 0.06s ease-out, box-shadow 0.1s ease" : tilt.active ? "transform 0.08s ease-out, box-shadow 0.2s ease" : "transform 0.45s cubic-bezier(0.23,1,0.32,1), box-shadow 0.3s ease",
+                            position: "relative", willChange: "transform",
+                          }}
+                        >
+                          <div className="pointer-events-none absolute inset-0 rounded-[28px] overflow-hidden" style={{ zIndex: 0 }}>
+                            <div className="absolute inset-0" style={{ background: tilt.active && !pressed ? `radial-gradient(circle at ${tilt.gx}% ${tilt.gy}%, rgba(255,255,255,0.4) 0%, transparent 60%)` : "none", transition: "background 0.08s ease" }} />
+                            {ripples.map(r => (
+                              <span key={r.id} className="absolute rounded-full" style={{ width: 60, height: 60, left: r.x - 30, top: r.y - 30, background: "rgba(0,0,0,0.12)", animation: "researchRipple 0.6s cubic-bezier(0,0.5,0.5,1) forwards" }} />
+                            ))}
+                          </div>
+                          <div className="relative z-10 p-6 h-full flex flex-col">
+                            <div className="flex items-center gap-2 min-w-0 mb-4">
+                              <p className="text-sm font-bold text-gray-600 flex-1 min-w-0 truncate" title={title}>{title}</p>
+                              {actions && (
+                                <div className="flex items-center gap-0.5 shrink-0 transition-all duration-200" style={{ opacity: tilt.active ? 1 : 0, pointerEvents: tilt.active ? "auto" : "none" }}>
+                                  {actions.map(({ Icon, tip }) => (
+                                    <div key={tip} className="relative group/tip">
+                                      <button onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()}
+                                        className="w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-black/[0.06] transition-colors">
+                                        <Icon size={12} />
+                                      </button>
+                                      <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 z-50">
+                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-800/90" />
+                                        <div className="px-2 py-1 bg-gray-800/90 text-white text-xs font-medium rounded-md whitespace-nowrap">{tip}</div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            {children}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <MidGlassCard title="教研活动学科分布" actions={[{ Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]}>
+                          <div className="flex-1 flex flex-col items-center justify-center gap-3">
+                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(0,0,0,0.03)" }}>
+                              <BarChart3 className="w-6 h-6 text-gray-300" />
+                            </div>
+                            <p className="text-sm text-gray-400">暂无数据</p>
+                          </div>
+                        </MidGlassCard>
+                        <MidGlassCard title="教研活动趋势" actions={[{ Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]}>
+                          <div className="flex-1 flex flex-col items-center justify-center gap-3">
+                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(0,0,0,0.03)" }}>
+                              <TrendingUp className="w-6 h-6 text-gray-300" />
+                            </div>
+                            <p className="text-sm text-gray-400">暂无数据</p>
+                          </div>
+                        </MidGlassCard>
+                      </div>
+                    );
+                  })()}
+
+
+
+                  {/* 底部：4 列统计卡片（复用 StatCardGroup） */}
+                  {(() => {
+                    const rippleStyle = `@keyframes researchRipple { 0% { transform: scale(0); opacity: 0.45; } 100% { transform: scale(4); opacity: 0; } }`;
+
+                    function ResearchStatCard({ title, selected, onSelect }: { title: string; selected: boolean; onSelect: () => void }) {
+                      const ref = React.useRef<HTMLDivElement>(null);
+                      const [tilt, setTilt] = React.useState({ rx: 0, ry: 0, gx: 50, gy: 50, active: false });
+                      const [pressed, setPressed] = React.useState(false);
+                      const [ripples, setRipples] = React.useState<{ id: number; x: number; y: number }[]>([]);
+
+                      function onMove(e: React.MouseEvent<HTMLDivElement>) {
+                        const el = ref.current; if (!el) return;
+                        const rect = el.getBoundingClientRect();
+                        const x = (e.clientX - rect.left) / rect.width;
+                        const y = (e.clientY - rect.top) / rect.height;
+                        setTilt({ rx: -(y - 0.5) * 14, ry: (x - 0.5) * 14, gx: x * 100, gy: y * 100, active: true });
+                      }
+                      function onLeave() { setTilt({ rx: 0, ry: 0, gx: 50, gy: 50, active: false }); setPressed(false); }
+                      function onMouseDown(e: React.MouseEvent<HTMLDivElement>) {
+                        setPressed(true);
+                        const el = ref.current; if (!el) return;
+                        const rect = el.getBoundingClientRect();
+                        const id = Date.now();
+                        setRipples(prev => [...prev, { id, x: e.clientX - rect.left, y: e.clientY - rect.top }]);
+                        setTimeout(() => setRipples(prev => prev.filter(r => r.id !== id)), 650);
+                      }
+                      function onMouseUp() { setPressed(false); onSelect(); }
+                      const scale = pressed ? 0.96 : tilt.active ? 1.03 : 1;
+
+                      return (
+                        <div ref={ref} onMouseMove={onMove} onMouseLeave={onLeave} onMouseDown={onMouseDown} onMouseUp={onMouseUp}
+                          className="rounded-[24px] flex flex-col cursor-pointer select-none"
+                          style={{
+                            background: "rgba(255,255,255,0.65)",
+                            border: selected ? "1px solid rgba(96,165,250,0.35)" : "1px solid rgba(255,255,255,0.4)",
+                            boxShadow: pressed ? `0 0 0 ${selected ? "4px" : "0px"} rgba(96,165,250,0.08), 0 4px 8px rgba(0,0,0,0.08)` : tilt.active ? `0 0 0 ${selected ? "4px" : "0px"} rgba(96,165,250,0.08), 0 20px 40px rgba(0,0,0,0.12)` : `0 0 0 ${selected ? "4px" : "0px"} rgba(96,165,250,0.08)`,
+                            minHeight: 320,
+                            transform: `perspective(800px) rotateX(${pressed ? 0 : tilt.rx}deg) rotateY(${pressed ? 0 : tilt.ry}deg) scale(${scale})`,
+                            transition: pressed ? "transform 0.06s ease-out, box-shadow 0.1s ease" : tilt.active ? "transform 0.08s ease-out, box-shadow 0.2s ease" : "transform 0.45s cubic-bezier(0.23,1,0.32,1), box-shadow 0.3s ease",
+                            position: "relative", willChange: "transform",
+                          }}
+                        >
+                          {/* 高光+波纹裁剪层 */}
+                          <div className="pointer-events-none absolute inset-0 rounded-[24px] overflow-hidden" style={{ zIndex: 0 }}>
+                            <div className="absolute inset-0" style={{ background: tilt.active && !pressed ? `radial-gradient(circle at ${tilt.gx}% ${tilt.gy}%, rgba(255,255,255,0.35) 0%, transparent 65%)` : "none", transition: "background 0.08s ease" }} />
+                            {ripples.map(r => (
+                              <span key={r.id} className="absolute rounded-full" style={{ width: 60, height: 60, left: r.x - 30, top: r.y - 30, background: selected ? "rgba(96,165,250,0.28)" : "rgba(0,0,0,0.12)", animation: "researchRipple 0.6s cubic-bezier(0,0.5,0.5,1) forwards" }} />
+                            ))}
+                          </div>
+                          {/* 标题 + hover 按钮 */}
+                          <div className="px-4 py-3 border-b border-gray-100/60 relative z-10">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <p className="text-sm font-bold text-gray-600 flex-1 min-w-0 truncate" title={title}>{title}</p>
+                              {/* hover 显示的操作图标组 */}
+                              <div className="flex items-center gap-0.5 shrink-0 transition-all duration-200"
+                                style={{ opacity: tilt.active ? 1 : 0, pointerEvents: tilt.active ? "auto" : "none" }}>
+                                {([{ Icon: Upload, tip: "导出" }, { Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }] as { Icon: React.ElementType; tip: string }[]).map(({ Icon, tip }) => (
+                                  <div key={tip} className="relative group/tip">
+                                    <button onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()}
+                                      className="w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-black/[0.06] transition-colors">
+                                      <Icon size={12} />
+                                    </button>
+                                    {/* Tooltip 向下弹出 */}
+                                    <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 z-50">
+                                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-800/90" />
+                                      <div className="px-2 py-1 bg-gray-800/90 text-white text-xs font-medium rounded-md whitespace-nowrap">{tip}</div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                          {/* 空数据区 */}
+                          <div className="flex-1 flex flex-col items-center justify-center gap-3 p-6 relative z-10">
+                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300" style={{ background: tilt.active ? "rgba(96,165,250,0.08)" : "rgba(0,0,0,0.03)" }}>
+                              <BarChart3 className={`w-6 h-6 transition-colors duration-300 ${tilt.active ? "text-blue-300" : "text-gray-300"}`} />
+                            </div>
+                            <p className="text-sm text-gray-400">暂无数据</p>
+                          </div>
+                          {/* 分页 */}
+                          <div className="px-4 py-3 border-t border-gray-100/60 flex items-center justify-center gap-1 relative z-10">
+                            {["⟪", "‹", null, "›", "⟫"].map((btn, i) => (
+                              btn === null
+                                ? <div key="page" className="flex items-center border border-gray-200 rounded px-2.5 h-7 mx-1 gap-1"><span className="text-xs text-gray-600">1</span><span className="text-gray-300 text-xs">/</span><span className="text-xs text-gray-600">1</span></div>
+                                : <button key={i} className="flex items-center justify-center w-7 h-7 border border-gray-200 rounded text-gray-400 hover:bg-gray-50 transition-colors text-xs font-mono">{btn}</button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    function ResearchStatGroup() {
+                      const [sel, setSel] = React.useState<string | null>(null);
+                      return (
+                        <>
+                          <style>{rippleStyle}</style>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                            {["每周学科教研次数", "每月学科教研次数", "学期学科教研次数", "教师参与次数"].map(title => (
+                              <ResearchStatCard key={title} title={title} selected={sel === title} onSelect={() => setSel(p => p === title ? null : title)} />
+                            ))}
+                          </div>
+                        </>
+                      );
+                    }
+
+                    return <ResearchStatGroup />;
+                  })()}
+
                 </div>
-                <div className="text-center">
-                  <p className="text-lg font-bold text-gray-500 group-hover:text-gray-900 transition-colors">点击深度解析数据</p>
-                  <p className="text-base text-gray-400 mt-1">系统将基于当前筛选条件生成 AI 分析图表</p>
+              )}
+
+
+              {/* ── 备课记录 Tab ── */}
+              {activeTab === "lesson" && (
+                <div className="space-y-6">
+                  {/* 顶部：总数 + 折线图（带鼠标交互效果） */}
+                  {(() => {
+                    // 通用毛玻璃交互卡片组件
+                    function GlassCard({ colSpan, children }: { colSpan: string; children: React.ReactNode }) {
+                      const ref = React.useRef<HTMLDivElement>(null);
+                      const [tilt, setTilt] = React.useState({ rx: 0, ry: 0, gx: 50, gy: 50, active: false });
+                      const [pressed, setPressed] = React.useState(false);
+                      const [ripples, setRipples] = React.useState<{ id: number; x: number; y: number }[]>([]);
+
+                      function onMove(e: React.MouseEvent<HTMLDivElement>) {
+                        const el = ref.current;
+                        if (!el) return;
+                        const rect = el.getBoundingClientRect();
+                        const x = (e.clientX - rect.left) / rect.width;
+                        const y = (e.clientY - rect.top)  / rect.height;
+                        setTilt({ rx: -(y - 0.5) * 10, ry: (x - 0.5) * 10, gx: x * 100, gy: y * 100, active: true });
+                      }
+                      function onLeave() { setTilt({ rx: 0, ry: 0, gx: 50, gy: 50, active: false }); setPressed(false); }
+                      function onMouseDown(e: React.MouseEvent<HTMLDivElement>) {
+                        setPressed(true);
+                        const el = ref.current;
+                        if (!el) return;
+                        const rect = el.getBoundingClientRect();
+                        const id = Date.now();
+                        setRipples(prev => [...prev, { id, x: e.clientX - rect.left, y: e.clientY - rect.top }]);
+                        setTimeout(() => setRipples(prev => prev.filter(r => r.id !== id)), 650);
+                      }
+                      function onMouseUp() { setPressed(false); }
+
+                      const scale = pressed ? 0.97 : tilt.active ? 1.02 : 1;
+
+                      return (
+                        <div
+                          ref={ref}
+                          onMouseMove={onMove}
+                          onMouseLeave={onLeave}
+                          onMouseDown={onMouseDown}
+                          onMouseUp={onMouseUp}
+                          className={`${colSpan} rounded-[28px] cursor-pointer select-none`}
+                          style={{
+                            background: "rgba(255,255,255,0.6)",
+                            border: "1px solid rgba(255,255,255,0.4)",
+                            boxShadow: pressed
+                              ? "0 4px 8px rgba(0,0,0,0.08)"
+                              : tilt.active
+                                ? "0 20px 40px rgba(0,0,0,0.10)"
+                                : "none",
+                            transform: `perspective(900px) rotateX(${pressed ? 0 : tilt.rx}deg) rotateY(${pressed ? 0 : tilt.ry}deg) scale(${scale})`,
+                            transition: pressed
+                              ? "transform 0.06s ease-out, box-shadow 0.1s ease"
+                              : tilt.active
+                                ? "transform 0.08s ease-out, box-shadow 0.2s ease"
+                                : "transform 0.45s cubic-bezier(0.23,1,0.32,1), box-shadow 0.3s ease",
+                            position: "relative",
+                            willChange: "transform",
+                          }}
+                        >
+                          {/* 高光+水波纹专属裁剪层 */}
+                          <div className="pointer-events-none absolute inset-0 rounded-[28px] overflow-hidden" style={{ zIndex: 0 }}>
+                            <div
+                              className="absolute inset-0"
+                              style={{
+                                background: tilt.active && !pressed
+                                  ? `radial-gradient(circle at ${tilt.gx}% ${tilt.gy}%, rgba(255,255,255,0.4) 0%, transparent 60%)`
+                                  : "none",
+                                transition: "background 0.08s ease",
+                              }}
+                            />
+                            {ripples.map(r => (
+                              <span key={r.id} className="absolute rounded-full"
+                                style={{
+                                  width: 80, height: 80,
+                                  left: r.x - 40, top: r.y - 40,
+                                  background: "rgba(96,165,250,0.15)",
+                                  animation: "statRipple 0.7s cubic-bezier(0,0.5,0.5,1) forwards",
+                                }}
+                              />
+                            ))}
+                          </div>
+                          {/* 内容 */}
+                          <div className="relative z-10 p-6 h-full flex flex-col">
+                            {children}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                        {/* 备课记录总数 */}
+                        <GlassCard colSpan="lg:col-span-3">
+                          <p className="text-sm font-bold text-gray-600 mb-6">备课记录总数</p>
+                          <div className="flex-1 flex items-center justify-center">
+                            <span className="font-black text-gray-900 leading-none" style={{ fontSize: 100 }}>90</span>
+                          </div>
+                        </GlassCard>
+
+                        {/* 备课活动次数折线图 */}
+                        <GlassCard colSpan="lg:col-span-9">
+                          <p className="text-sm font-bold text-gray-600 mb-4">备课活动次数</p>
+                          <div className="relative h-56">
+                            <svg viewBox="0 0 600 200" className="w-full h-full" preserveAspectRatio="none">
+                              <defs>
+                                <linearGradient id="lessonGrad" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.25" />
+                                  <stop offset="100%" stopColor="#60a5fa" stopOpacity="0" />
+                                </linearGradient>
+                              </defs>
+                              {[0,1,2,3,4].map(i => (
+                                <line key={i} x1="40" y1={20 + i * 38} x2="580" y2={20 + i * 38}
+                                  stroke="#e2e8f0" strokeWidth="1" strokeDasharray="5,5" />
+                              ))}
+                              {["50","40","30","20","10","0"].map((v, i) => (
+                                <text key={v} x="32" y={24 + i * 38} textAnchor="end" fontSize="11" fill="#94a3b8">{v}</text>
+                              ))}
+                              {(() => {
+                                const pts = [{ x: 100, v: 1 }, { x: 240, v: 8 }, { x: 380, v: 46 }, { x: 520, v: 35 }];
+                                const toY = (v: number) => 172 - (v / 50) * 152;
+                                const coords = pts.map(p => ({ x: p.x, y: toY(p.v), v: p.v }));
+                                const pathD = coords.map((c, i) => `${i === 0 ? "M" : "L"}${c.x},${c.y}`).join(" ");
+                                const areaD = `${pathD} L${coords[coords.length-1].x},172 L${coords[0].x},172 Z`;
+                                return (
+                                  <>
+                                    <path d={areaD} fill="url(#lessonGrad)" />
+                                    <path d={pathD} fill="none" stroke="#60a5fa" strokeWidth="2.5" strokeLinejoin="round" />
+                                    {coords.map((c, i) => (
+                                      <g key={i}>
+                                        <circle cx={c.x} cy={c.y} r="5" fill="white" stroke="#60a5fa" strokeWidth="2.5" />
+                                        <text x={c.x} y={c.y - 12} textAnchor="middle" fontSize="11" fontWeight="bold" fill="#475569">{c.v}</text>
+                                      </g>
+                                    ))}
+                                  </>
+                                );
+                              })()}
+                              {[
+                                { x: 100, label: "2025年12月" },
+                                { x: 240, label: "2026年02月" },
+                                { x: 380, label: "2026年03月" },
+                                { x: 520, label: "2026年04月" },
+                              ].map(m => (
+                                <text key={m.label} x={m.x} y={190} textAnchor="middle" fontSize="11" fill="#475569">{m.label}</text>
+                              ))}
+                            </svg>
+                          </div>
+                          <div className="flex items-center justify-center gap-2 mt-1">
+                            <span className="w-3 h-3 rounded-sm" style={{ background: "#60a5fa" }} />
+                            <span className="text-xs text-gray-400 font-medium">活动主题</span>
+                          </div>
+                        </GlassCard>
+
+                      </div>
+                    );
+                  })()}
+
+                  {/* 底部：4 列统计卡片 */}
+                  {(() => {
+                    // Ripple 动画 keyframe（注入一次）
+                    const rippleStyle = `@keyframes statRipple {
+                      0%   { transform: scale(0);   opacity: 0.45; }
+                      100% { transform: scale(4);   opacity: 0; }
+                    }`;
+
+                    function StatCard({ title, highlight, selected, onSelect }: {
+                      title: string; highlight?: boolean;
+                      selected: boolean; onSelect: () => void;
+                    }) {
+                      const ref = React.useRef<HTMLDivElement>(null);
+                      const [tilt, setTilt] = React.useState({ rx: 0, ry: 0, gx: 50, gy: 50, active: false });
+                      const [pressed, setPressed] = React.useState(false);
+                      const [ripples, setRipples] = React.useState<{ id: number; x: number; y: number }[]>([]);
+
+                      const isBlue = selected;   // 所有卡片统一：仅由 selected 决定蓝色边框
+
+                      function onMove(e: React.MouseEvent<HTMLDivElement>) {
+                        const el = ref.current;
+                        if (!el) return;
+                        const rect = el.getBoundingClientRect();
+                        const x = (e.clientX - rect.left) / rect.width;
+                        const y = (e.clientY - rect.top)  / rect.height;
+                        setTilt({ rx: -(y - 0.5) * 14, ry: (x - 0.5) * 14, gx: x * 100, gy: y * 100, active: true });
+                      }
+
+                      function onLeave() {
+                        setTilt({ rx: 0, ry: 0, gx: 50, gy: 50, active: false });
+                        setPressed(false);
+                      }
+
+                      function onMouseDown(e: React.MouseEvent<HTMLDivElement>) {
+                        setPressed(true);
+                        const el = ref.current;
+                        if (!el) return;
+                        const rect = el.getBoundingClientRect();
+                        const id = Date.now();
+                        setRipples(prev => [...prev, {
+                          id,
+                          x: e.clientX - rect.left,
+                          y: e.clientY - rect.top,
+                        }]);
+                        setTimeout(() => setRipples(prev => prev.filter(r => r.id !== id)), 650);
+                      }
+
+                      function onMouseUp() {
+                        setPressed(false);
+                        onSelect();   // 所有卡片统一触发，由 StatCardGroup 统一管理互斥
+                      }
+
+                      const scale = pressed ? 0.96 : tilt.active ? 1.03 : 1;
+
+                      return (
+                        <div
+                          ref={ref}
+                          onMouseMove={onMove}
+                          onMouseLeave={onLeave}
+                          onMouseDown={onMouseDown}
+                          onMouseUp={onMouseUp}
+                          className="rounded-[24px] flex flex-col cursor-pointer select-none"
+                          style={{
+                            background: "rgba(255,255,255,0.65)",
+                            border: isBlue ? "1px solid rgba(96,165,250,0.35)" : "1px solid rgba(255,255,255,0.4)",
+                            boxShadow: pressed
+                              ? `0 0 0 ${isBlue ? "4px" : "0px"} rgba(96,165,250,0.08), 0 4px 8px rgba(0,0,0,0.08)`
+                              : tilt.active
+                                ? `0 0 0 ${isBlue ? "4px" : "0px"} rgba(96,165,250,0.08), 0 20px 40px rgba(0,0,0,0.12)`
+                                : `0 0 0 ${isBlue ? "4px" : "0px"} rgba(96,165,250,0.08)`,
+                            minHeight: 320,
+                            transform: `perspective(800px) rotateX(${pressed ? 0 : tilt.rx}deg) rotateY(${pressed ? 0 : tilt.ry}deg) scale(${scale})`,
+                            transition: pressed
+                              ? "transform 0.06s ease-out, box-shadow 0.1s ease"
+                              : tilt.active
+                                ? "transform 0.08s ease-out, box-shadow 0.2s ease"
+                                : "transform 0.45s cubic-bezier(0.23,1,0.32,1), box-shadow 0.3s ease",
+                            position: "relative",
+                            willChange: "transform",
+                          }}
+                        >
+                          {/* 高光 + 水波纹专属裁剪层（overflow-hidden 只作用于此） */}
+                          <div className="pointer-events-none absolute inset-0 rounded-[24px] overflow-hidden" style={{ zIndex: 0 }}>
+                            {/* 鼠标跟随高光 */}
+                            <div
+                              className="absolute inset-0"
+                              style={{
+                                background: tilt.active && !pressed
+                                  ? `radial-gradient(circle at ${tilt.gx}% ${tilt.gy}%, rgba(255,255,255,0.35) 0%, transparent 65%)`
+                                  : "none",
+                                transition: "background 0.08s ease",
+                              }}
+                            />
+                            {/* 水波纹 */}
+                            {ripples.map(r => (
+                              <span
+                                key={r.id}
+                                className="absolute rounded-full"
+                                style={{
+                                  width: 60, height: 60,
+                                  left: r.x - 30, top: r.y - 30,
+                                  background: isBlue ? "rgba(96,165,250,0.28)" : "rgba(0,0,0,0.12)",
+                                  animation: "statRipple 0.6s cubic-bezier(0,0.5,0.5,1) forwards",
+                                }}
+                              />
+                            ))}
+                          </div>
+                          {/* 卡片标题 + hover 操作栏 */}
+                          <div className="px-4 py-3 border-b border-gray-100/60 relative z-10">
+                            <div className="flex items-center gap-2 min-w-0">
+                              {/* 标题：超出截断 */}
+                              <p className="text-sm font-bold text-gray-600 flex-1 min-w-0 truncate" title={title}>
+                                {title}
+                              </p>
+                              {/* hover 时显示的操作图标组 */}
+                              <div
+                                className="flex items-center gap-0.5 shrink-0 transition-all duration-200"
+                                style={{ opacity: tilt.active ? 1 : 0, pointerEvents: tilt.active ? "auto" : "none" }}
+                              >
+                                {([
+                                  { Icon: Upload,      tip: "导出" },
+                                  { Icon: RefreshCw,   tip: "刷新" },
+                                  { Icon: ArrowUpDown, tip: "排序" },
+                                  { Icon: Maximize2,   tip: "放大" },
+                                ] as { Icon: React.ElementType; tip: string }[]).map(({ Icon, tip }) => (
+                                  <div key={tip} className="relative group/tip">
+                                    <button
+                                      onClick={e => e.stopPropagation()}
+                                      onMouseDown={e => e.stopPropagation()}
+                                      onMouseUp={e => e.stopPropagation()}
+                                      className="w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-black/[0.06] transition-colors"
+                                    >
+                                      <Icon size={12} />
+                                    </button>
+                                    {/* 自定义 Tooltip — 向下弹出 */}
+                                    <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 z-50">
+                                      {/* 小箭头（尖尖朝上） */}
+                                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-800/90" />
+                                      <div className="px-2 py-1 bg-gray-800/90 text-white text-xs font-medium rounded-md whitespace-nowrap">
+                                        {tip}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                          {/* 空数据区 */}
+                          <div className="flex-1 flex flex-col items-center justify-center gap-3 p-6 relative z-10">
+                            <div
+                              className="w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300"
+                              style={{ background: tilt.active ? "rgba(96,165,250,0.08)" : "rgba(0,0,0,0.03)" }}
+                            >
+                              <BarChart3 className={`w-6 h-6 transition-colors duration-300 ${tilt.active ? "text-blue-300" : "text-gray-300"}`} />
+                            </div>
+                            <p className="text-sm text-gray-400">暂无数据</p>
+                          </div>
+                          {/* 分页 */}
+                          <div className="px-4 py-3 border-t border-gray-100/60 flex items-center justify-center gap-1 relative z-10">
+                            {["⟪", "‹", null, "›", "⟫"].map((btn, i) => (
+                              btn === null
+                                ? <div key="page" className="flex items-center border border-gray-200 rounded px-2.5 h-7 mx-1 gap-1">
+                                    <span className="text-xs text-gray-600">1</span>
+                                    <span className="text-gray-300 text-xs">/</span>
+                                    <span className="text-xs text-gray-600">1</span>
+                                  </div>
+                                : <button key={i} className="flex items-center justify-center w-7 h-7 border border-gray-200 rounded text-gray-400 hover:bg-gray-50 transition-colors text-xs font-mono">{btn}</button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // StatCardGroup：持有共享 selectedTitle，实现互斥选中
+                    function StatCardGroup() {
+                      const [selectedTitle, setSelectedTitle] = React.useState<string | null>(null);
+                      function handleSelect(title: string) {
+                        setSelectedTitle(prev => prev === title ? null : title);
+                      }
+                      return (
+                        <>
+                          <style>{rippleStyle}</style>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                            {[
+                              { title: "每周备课组备课次数" },
+                              { title: "每月备课组备课次数" },
+                              { title: "备课组备课次数" },
+                              { title: "备课教师参与次数" },
+                            ].map(({ title }) => (
+                              <StatCard
+                                key={title}
+                                title={title}
+                                highlight={undefined}
+                                selected={selectedTitle === title}
+                                onSelect={() => handleSelect(title)}
+                              />
+                            ))}
+                          </div>
+                        </>
+                      );
+                    }
+
+                    return <StatCardGroup />;
+                  })()}
+
+
                 </div>
-              </div>
+              )}
+
             </div>
+
           </section>
 
         </main>
-{/* 
+        {/* 
         <footer className="max-w-7xl mx-auto px-10 py-10 border-t border-gray-200/50 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs font-medium text-gray-400">© 2024 智慧教学教研管理系统 · macOS Edition</p>
           <div className="flex gap-6">
