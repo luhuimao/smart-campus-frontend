@@ -8,7 +8,6 @@ import { DatePicker } from "./ui/DatePicker";
 const teal = "#00b095";
 const focusStyle = { borderColor: teal, boxShadow: "0 0 0 4px rgba(0,176,149,0.1)" };
 const blurStyle  = { borderColor: "#e5e7eb", boxShadow: "none" };
-const inputCls   = "w-full bg-white border border-gray-200 rounded-[10px] px-3.5 py-2.5 text-sm outline-none transition-all";
 
 const SUBJECTS        = ["高中思想政治","高中数学","高中英语","高中历史","高中地理","高中物理","高中生物学","高中语文","高中俄语","日语","心理"];
 const RESEARCH_GROUPS = ["政治教研组","数学教研组","英语教研组","史地教研组","理化教研组","语文教研组","外语教研组","德育教研组"];
@@ -33,7 +32,7 @@ function Field({ label, required, hint, error, children }: {
 
 function Input({ placeholder = "", type = "text" }: { placeholder?: string; type?: string }) {
   return (
-    <input type={type} placeholder={placeholder} className={inputCls}
+    <input type={type} placeholder={placeholder} className="form-input"
       onFocus={e => Object.assign(e.currentTarget.style, focusStyle)}
       onBlur={e => Object.assign(e.currentTarget.style, blurStyle)}
     />
@@ -43,7 +42,7 @@ function Input({ placeholder = "", type = "text" }: { placeholder?: string; type
 function SelectField({ options }: { options: string[] }) {
   return (
     <div className="relative">
-      <select className={inputCls + " appearance-none pr-9"} defaultValue=""
+      <select className="form-input appearance-none pr-9" defaultValue=""
         onFocus={e => Object.assign(e.currentTarget.style, focusStyle)}
         onBlur={e => Object.assign(e.currentTarget.style, blurStyle)}
         style={{ color: "#1d1d1f" }}>
@@ -57,7 +56,7 @@ function SelectField({ options }: { options: string[] }) {
 
 function Textarea({ rows = 6 }: { rows?: number }) {
   return (
-    <textarea rows={rows} className={inputCls + " resize-none py-2.5"}
+    <textarea rows={rows} className="form-input resize-none"
       onFocus={e => Object.assign(e.currentTarget.style, focusStyle)}
       onBlur={e => Object.assign(e.currentTarget.style, blurStyle)}
     />
@@ -77,7 +76,7 @@ function WeekInput() {
   return (
     <div className="flex items-center gap-2">
       <span className="text-sm shrink-0 text-gray-500">第</span>
-      <input type="text" className={inputCls + " text-center flex-1"}
+      <input type="text" className="form-input text-center flex-1"
         onFocus={e => Object.assign(e.currentTarget.style, focusStyle)}
         onBlur={e => Object.assign(e.currentTarget.style, blurStyle)}
       />
@@ -112,7 +111,7 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
 
   return (
     <div className="flex flex-col h-full overflow-hidden"
-      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif', color: "#1d1d1f" }}>
+      style={{ color: "#1d1d1f" }}>
 
       <PageHeader
         centered
@@ -225,8 +224,7 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
       </div>
 
       {/* 底部固定按钮（左对齐） */}
-      <div className="shrink-0 flex gap-3 px-6 md:px-10 py-4"
-        style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderTop: "1px dashed #e5e7eb" }}>
+      <div className="form-footer shrink-0 flex gap-3 px-6 md:px-10 py-4">
         <button
           className="px-8 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:translate-y-px"
           style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}
@@ -234,7 +232,7 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
           提交
         </button>
         <button
-          className="px-8 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all">
+          className="btn-secondary">
           保存草稿
         </button>
       </div>

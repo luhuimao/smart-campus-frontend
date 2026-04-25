@@ -7,7 +7,6 @@ const teal = "#00b095";
 
 const focusStyle = { borderColor: teal, boxShadow: "0 0 0 4px rgba(0,176,149,0.1)" };
 const blurStyle  = { borderColor: "#e5e7eb", boxShadow: "none" };
-const inputCls   = "w-full bg-white border border-gray-200 rounded-[10px] px-3.5 py-2.5 text-sm outline-none transition-all";
 
 function Field({ label, required, children }: {
   label: string; required?: boolean; children: React.ReactNode;
@@ -28,7 +27,7 @@ function Input({ placeholder = "" }: { placeholder?: string }) {
     <input
       type="text"
       placeholder={placeholder}
-      className={inputCls}
+      className="form-input"
       onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
       onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
     />
@@ -39,7 +38,7 @@ function Select({ options }: { options: string[] }) {
   return (
     <div className="relative">
       <select
-        className={inputCls + " appearance-none"}
+        className="form-input appearance-none"
         onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
         onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
       >
@@ -56,7 +55,7 @@ function Textarea({ rows = 6, placeholder = "" }: { rows?: number; placeholder?:
     <textarea
       rows={rows}
       placeholder={placeholder}
-      className={inputCls + " resize-none placeholder:text-gray-300"}
+      className="form-input resize-none"
       style={{ height: "auto" }}
       onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
       onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
@@ -68,7 +67,7 @@ export function ScienceFestFormPage({ onMenuOpen }: { onMenuOpen?: () => void })
   return (
     <div
       className="flex flex-col h-full overflow-hidden"
-      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif', color: "#1d1d1f" }}
+      style={{ color: "#1d1d1f" }}
     >
       <PageHeader
         centered
@@ -123,7 +122,7 @@ export function ScienceFestFormPage({ onMenuOpen }: { onMenuOpen?: () => void })
                 <textarea
                   rows={10}
                   placeholder="例如：高一年级全体同学"
-                  className={inputCls + " resize-none placeholder:text-gray-300 h-full"}
+                  className="form-input resize-none h-full"
                   style={{ minHeight: 200 }}
                   onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
                   onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
@@ -173,7 +172,7 @@ export function ScienceFestFormPage({ onMenuOpen }: { onMenuOpen?: () => void })
               >
                 提交登记
               </button>
-              <button className="px-8 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all">
+              <button className="btn-secondary">
                 保存草稿
               </button>
             </div>

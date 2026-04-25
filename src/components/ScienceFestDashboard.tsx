@@ -93,7 +93,7 @@ export function ScienceFestDashboard({ onMenuOpen }: { onMenuOpen?: () => void }
   return (
     <div
       className="flex flex-col h-full overflow-hidden"
-      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif', color: "#1d1d1f" }}
+      style={{ color: "#1d1d1f" }}
     >
       <PageHeader
         breadcrumbs={[{ label: "教师组织参与的活动" }, { label: "科技节活动" }, { label: "科技节活动看板", active: true }]}

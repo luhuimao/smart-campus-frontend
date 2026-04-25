@@ -22,8 +22,11 @@ import { LearningAnalysisTablePage } from "@/components/LearningAnalysisTablePag
 import { LessonPrepAnalysisPage } from "@/components/LessonPrepAnalysisPage";
 import { ResearchActivityAnalysisPage } from "@/components/ResearchActivityAnalysisPage";
 import { ResearchActivityRecordPage } from "@/components/ResearchActivityRecordPage";
+import { ClassRankPage } from "@/components/ClassRankPage";
+import { CivilizedClassPage } from "@/components/CivilizedClassPage";
+import { CivilizedDormPage } from "@/components/CivilizedDormPage";
 
-export type PageKey = "research-dashboard" | "student-dashboard" | "teacher-cert" | "title-info" | "honor-title" | "award-record" | "paper" | "project" | "works" | "teacher-training" | "work-history" | "education" | "part-time" | "science-fest-dashboard" | "science-fest-form" | "lesson-prep-record" | "learning-analysis-table" | "lesson-prep-analysis" | "research-activity-analysis" | "research-activity-record";
+export type PageKey = "research-dashboard" | "student-dashboard" | "teacher-cert" | "title-info" | "honor-title" | "award-record" | "paper" | "project" | "works" | "teacher-training" | "work-history" | "education" | "part-time" | "class-rank" | "civilized-class" | "civilized-dorm" | "science-fest-dashboard" | "science-fest-form" | "lesson-prep-record" | "learning-analysis-table" | "lesson-prep-analysis" | "research-activity-analysis" | "research-activity-record";
 
 export default function Home() {
   const [activePage, setActivePage] = useState<PageKey>("research-dashboard");
@@ -62,6 +65,9 @@ export default function Home() {
         {activePage === "work-history"            && <WorkHistoryPage onMenuOpen={onMenuOpen} />}
         {activePage === "education"               && <EducationPage onMenuOpen={onMenuOpen} />}
         {activePage === "part-time"               && <PartTimePage onMenuOpen={onMenuOpen} />}
+        {activePage === "class-rank"              && <ClassRankPage onMenuOpen={onMenuOpen} />}
+        {activePage === "civilized-class"         && <CivilizedClassPage onMenuOpen={onMenuOpen} />}
+        {activePage === "civilized-dorm"          && <CivilizedDormPage onMenuOpen={onMenuOpen} />}
         {activePage === "science-fest-dashboard"  && <ScienceFestDashboard onMenuOpen={onMenuOpen} />}
         {activePage === "science-fest-form"       && <ScienceFestFormPage onMenuOpen={onMenuOpen} />}
         {activePage === "lesson-prep-record"      && <LessonPrepRecordPage onMenuOpen={onMenuOpen} />}

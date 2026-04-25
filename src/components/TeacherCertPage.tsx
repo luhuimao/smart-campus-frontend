@@ -6,7 +6,6 @@ import { PageHeader, FlowButton } from "./PageHeader";
 
 const teal = "#00b095";
 
-const inputCls = "w-full bg-white border border-gray-200 rounded-[10px] px-3.5 py-2.5 text-sm outline-none transition-all";
 const focusStyle = { borderColor: teal, boxShadow: "0 0 0 4px rgba(0,176,149,0.1)" };
 const blurStyle  = { borderColor: "#e5e7eb", boxShadow: "none" };
 
@@ -30,7 +29,7 @@ function Input({ placeholder = "" }: { placeholder?: string }) {
     <input
       type="text"
       placeholder={placeholder}
-      className={inputCls}
+      className="form-input"
       onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
       onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
     />
@@ -44,7 +43,7 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   return (
     <div
       className="flex flex-col h-full overflow-hidden"
-      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif', color: "#1d1d1f" }}
+      style={{ color: "#1d1d1f" }}
     >
       <PageHeader
         centered
@@ -63,7 +62,7 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
               <div className="absolute h-px inset-x-2.5 -top-px opacity-40" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} />
             </div>
             <div
-              className="flex items-center gap-3 px-12 py-2 text-white text-sm font-semibold tracking-[0.2em]"
+              className="flex items-center gap-3 px-12 py-2 text-white text-base font-semibold tracking-[0.2em]"
               style={{ backgroundColor: teal, clipPath: "polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%)", boxShadow: "0 4px 12px rgba(0,176,149,0.2)" }}
             >
               <span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" />
@@ -182,14 +181,14 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                 <div className="px-2 py-2 bg-white border-b border-r border-gray-100">
                   <input
                     type="text"
-                    className="w-full bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs outline-none transition-all"
+                    className="table-input"
                     onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
                     onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
                   />
                 </div>
                 <div className="px-2 py-2 bg-white border-b border-r border-gray-100">
                   <select
-                    className="w-full bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs outline-none appearance-none"
+                    className="table-input appearance-none"
                     onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
                     onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
                   >
@@ -202,7 +201,7 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                 </div>
                 <div className="px-2 py-2 bg-white border-b border-r border-gray-100">
                   <select
-                    className="w-full bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs outline-none appearance-none"
+                    className="table-input appearance-none"
                     onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
                     onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
                   >
@@ -229,10 +228,10 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
 
               {/* Add / Quick fill */}
               <div className="flex items-center gap-8 mt-5">
-                <button className="flex items-center gap-1.5 text-sm font-bold transition-colors" style={{ color: teal }}>
+                <button className="flex items-center gap-1.5 text-base font-bold transition-colors" style={{ color: teal }}>
                   <Plus className="w-4 h-4" /> 添加
                 </button>
-                <button className="flex items-center gap-1.5 text-sm font-bold transition-colors" style={{ color: teal }}>
+                <button className="flex items-center gap-1.5 text-base font-bold transition-colors" style={{ color: teal }}>
                   <ClipboardList className="w-4 h-4" /> 快速填报
                 </button>
               </div>
@@ -245,18 +244,17 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
 
       {/* Fixed footer */}
       <div
-        className="shrink-0 flex gap-3 px-10 py-4"
-        style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderTop: "1px dashed #e5e7eb" }}
+        className="form-footer shrink-0 flex gap-3 px-10 py-4"
       >
         <button
-          className="px-8 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:translate-y-px"
+          className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px"
           style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}
           onClick={() => setSubmitted(true)}
         >
           提交
         </button>
         <button
-          className="px-8 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all"
+          className="btn-secondary"
         >
           保存草稿
         </button>

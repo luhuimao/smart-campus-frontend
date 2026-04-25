@@ -51,7 +51,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   return (
     <div
       className="flex flex-col h-full overflow-hidden"
-      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif', color: "#1d1d1f" }}
+      style={{ color: "#1d1d1f" }}
     >
       {/* Top Nav */}
       <header

@@ -1,155 +1,113 @@
-# AI Website Cloner Template
+# 智慧教学管理系统
 
-<a href="https://github.com/JCodesMore/ai-website-cloner-template/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License" /></a> <a href="https://github.com/JCodesMore/ai-website-cloner-template/stargazers"><img src="https://img.shields.io/github/stars/JCodesMore/ai-website-cloner-template?style=flat" alt="Stars" /></a> <a href="https://discord.gg/hrTSX5yTpB"><img src="https://img.shields.io/discord/1400896964597383279?label=discord" alt="Discord" /></a>
+一个基于 Next.js 16 构建的教学管理系统前端，包含「一师一案」与「一生一案」两大模块，提供教科研数据看板、教师档案管理、学生档案管理等功能。
 
-A reusable template for reverse-engineering any website into a clean, modern Next.js codebase using AI coding agents. 
+---
 
-**Recommended: [Claude Code](https://docs.anthropic.com/en/docs/claude-code) with Opus 4.6 for best results** — but works with a variety of AI coding agents.
+## 技术栈
 
-Point it at a URL, run `/clone-website`, and your AI agent will inspect the site, extract design tokens and assets, write component specs, and dispatch parallel builders to reconstruct every section.
+| 层级 | 技术 |
+|------|------|
+| 框架 | [Next.js 16](https://nextjs.org/) · App Router · React 19 |
+| 语言 | TypeScript 5（strict 模式） |
+| UI 组件 | [shadcn/ui](https://ui.shadcn.com/)（Radix 原语） |
+| 样式 | [Tailwind CSS v4](https://tailwindcss.com/) + oklch 设计 token |
+| 图标 | [Lucide React](https://lucide.dev/) |
+| 动画 | tw-animate-css · CSS keyframe |
+| 运行时 | Node.js ≥ 24 |
+| 部署 | Vercel |
 
-## Demo
+---
 
-[![Watch the demo](docs/design-references/comparison.png)](https://youtu.be/O669pVZ_qr0)
-
-> Click the image above to watch the full demo on YouTube.
-
-## Quick Start
-
-1. **Clone this repository**
-   ```bash
-   git clone https://github.com/JCodesMore/ai-website-cloner-template.git my-clone
-   cd my-clone
-   ```
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-3. **Start your AI agent** — Claude Code recommended:
-   ```bash
-   claude --chrome
-   ```
-4. **Run the skill**:
-   ```
-   /clone-website <target-url1> [<target-url2> ...]
-   ```
-5. **Customize** (optional) — after the base clone is built, modify as needed
-
-> Using a different agent? Open `AGENTS.md` for project instructions — most agents pick it up automatically.
-
-## Supported Platforms
-
-| Agent                                                         | Status                     |
-| ------------------------------------------------------------- | -------------------------- |
-| [Claude Code](https://docs.anthropic.com/en/docs/claude-code) | **Recommended** — Opus 4.6 |
-| [Codex CLI](https://github.com/openai/codex)                  | Supported                  |
-| [OpenCode](https://opencode.ai/)                              | Supported                  |
-| [GitHub Copilot](https://github.com/features/copilot)         | Supported                  |
-| [Cursor](https://cursor.com/)                                 | Supported                  |
-| [Windsurf](https://codeium.com/windsurf)                      | Supported                  |
-| [Gemini CLI](https://github.com/google-gemini/gemini-cli)     | Supported                  |
-| [Cline](https://github.com/cline/cline)                       | Supported                  |
-| [Roo Code](https://github.com/RooCodeInc/Roo-Code)            | Supported                  |
-| [Continue](https://continue.dev/)                             | Supported                  |
-| [Amazon Q](https://aws.amazon.com/q/developer/)               | Supported                  |
-| [Augment Code](https://www.augmentcode.com/)                  | Supported                  |
-| [Aider](https://aider.chat/)                                  | Supported                  |
-
-## Prerequisites
-
-- [Node.js](https://nodejs.org/) 24+
-- An AI coding agent (see [Supported Platforms](#supported-platforms))
-
-## Tech Stack
-
-- **Next.js 16** — App Router, React 19, TypeScript strict
-- **shadcn/ui** — Radix primitives + Tailwind CSS v4
-- **Tailwind CSS v4** — oklch design tokens
-- **Lucide React** — default icons (replaced by extracted SVGs during cloning)
-
-## How It Works
-
-The `/clone-website` skill runs a multi-phase pipeline:
-
-1. **Reconnaissance** — screenshots, design token extraction, interaction sweep (scroll, click, hover, responsive)
-2. **Foundation** — updates fonts, colors, globals, downloads all assets
-3. **Component Specs** — writes detailed spec files (`docs/research/components/`) with exact computed CSS values, states, behaviors, and content
-4. **Parallel Build** — dispatches builder agents in git worktrees, one per section/component
-5. **Assembly & QA** — merges worktrees, wires up the page, runs visual diff against the original
-
-Each builder agent receives the full component specification inline — exact `getComputedStyle()` values, interaction models, multi-state content, responsive breakpoints, and asset paths. No guessing.
-
-## Use Cases
-
-- **Platform migration** — rebuild a site you own from WordPress/Webflow/Squarespace into a modern Next.js codebase
-- **Lost source code** — your site is live but the repo is gone, the developer left, or the stack is legacy. Get the code back in a modern format
-- **Learning** — deconstruct how production sites achieve specific layouts, animations, and responsive behavior by working with real code
-
-## Not Intended For
-
-- **Phishing or impersonation** — this project must not be used for deceptive purposes, impersonation, or any activity that breaks the law.
-- **Passing off someone's design as your own** — logos, brand assets, and original copy belong to their owners.
-- **Violating terms of service** — some sites explicitly prohibit scraping or reproduction. Check first.
-
-## Project Structure
+## 项目结构
 
 ```
 src/
-  app/              # Next.js routes
-  components/       # React components
-    ui/             # shadcn/ui primitives
-    icons.tsx       # Extracted SVG icons
-  lib/utils.ts      # cn() utility
-  types/            # TypeScript interfaces
-  hooks/            # Custom React hooks
+  app/
+    globals.css            # 全局样式、自定义动画
+    layout.tsx             # 根布局
+    page.tsx               # 首页入口
+  components/
+    Sidebar.tsx            # 左侧多级菜单栏（支持动态联动）
+    ResearchDashboard.tsx  # 右侧教科研数据看板
+    ui/                    # shadcn/ui 基础组件
+  lib/
+    utils.ts               # cn() 工具函数
+  types/
+    dashboard.ts           # TypeScript 接口定义
 public/
-  images/           # Downloaded images from target
-  videos/           # Downloaded videos from target
-  seo/              # Favicons, OG images
+  images/                  # 静态图片资源
 docs/
-  research/         # Extraction output & component specs
-  design-references/ # Screenshots
-scripts/
-  sync-agent-rules.sh  # Regenerate agent instruction files
-  sync-skills.mjs      # Regenerate /clone-website for all platforms
-AGENTS.md           # Agent instructions (single source of truth)
-CLAUDE.md           # Claude Code config (imports AGENTS.md)
-GEMINI.md           # Gemini CLI config (imports AGENTS.md)
+  research/                # 设计研究文档
+scripts/                   # 资源下载脚本
 ```
 
-## Commands
+---
+
+## 功能模块
+
+### 一师一案（教师端）
+- 首页
+- 师资培养档案（教师资格证、职称信息、荣誉称号等 11 项）
+- 教科研看板
+- 教师评价（班级排名、文明班级、文明宿舍）
+- 教师基础档案
+- 备课活动
+- 教师组织参与的活动
+- 星级教师、星级班主任
+
+### 一生一案（学生端）
+- 首页 · 学生管理看板 · 宿舍考勤看板
+- 学生档案（学生花名册）
+- 学生成长（谈心谈话、获奖记录、好人好事、体质检测、干部风采）
+- 学生管理（返校登记、退转休学、转科申请、NFC 宿舍考勤）
+- 学生活动
+- 学情分析（学生成绩、统计表、分析表）
+- 基础数据（科目、选考科目、学期、年级）
+
+---
+
+## 快速开始
 
 ```bash
-npm run dev    # Start dev server
-npm run build  # Production build
-npm run lint   # ESLint check
-npm run typecheck # TypeScript check
-npm run check  # Run lint + typecheck + build
+# 安装依赖
+npm install
+
+# 启动开发服务器
+npm run dev
+
+# 生产构建
+npm run build
+
+# 代码检查
+npm run check
 ```
 
-### If using docker
+开发服务器默认运行在 [http://localhost:3000](http://localhost:3000)。
 
-```bash
-docker compose up app --build # build and run the app
-docker compose up dev --build # run the app in dev mode on port 3001
-```
+---
 
-## Updating for Other Platforms
+## 设计规范
 
-Two source-of-truth files power all platform support. Edit the source, then run the sync script:
+- **视觉风格**：macOS 毛玻璃风格，`backdrop-filter: blur(20px)`，白色半透明卡片
+- **字体**：`-apple-system, BlinkMacSystemFont, "SF Pro Text"` 系统字体栈
+- **主色**：蓝色 `#3b82f6`（一师一案）· 紫色 `#8b5cf6`（一生一案）· 绿色 `#10b981`（激活态）
+- **间距**：4px 基准网格
+- **圆角**：菜单项 `12px`，卡片 `24px ~ 40px`
+- **响应式**：移动优先，Tailwind 断点 `sm / md / lg`
 
-| What                   | Source of truth                         | Sync command                       |
-| ---------------------- | --------------------------------------- | ---------------------------------- |
-| Project instructions   | `AGENTS.md`                             | `bash scripts/sync-agent-rules.sh` |
-| `/clone-website` skill | `.claude/skills/clone-website/SKILL.md` | `node scripts/sync-skills.mjs`     |
+---
 
-Each script regenerates the platform-specific copies automatically. Agents that read the source files natively need no regeneration.
+## 开发规范
 
+- TypeScript strict 模式，禁止 `any`
+- 组件使用命名导出 + PascalCase
+- 工具函数使用 camelCase
+- 样式优先使用 Tailwind 工具类，复杂动画写入 `globals.css`
+- 不写无意义注释，不引入超出需求的抽象
 
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=JCodesMore/ai-website-cloner-template&type=Date)](https://star-history.com/#JCodesMore/ai-website-cloner-template&Date)
+---
 
 ## License
 
-MIT
+MIT © JCodesMore

@@ -8,7 +8,6 @@ const teal = "#00b095";
 
 const focusStyle = { borderColor: teal, boxShadow: "0 0 0 4px rgba(0,176,149,0.1)" };
 const blurStyle  = { borderColor: "#e5e7eb", boxShadow: "none" };
-const inputCls   = "w-full bg-white border border-gray-200 rounded-[10px] px-3.5 py-2.5 text-sm outline-none transition-all";
 
 function Field({ label, required, hint, children }: {
   label: string; required?: boolean; hint?: string; children: React.ReactNode;
@@ -30,7 +29,7 @@ function Input({ placeholder = "" }: { placeholder?: string }) {
     <input
       type="text"
       placeholder={placeholder}
-      className={inputCls}
+      className="form-input"
       onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
       onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
     />
@@ -42,7 +41,7 @@ function CellInput({ placeholder = "" }: { placeholder?: string }) {
     <input
       type="text"
       placeholder={placeholder}
-      className="w-full bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs outline-none transition-all placeholder:text-gray-300"
+      className="table-input"
       onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
       onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
     />
@@ -74,7 +73,7 @@ export function ProjectPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   return (
     <div
       className="flex flex-col h-full overflow-hidden"
-      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif', color: "#1d1d1f" }}
+      style={{ color: "#1d1d1f" }}
     >
       <PageHeader
         centered
@@ -233,8 +232,7 @@ export function ProjectPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
 
       {/* Fixed footer */}
       <div
-        className="shrink-0 flex gap-3 px-10 py-4"
-        style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderTop: "1px dashed #e5e7eb" }}
+        className="form-footer shrink-0 flex gap-3 px-10 py-4"
       >
         <button
           className="px-8 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:translate-y-px"
@@ -242,7 +240,7 @@ export function ProjectPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
         >
           提交
         </button>
-        <button className="px-8 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all">
+        <button className="btn-secondary">
           保存草稿
         </button>
       </div>

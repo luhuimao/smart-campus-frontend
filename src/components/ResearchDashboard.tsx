@@ -95,9 +95,9 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
               style={{ backgroundImage: "radial-gradient(#ffffff 1px, transparent 1px)", backgroundSize: "32px 32px" }}
             />
             <div className="relative z-10 text-center space-y-3">
-              <div className="inline-block px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-bold uppercase tracking-[0.2em] border border-blue-500/30 mb-2">
+              {/* <div className="inline-block px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-bold uppercase tracking-[0.2em] border border-blue-500/30 mb-2">
                 Research &amp; Teaching Analytics
-              </div>
+              </div> */}
               <h2
                 className="text-4xl md:text-5xl font-black text-white tracking-widest"
                 style={{ textShadow: "0 0 30px rgba(0,113,227,0.6)" }}
@@ -118,7 +118,7 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
             <div className="flex items-center mb-8">
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-4 bg-blue-500 rounded-full" />
-                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest">快捷入口</h3>
+                <h3 className="text-lg font-bold text-gray-500 uppercase tracking-widest">快捷入口</h3>
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
@@ -127,7 +127,7 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                   <div className={`w-16 h-16 ${bg} rounded-[24px] flex items-center justify-center ${color} ${hover} group-hover:text-white transition-all duration-300 shadow-sm apple-hover`}>
                     <Icon className="w-7 h-7" />
                   </div>
-                  <span className="text-xs font-bold text-gray-600">{label}</span>
+                  <span className="text-base font-bold text-gray-600">{label}</span>
                 </div>
               ))}
             </div>
@@ -137,9 +137,9 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
             {filters.map(({ label, options }) => (
               <div key={label} className="p-5 rounded-[24px] apple-hover border border-white/60" style={glass}>
-                <p className="text-[10px] font-black text-gray-400 uppercase mb-3 tracking-widest">{label}</p>
+                <p className="text-sm font-black text-gray-400 uppercase mb-3 tracking-widest">{label}</p>
                 <select
-                  className="w-full appearance-none bg-white/40 border-none rounded-xl px-4 py-2.5 text-sm font-bold outline-none cursor-pointer"
+                  className="w-full appearance-none bg-white/40 border-none rounded-xl px-4 py-2.5 text-base font-bold outline-none cursor-pointer"
                   style={{
                     backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")",
                     backgroundRepeat: "no-repeat",
@@ -158,13 +158,13 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
             <div className="flex items-center px-10 pt-8 border-b border-gray-100/50">
               <div className="flex gap-4">
                 <button
-                  className={`pb-4 px-4 text-sm font-bold${activeTab === "research" ? " macos-tab-active" : " text-gray-400 hover:text-gray-600 transition-colors"}`}
+                  className={`pb-4 px-4 text-lg font-bold${activeTab === "research" ? " macos-tab-active" : " text-gray-400 hover:text-gray-600 transition-colors"}`}
                   onClick={() => setActiveTab("research")}
                 >
                   教研记录汇总
                 </button>
                 <button
-                  className={`pb-4 px-4 text-sm font-bold${activeTab === "lesson" ? " macos-tab-active" : " text-gray-400 hover:text-gray-600 transition-colors"}`}
+                  className={`pb-4 px-4 text-lg font-bold${activeTab === "lesson" ? " macos-tab-active" : " text-gray-400 hover:text-gray-600 transition-colors"}`}
                   onClick={() => setActiveTab("lesson")}
                 >
                   备课活动周报
@@ -174,7 +174,7 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                 <button className="p-2.5 hover:bg-gray-100 rounded-2xl transition-colors shadow-sm bg-white/50">
                   <Share2 className="w-4 h-4 text-gray-500" />
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-600 transition-colors">
+                <button className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-2xl text-base font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-600 transition-colors">
                   <Download className="w-4 h-4" /> 导出报表
                 </button>
               </div>
@@ -183,17 +183,17 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
             <div className="p-10 flex-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
                 <div className="space-y-1">
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">教研活动总数</p>
+                  <p className="text-sm font-black text-gray-400 uppercase tracking-[0.15em]">教研活动总数</p>
                   <div className="flex items-baseline gap-3">
                     <span className="text-6xl font-black text-gray-900">128</span>
-                    <span className="text-xs font-bold text-emerald-500">+12%</span>
+                    <span className="text-sm font-bold text-emerald-500">+12%</span>
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">累计教研时长</p>
+                  <p className="text-sm font-black text-gray-400 uppercase tracking-[0.15em]">累计教研时长</p>
                   <div className="flex items-baseline gap-3">
                     <span className="text-6xl font-black text-gray-900">342<small className="text-xl">h</small></span>
-                    <span className="text-xs font-bold text-blue-500">达标</span>
+                    <span className="text-sm font-bold text-blue-500">达标</span>
                   </div>
                 </div>
               </div>
@@ -203,8 +203,8 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                   <BarChart3 className="w-10 h-10" />
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-bold text-gray-500 group-hover:text-gray-900 transition-colors">点击深度解析数据</p>
-                  <p className="text-xs text-gray-400 mt-1">系统将基于当前筛选条件生成 AI 分析图表</p>
+                  <p className="text-lg font-bold text-gray-500 group-hover:text-gray-900 transition-colors">点击深度解析数据</p>
+                  <p className="text-base text-gray-400 mt-1">系统将基于当前筛选条件生成 AI 分析图表</p>
                 </div>
               </div>
             </div>

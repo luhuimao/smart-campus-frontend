@@ -3,11 +3,10 @@
 import { Bell, ChevronDown, ChevronRight, Calendar, Plus, Menu } from "lucide-react";
 import { PageHeader, FlowButton } from "./PageHeader";
 
-const blue = "#2563eb";
+const teal = "#00b095";
 
-const focusStyle = { borderColor: blue, boxShadow: "0 0 0 4px rgba(37,99,235,0.1)" };
+const focusStyle = { borderColor: teal, boxShadow: "0 0 0 4px rgba(0,176,149,0.1)" };
 const blurStyle  = { borderColor: "#e5e7eb", boxShadow: "none" };
-const inputCls   = "w-full bg-white border border-gray-200 rounded-[10px] px-3.5 py-2.5 text-sm outline-none transition-all";
 
 function Field({ label, required, full, children }: {
   label: string; required?: boolean; full?: boolean; children: React.ReactNode;
@@ -28,7 +27,7 @@ function Input({ placeholder = "" }: { placeholder?: string }) {
     <input
       type="text"
       placeholder={placeholder}
-      className={inputCls}
+      className="form-input"
       onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
       onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
     />
@@ -48,7 +47,7 @@ function Select({ options }: { options: string[] }) {
   return (
     <div className="relative">
       <select
-        className={inputCls + " appearance-none"}
+        className="form-input appearance-none"
         onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
         onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
       >
@@ -64,7 +63,7 @@ export function TeacherTrainingPage({ onMenuOpen }: { onMenuOpen?: () => void })
   return (
     <div
       className="flex flex-col h-full overflow-hidden"
-      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif', color: "#1d1d1f" }}
+      style={{ color: "#1d1d1f" }}
     >
       <PageHeader
         centered
@@ -79,16 +78,16 @@ export function TeacherTrainingPage({ onMenuOpen }: { onMenuOpen?: () => void })
 
           {/* Decorative title — blue theme */}
           <div className="flex items-center justify-center gap-5 mb-12">
-            <div className="h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${blue}, transparent)` }} />
+            <div className="h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} />
             <div
               className="flex items-center gap-3 px-12 py-2 text-white text-sm font-semibold tracking-[0.2em]"
-              style={{ backgroundColor: blue, clipPath: "polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%)", boxShadow: "0 4px 12px rgba(37,99,235,0.2)" }}
+              style={{ backgroundColor: teal, clipPath: "polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%)", boxShadow: "0 4px 12px rgba(0,176,149,0.2)" }}
             >
               <span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" />
               培训信息
               <span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" />
             </div>
-            <div className="h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${blue}, transparent)` }} />
+            <div className="h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} />
           </div>
 
           {/* Form card */}
@@ -121,7 +120,7 @@ export function TeacherTrainingPage({ onMenuOpen }: { onMenuOpen?: () => void })
               </Field>
               <Field label="参训人员" required>
                 <button
-                  className="w-full border border-dashed border-gray-300 bg-white rounded-[10px] px-3.5 py-2.5 flex items-center justify-center gap-1.5 text-sm text-gray-500 transition-all hover:border-blue-400 hover:text-blue-600"
+                  className="w-full border border-dashed border-gray-300 bg-white rounded-[10px] px-3.5 py-2.5 flex items-center justify-center gap-1.5 text-sm text-gray-500 transition-all hover:border-teal-400 hover:text-teal-600"
                   style={{ minHeight: 44 }}
                 >
                   <Plus className="w-4 h-4 opacity-60" /> 选择成员
@@ -144,7 +143,7 @@ export function TeacherTrainingPage({ onMenuOpen }: { onMenuOpen?: () => void })
               <Field label="备注" full>
                 <textarea
                   rows={5}
-                  className="w-full bg-white border border-gray-200 rounded-[10px] px-3.5 py-2.5 text-sm outline-none transition-all resize-none"
+                  className="form-input resize-none"
                   onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
                   onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
                 />
@@ -156,16 +155,15 @@ export function TeacherTrainingPage({ onMenuOpen }: { onMenuOpen?: () => void })
 
       {/* Fixed footer */}
       <div
-        className="shrink-0 flex gap-3 px-10 py-4"
-        style={{ background: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderTop: "1px dashed #e5e7eb" }}
+        className="form-footer shrink-0 flex gap-3 px-10 py-4"
       >
         <button
           className="px-8 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:translate-y-px"
-          style={{ backgroundColor: blue, boxShadow: "0 4px 12px rgba(37,99,235,0.15)" }}
+          style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}
         >
           提交
         </button>
-        <button className="px-8 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all">
+        <button className="btn-secondary">
           保存草稿
         </button>
       </div>

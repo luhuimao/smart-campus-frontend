@@ -194,3 +194,93 @@ nextjs-portal {
     overflow: hidden;
   }
 }
+
+/* ── Shared UI Classes ─────────────────────────────────────────── */
+
+/* macOS 毛玻璃卡片面 */
+.glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 24px;
+}
+
+/* 顶部导航栏：height 64px + glass + z-index 10 */
+.page-header {
+  height: 64px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  z-index: 10;
+}
+
+/* 标准表单输入框 / 下拉 / 文本域 */
+.form-input {
+  width: 100%;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #111827;
+  outline: none;
+  transition: all 0.15s;
+}
+.form-input::placeholder {
+  color: #9ca3af;
+}
+
+/* 表格内紧凑输入框 */
+.table-input {
+  width: 100%;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #111827;
+  outline: none;
+  transition: all 0.15s;
+}
+.table-input::placeholder {
+  color: #9ca3af;
+}
+
+/* 表单底部操作栏：glass + border-top dashed */
+.form-footer {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px dashed rgba(0, 0, 0, 0.08);
+}
+
+/* 取消 / 次要操作按钮 */
+.btn-secondary {
+  padding: 10px 32px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  background: white;
+  border: 1px solid #e5e7eb;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+.btn-secondary:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+.btn-secondary:active {
+  transform: translateY(1px);
+}
+
+/* 大写字段标签（10px bold gray uppercase） */
+.field-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

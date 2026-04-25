@@ -5,19 +5,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PageHeader } from "./PageHeader";
 import { DatePicker, DateRangePicker } from "./ui/DatePicker";
 
-const glass = {
-  background: "rgba(255,255,255,0.85)",
-  backdropFilter: "blur(20px)",
-  WebkitBackdropFilter: "blur(20px)",
-  border: "1px solid rgba(255,255,255,0.3)",
-} as const;
-
-const card = {
-  ...glass,
-  borderRadius: 16,
-  boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
-} as const;
-
 const teal = "#13c2c2";
 
 const prepGroups = ["日语","高一化学","高一语文","高三英语","高三政治","高二语文","心理","高二地理","高三生物"];
@@ -117,7 +104,7 @@ function FilterCard({ title, badge, options, children }: {
   }, [open]);
 
   return (
-    <div style={{ ...card, padding: "12px 16px", position: "relative", zIndex: open ? 100 : 1 }}>
+    <div className="glass" style={{ padding: "12px 16px", position: "relative", zIndex: open ? 100 : 1 }}>
       <div className="flex justify-between items-center mb-2">
         <span style={{ color: "#374151", fontSize: 13 }}>{title}</span>
         {options ? (
@@ -189,7 +176,7 @@ export function LessonPrepAnalysisPage({ onMenuOpen }: { onMenuOpen?: () => void
   return (
     <div
       className="flex flex-col h-full overflow-hidden"
-      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif', background: "#f5f5f7" }}
+      style={{ background: "#f5f5f7" }}
     >
       <PageHeader
         breadcrumbs={[{ label: "备课活动" }, { label: "备课活动数据分析", active: true }]}
@@ -217,11 +204,11 @@ export function LessonPrepAnalysisPage({ onMenuOpen }: { onMenuOpen?: () => void
 
         {/* Summary + Chart */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div style={{ ...card, padding: "24px" }} className="flex flex-col justify-center">
+          <div className="glass flex flex-col justify-center" style={{ padding: "24px" }}>
             <p style={{ fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 16 }}>备课活动总数</p>
             <div style={{ fontSize: 64, fontWeight: 300, color: "#111827", lineHeight: 1 }}>82</div>
           </div>
-          <div style={{ ...card, padding: "16px" }} className="md:col-span-3">
+          <div className="glass md:col-span-3" style={{ padding: "16px" }}>
             <p style={{ fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 8 }}>备课次数</p>
             <div style={{ height: 160 }}>
               <PrepChart />
@@ -237,7 +224,7 @@ export function LessonPrepAnalysisPage({ onMenuOpen }: { onMenuOpen?: () => void
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
           {/* 备课组 */}
-          <div style={{ ...card }} className="lg:col-span-2 flex flex-col overflow-hidden">
+          <div className="glass lg:col-span-2 flex flex-col overflow-hidden shadow-sm">
             <h3 className="font-semibold border-b border-gray-100" style={{ padding: "10px 12px", fontSize: 13, color: "#111827" }}>备课组备课情况</h3>
             <div className="flex-1 overflow-y-auto">
               <ul>
@@ -254,7 +241,7 @@ export function LessonPrepAnalysisPage({ onMenuOpen }: { onMenuOpen?: () => void
           </div>
 
           {/* 教师 */}
-          <div style={{ ...card }} className="lg:col-span-2 flex flex-col overflow-hidden">
+          <div className="glass lg:col-span-2 flex flex-col overflow-hidden shadow-sm">
             <h3 className="font-semibold border-b border-gray-100" style={{ padding: "10px 12px", fontSize: 13, color: "#111827" }}>教师参与次数</h3>
             <div className="flex-1 overflow-y-auto">
               <ul>
@@ -271,7 +258,7 @@ export function LessonPrepAnalysisPage({ onMenuOpen }: { onMenuOpen?: () => void
           </div>
 
           {/* Calendar */}
-          <div style={{ ...card }} className="lg:col-span-8 flex flex-col overflow-hidden">
+          <div className="glass lg:col-span-8 flex flex-col overflow-hidden shadow-sm">
             <div className="flex justify-between items-center border-b border-gray-100" style={{ padding: "10px 12px" }}>
               <h3 style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>教研日历</h3>
               <div className="flex items-center gap-4">
@@ -309,7 +296,7 @@ export function LessonPrepAnalysisPage({ onMenuOpen }: { onMenuOpen?: () => void
         </div>
 
         {/* Table */}
-        <div style={{ ...card, overflow: "hidden" }}>
+        <div className="glass rounded-[40px] overflow-hidden">
           <h3 style={{ padding: "10px 16px", fontSize: 13, fontWeight: 600, color: "#111827", borderBottom: "1px solid #f3f4f6" }}>教研活动记录表</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-left">

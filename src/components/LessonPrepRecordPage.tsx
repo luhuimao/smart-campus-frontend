@@ -8,7 +8,6 @@ const teal = "#00b095";
 
 const focusStyle = { borderColor: teal, boxShadow: "0 0 0 4px rgba(0,176,149,0.1)" };
 const blurStyle  = { borderColor: "#e5e7eb", boxShadow: "none" };
-const inputCls   = "w-full bg-white border border-gray-200 rounded-[10px] px-3.5 py-2.5 text-sm outline-none transition-all";
 
 type Mode = "add-only" | "add-manage-own" | "leader-manage" | "all-permitted";
 
@@ -39,7 +38,7 @@ function Input({ placeholder = "" }: { placeholder?: string }) {
     <input
       type="text"
       placeholder={placeholder}
-      className={inputCls}
+      className="form-input"
       onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
       onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
     />
@@ -50,7 +49,7 @@ function FSelect({ options }: { options: string[] }) {
   return (
     <div className="relative">
       <select
-        className={inputCls + " appearance-none"}
+        className="form-input appearance-none"
         onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
         onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
       >
@@ -66,7 +65,7 @@ function Textarea({ rows = 5 }: { rows?: number }) {
   return (
     <textarea
       rows={rows}
-      className={inputCls + " resize-none"}
+      className="form-input resize-none"
       onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
       onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
     />
@@ -312,7 +311,7 @@ export function LessonPrepRecordPage({ onMenuOpen }: { onMenuOpen?: () => void }
   return (
     <div
       className="flex flex-col h-full overflow-hidden"
-      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif', color: "#1d1d1f" }}
+      style={{ color: "#1d1d1f" }}
     >
       <PageHeader
         centered
@@ -345,7 +344,7 @@ export function LessonPrepRecordPage({ onMenuOpen }: { onMenuOpen?: () => void }
                     <span className="absolute left-3.5 text-sm text-gray-400 pointer-events-none">第</span>
                     <input
                       type="text"
-                      className={inputCls + " px-8"}
+                      className="form-input px-8"
                       onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
                       onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
                     />
@@ -429,7 +428,7 @@ export function LessonPrepRecordPage({ onMenuOpen }: { onMenuOpen?: () => void }
                 >
                   提交登记
                 </button>
-                <button className="px-8 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all">
+                <button className="btn-secondary">
                   保存草稿
                 </button>
               </div>

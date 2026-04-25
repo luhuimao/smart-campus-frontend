@@ -35,7 +35,7 @@ export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => v
   return (
     <div
       className="flex flex-col h-full overflow-hidden"
-      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif', color: "#1d1d1f" }}
+      style={{ color: "#1d1d1f" }}
     >
       <PageHeader
         breadcrumbs={[{ label: "学情分析" }, { label: "学情分析表", active: true }]}
