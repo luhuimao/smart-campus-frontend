@@ -63,7 +63,7 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
             <div className="flex items-center justify-between mb-7">
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-4 bg-blue-500 rounded-full" />
-                <h3 className="text-lg font-bold text-gray-500 uppercase tracking-widest">快捷入口</h3>
+                <h3 className="text-xl font-bold text-gray-500 uppercase tracking-widest">快捷入口</h3>
               </div>
               <button
                 onClick={() => setMoreOpen(false)}
@@ -174,7 +174,7 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
             <div className="flex items-center mb-8">
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-4 bg-blue-500 rounded-full" />
-                <h3 className="text-lg font-bold text-gray-500 uppercase tracking-widest">快捷入口</h3>
+                <h3 className="text-xl font-bold text-gray-500 uppercase tracking-widest">快捷入口</h3>
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
@@ -279,13 +279,13 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
             <div className="flex items-center px-10 pt-8 border-b border-gray-100/50">
               <div className="flex gap-4">
                 <button
-                  className={`pb-4 px-4 text-lg font-bold${activeTab === "research" ? " macos-tab-active" : " text-gray-400 hover:text-gray-600 transition-colors"}`}
+                  className={`pb-4 px-4 text-xl font-bold${activeTab === "research" ? " macos-tab-active" : " text-gray-400 hover:text-gray-600 transition-colors"}`}
                   onClick={() => setActiveTab("research")}
                 >
                   教研记录
                 </button>
                 <button
-                  className={`pb-4 px-4 text-lg font-bold${activeTab === "lesson" ? " macos-tab-active" : " text-gray-400 hover:text-gray-600 transition-colors"}`}
+                  className={`pb-4 px-4 text-xl font-bold${activeTab === "lesson" ? " macos-tab-active" : " text-gray-400 hover:text-gray-600 transition-colors"}`}
                   onClick={() => setActiveTab("lesson")}
                 >
                   备课记录
@@ -355,8 +355,8 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                             <div className="px-4 py-3 border-b border-gray-100/60 relative z-10 shrink-0">
                               <div className="flex items-center gap-2 min-w-0">
                                 <p className="text-sm font-bold text-gray-600 flex-1 min-w-0 truncate" title={title}>{title}</p>
-                                {actions && (
-                                  <div className="flex items-center gap-0.5 shrink-0 transition-all duration-200" style={{ opacity: tilt.active ? 1 : 0, pointerEvents: tilt.active ? "auto" : "none" }}>
+                                {tilt.active && actions && (
+                                  <div className="flex items-center gap-0.5 shrink-0">
                                     {actions.map(({ Icon, tip }) => (
                                       <div key={tip} className="relative group/tip">
                                         <button onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()}
@@ -448,8 +448,8 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                           <div className="relative z-10 p-6 h-full flex flex-col">
                             <div className="flex items-center gap-2 min-w-0 mb-4">
                               <p className="text-sm font-bold text-gray-600 flex-1 min-w-0 truncate" title={title}>{title}</p>
-                              {actions && (
-                                <div className="flex items-center gap-0.5 shrink-0 transition-all duration-200" style={{ opacity: tilt.active ? 1 : 0, pointerEvents: tilt.active ? "auto" : "none" }}>
+                              {tilt.active && actions && (
+                                <div className="flex items-center gap-0.5 shrink-0">
                                   {actions.map(({ Icon, tip }) => (
                                     <div key={tip} className="relative group/tip">
                                       <button onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()}
@@ -549,8 +549,8 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                             <div className="flex items-center gap-2 min-w-0">
                               <p className="text-sm font-bold text-gray-600 flex-1 min-w-0 truncate" title={title}>{title}</p>
                               {/* hover 显示的操作图标组 */}
-                              <div className="flex items-center gap-0.5 shrink-0 transition-all duration-200"
-                                style={{ opacity: tilt.active ? 1 : 0, pointerEvents: tilt.active ? "auto" : "none" }}>
+                              {tilt.active && (
+                              <div className="flex items-center gap-0.5 shrink-0">
                                 {([{ Icon: Upload, tip: "导出" }, { Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }] as { Icon: React.ElementType; tip: string }[]).map(({ Icon, tip }) => (
                                   <div key={tip} className="relative group/tip">
                                     <button onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()}
@@ -565,6 +565,7 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                                   </div>
                                 ))}
                               </div>
+                              )}
                             </div>
                           </div>
                           {/* 空数据区 */}
@@ -613,7 +614,7 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                   {/* 顶部：总数 + 折线图（带鼠标交互效果） */}
                   {(() => {
                     // 通用毛玻璃交互卡片组件
-                    function GlassCard({ colSpan, children }: { colSpan: string; children: React.ReactNode }) {
+                    function GlassCard({ colSpan, title, actions, children }: { colSpan: string; title?: string; actions?: { Icon: React.ElementType; tip: string }[]; children: React.ReactNode }) {
                       const ref = React.useRef<HTMLDivElement>(null);
                       const [tilt, setTilt] = React.useState({ rx: 0, ry: 0, gx: 50, gy: 50, active: false });
                       const [pressed, setPressed] = React.useState(false);
@@ -689,8 +690,31 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                               />
                             ))}
                           </div>
+                          {title && (
+                            <div className="px-4 py-3 border-b border-gray-100/60 relative z-10 shrink-0">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <p className="text-sm font-bold text-gray-600 flex-1 min-w-0 truncate" title={title}>{title}</p>
+                                {tilt.active && actions && (
+                                  <div className="flex items-center gap-0.5 shrink-0">
+                                    {actions.map(({ Icon, tip }) => (
+                                      <div key={tip} className="relative group/tip">
+                                        <button onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()}
+                                          className="w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-black/[0.06] transition-colors">
+                                          <Icon size={12} />
+                                        </button>
+                                        <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 z-50">
+                                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-800/90" />
+                                          <div className="px-2 py-1 bg-gray-800/90 text-white text-xs font-medium rounded-md whitespace-nowrap">{tip}</div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
                           {/* 内容 */}
-                          <div className="relative z-10 p-6 h-full flex flex-col">
+                          <div className="relative z-10 p-6 flex-1 flex flex-col">
                             {children}
                           </div>
                         </div>
@@ -701,16 +725,14 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
                         {/* 备课记录总数 */}
-                        <GlassCard colSpan="lg:col-span-3">
-                          <p className="text-sm font-bold text-gray-600 mb-6">备课记录总数</p>
+                        <GlassCard colSpan="lg:col-span-3" title="备课记录总数" actions={[{ Icon: Upload, tip: "导出" }, { Icon: Maximize2, tip: "放大" }]}>
                           <div className="flex-1 flex items-center justify-center">
                             <span className="font-black text-gray-900 leading-none" style={{ fontSize: 100 }}>90</span>
                           </div>
                         </GlassCard>
 
                         {/* 备课活动次数折线图 */}
-                        <GlassCard colSpan="lg:col-span-9">
-                          <p className="text-sm font-bold text-gray-600 mb-4">备课活动次数</p>
+                        <GlassCard colSpan="lg:col-span-9" title="备课活动次数" actions={[{ Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]}>
                           <div className="relative h-56">
                             <svg viewBox="0 0 600 200" className="w-full h-full" preserveAspectRatio="none">
                               <defs>
@@ -880,10 +902,8 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                                 {title}
                               </p>
                               {/* hover 时显示的操作图标组 */}
-                              <div
-                                className="flex items-center gap-0.5 shrink-0 transition-all duration-200"
-                                style={{ opacity: tilt.active ? 1 : 0, pointerEvents: tilt.active ? "auto" : "none" }}
-                              >
+                              {tilt.active && (
+                              <div className="flex items-center gap-0.5 shrink-0">
                                 {([
                                   { Icon: Upload,      tip: "导出" },
                                   { Icon: RefreshCw,   tip: "刷新" },
@@ -910,6 +930,7 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                                   </div>
                                 ))}
                               </div>
+                              )}
                             </div>
                           </div>
                           {/* 空数据区 */}

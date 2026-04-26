@@ -140,7 +140,7 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
           <div className="rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white">
 
             {/* 第一行 — 米色 */}
-            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6" style={{ backgroundColor: "#fffcf2" }}>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="教研主题" required>
                 <Input />
               </Field>
@@ -160,7 +160,7 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
             </div>
 
             {/* 第三行 — 米色 */}
-            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6" style={{ backgroundColor: "#fffcf2" }}>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="地点" required>
                 <Input />
               </Field>
@@ -180,7 +180,7 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
             </div>
 
             {/* 第五行 — 米色 */}
-            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6" style={{ backgroundColor: "#fffcf2" }}>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="记录人" required error={submitted ? "此项为必填项" : undefined}>
                 <MemberPicker />
               </Field>
@@ -200,7 +200,7 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
             </div>
 
             {/* 第七行 — 米色 */}
-            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6" style={{ backgroundColor: "#fffcf2" }}>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="未到场人员情况说明" required>
                 <Textarea rows={6} />
               </Field>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Upload, RefreshCw, ArrowUpDown, Maximize2, Plus } from "lucide-react";
 import { PageHeader } from "./PageHeader";
 import { DatePicker, DateRangePicker } from "./ui/DatePicker";
 
@@ -106,12 +106,12 @@ function FilterCard({ title, badge, options, children }: {
   return (
     <div className="glass" style={{ padding: "12px 16px", position: "relative", zIndex: open ? 100 : 1 }}>
       <div className="flex justify-between items-center mb-2">
-        <span style={{ color: "#374151", fontSize: 13 }}>{title}</span>
+        <span className="text-sm font-semibold text-gray-800">{title}</span>
         {options ? (
           <div className="relative" ref={ref}>
             <button
               onClick={() => setOpen(v => !v)}
-              style={{ color: teal, fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 2 }}
+              style={{ color: teal, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", gap: 2 }}
             >
               {condition} <ChevronRight size={11} style={{ transform: open ? "rotate(270deg)" : "rotate(90deg)", transition: "transform 0.15s" }} />
             </button>
@@ -125,7 +125,7 @@ function FilterCard({ title, badge, options, children }: {
                     key={opt}
                     onClick={() => { setCondition(opt); setOpen(false); }}
                     className="w-full text-left px-3 py-2 transition-colors"
-                    style={{ fontSize: 12, color: opt === condition ? teal : "#374151", background: opt === condition ? "rgba(19,194,194,0.06)" : "transparent" }}
+                    style={{ fontSize: 14, color: opt === condition ? teal : "#374151", background: opt === condition ? "rgba(19,194,194,0.06)" : "transparent" }}
                     onMouseEnter={e => { if (opt !== condition) (e.currentTarget as HTMLButtonElement).style.background = "rgba(0,0,0,0.04)"; }}
                     onMouseLeave={e => { if (opt !== condition) (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
                   >{opt}</button>
@@ -134,7 +134,7 @@ function FilterCard({ title, badge, options, children }: {
             )}
           </div>
         ) : (
-          <span style={{ color: teal, fontSize: 12 }}>{badge} ▾</span>
+          <span style={{ color: teal, fontSize: 14 }}>{badge} ▾</span>
         )}
       </div>
       {typeof children === "function" ? children(condition) : children}
@@ -147,7 +147,7 @@ function CustomSelect({ placeholder }: { placeholder: string }) {
     <div className="relative">
       <select
         className="w-full outline-none appearance-none pr-8 py-1.5 pl-3 rounded-lg"
-        style={{ border: "1px solid #e5e7eb", color: "#9ca3af", background: "white", fontSize: 13 }}
+        style={{ border: "1px solid #e5e7eb", color: "#9ca3af", background: "white", fontSize: 15 }}
         defaultValue=""
       >
         <option value="" disabled>{placeholder}</option>
@@ -158,9 +158,30 @@ function CustomSelect({ placeholder }: { placeholder: string }) {
 }
 
 
+type ActionItem = { Icon: React.ElementType; tip: string };
+
+function ActionBar({ show, actions }: { show: boolean; actions: ActionItem[] }) {
+  if (!show) return null;
+  return (
+    <div className="flex items-center gap-0.5 shrink-0">
+      {actions.map(({ Icon, tip }) => (
+        <div key={tip} className="relative group/tip">
+          <button className="w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-black/[0.06] transition-colors">
+            <Icon size={12} />
+          </button>
+          <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 z-50">
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-800/90" />
+            <div className="px-2 py-1 bg-gray-800/90 text-white text-xs font-medium rounded-md whitespace-nowrap">{tip}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function PaginationBar({ current, total }: { current: number; total: number }) {
   return (
-    <div className="flex justify-center items-center gap-1 p-2 border-t border-gray-100" style={{ fontSize: 12 }}>
+    <div className="flex justify-center items-center gap-1 p-2 border-t border-gray-100" style={{ fontSize: 14 }}>
       <button className="px-2 py-1 rounded border border-gray-200 text-gray-400 hover:bg-gray-50">«</button>
       <button className="px-2 py-1 rounded border border-gray-200 text-gray-400 hover:bg-gray-50">‹</button>
       <span className="px-3 text-gray-500">{current} / {total}</span>
@@ -172,6 +193,12 @@ function PaginationBar({ current, total }: { current: number; total: number }) {
 
 export function LessonPrepAnalysisPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [calendarView, setCalendarView] = useState<"week" | "month">("week");
+  const [hvTotal,    setHvTotal]    = useState(false);
+  const [hvChart,    setHvChart]    = useState(false);
+  const [hvPrepGroup, setHvPrepGroup] = useState(false);
+  const [hvTeacher,  setHvTeacher]  = useState(false);
+  const [hvCalendar, setHvCalendar] = useState(false);
+  const [hvTable,    setHvTable]    = useState(false);
 
   return (
     <div
@@ -204,18 +231,28 @@ export function LessonPrepAnalysisPage({ onMenuOpen }: { onMenuOpen?: () => void
 
         {/* Summary + Chart */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="glass flex flex-col justify-center" style={{ padding: "24px" }}>
-            <p style={{ fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 16 }}>备课活动总数</p>
-            <div style={{ fontSize: 64, fontWeight: 300, color: "#111827", lineHeight: 1 }}>82</div>
-          </div>
-          <div className="glass md:col-span-3" style={{ padding: "16px" }}>
-            <p style={{ fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 8 }}>备课次数</p>
-            <div style={{ height: 160 }}>
-              <PrepChart />
+          <div className="glass flex flex-col overflow-hidden" onMouseEnter={() => setHvTotal(true)} onMouseLeave={() => setHvTotal(false)}>
+            <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 shrink-0">
+              <p className="flex-1 min-w-0 truncate" style={{ fontSize: 15, fontWeight: 500, color: "#374151" }}>备课活动总数</p>
+              <ActionBar show={hvTotal} actions={[{ Icon: Upload, tip: "导出" }, { Icon: Maximize2, tip: "放大" }]} />
             </div>
-            <div className="flex justify-center mt-2 gap-1 items-center">
-              <div className="w-3 h-3 rounded-sm" style={{ background: "#93c5fd" }} />
-              <span style={{ fontSize: 11, color: "#9ca3af" }}>活动主题</span>
+            <div className="flex-1 flex items-center justify-center p-6">
+              <div style={{ fontSize: 64, fontWeight: 300, color: "#111827", lineHeight: 1 }}>82</div>
+            </div>
+          </div>
+          <div className="glass md:col-span-3 flex flex-col overflow-hidden" onMouseEnter={() => setHvChart(true)} onMouseLeave={() => setHvChart(false)}>
+            <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 shrink-0">
+              <p className="flex-1 min-w-0 truncate" style={{ fontSize: 15, fontWeight: 500, color: "#374151" }}>备课次数</p>
+              <ActionBar show={hvChart} actions={[{ Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]} />
+            </div>
+            <div className="flex-1 p-4">
+              <div style={{ height: 160 }}>
+                <PrepChart />
+              </div>
+              <div className="flex justify-center mt-2 gap-1 items-center">
+                <div className="w-3 h-3 rounded-sm" style={{ background: "#93c5fd" }} />
+                <span style={{ fontSize: 15, color: "#9ca3af" }}>活动主题</span>
+              </div>
             </div>
           </div>
         </div>
@@ -224,51 +261,57 @@ export function LessonPrepAnalysisPage({ onMenuOpen }: { onMenuOpen?: () => void
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
           {/* 备课组 */}
-          <div className="glass lg:col-span-2 flex flex-col overflow-hidden shadow-sm">
-            <h3 className="font-semibold border-b border-gray-100" style={{ padding: "10px 12px", fontSize: 13, color: "#111827" }}>备课组备课情况</h3>
+          <div className="glass lg:col-span-2 flex flex-col overflow-hidden shadow-sm" onMouseEnter={() => setHvPrepGroup(true)} onMouseLeave={() => setHvPrepGroup(false)}>
+            <div className="flex items-center justify-between border-b border-gray-100" style={{ padding: "10px 12px" }}>
+              <h3 className="font-semibold flex-1 min-w-0 truncate" style={{ fontSize: 15, color: "#111827" }}>备课组备课情况</h3>
+              <ActionBar show={hvPrepGroup} actions={[{ Icon: Upload, tip: "导出" }, { Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]} />
+            </div>
             <div className="flex-1 overflow-y-auto">
               <ul>
                 {prepGroups.map((g, i) => (
                   <li key={g} className="border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors"
-                    style={{ padding: "8px 12px", fontSize: 13, color: "#374151", background: i === 0 ? "#f9fafb" : undefined }}>
+                    style={{ padding: "8px 12px", fontSize: 15, color: "#374151", background: i === 0 ? "#f9fafb" : undefined }}>
                     {g}
                   </li>
                 ))}
-                <li style={{ padding: "8px 12px", fontSize: 13, color: "#9ca3af" }}>...</li>
+                <li style={{ padding: "8px 12px", fontSize: 15, color: "#9ca3af" }}>...</li>
               </ul>
             </div>
             <PaginationBar current={1} total={1} />
           </div>
 
           {/* 教师 */}
-          <div className="glass lg:col-span-2 flex flex-col overflow-hidden shadow-sm">
-            <h3 className="font-semibold border-b border-gray-100" style={{ padding: "10px 12px", fontSize: 13, color: "#111827" }}>教师参与次数</h3>
+          <div className="glass lg:col-span-2 flex flex-col overflow-hidden shadow-sm" onMouseEnter={() => setHvTeacher(true)} onMouseLeave={() => setHvTeacher(false)}>
+            <div className="flex items-center justify-between border-b border-gray-100" style={{ padding: "10px 12px" }}>
+              <h3 className="font-semibold flex-1 min-w-0 truncate" style={{ fontSize: 15, color: "#111827" }}>教师参与次数</h3>
+              <ActionBar show={hvTeacher} actions={[{ Icon: Upload, tip: "导出" }, { Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]} />
+            </div>
             <div className="flex-1 overflow-y-auto">
               <ul>
                 {teachers.map((t, i) => (
                   <li key={t} className="border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors"
-                    style={{ padding: "8px 12px", fontSize: 13, color: "#374151", background: i === 0 ? "#f9fafb" : undefined }}>
+                    style={{ padding: "8px 12px", fontSize: 15, color: "#374151", background: i === 0 ? "#f9fafb" : undefined }}>
                     {t}
                   </li>
                 ))}
-                <li style={{ padding: "8px 12px", fontSize: 13, color: "#9ca3af" }}>...</li>
+                <li style={{ padding: "8px 12px", fontSize: 15, color: "#9ca3af" }}>...</li>
               </ul>
             </div>
             <PaginationBar current={1} total={3} />
           </div>
 
           {/* Calendar */}
-          <div className="glass lg:col-span-8 flex flex-col overflow-hidden shadow-sm">
+          <div className="glass lg:col-span-8 flex flex-col overflow-hidden shadow-sm" onMouseEnter={() => setHvCalendar(true)} onMouseLeave={() => setHvCalendar(false)}>
             <div className="flex justify-between items-center border-b border-gray-100" style={{ padding: "10px 12px" }}>
-              <h3 style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>教研日历</h3>
+              <h3 className="flex-1 min-w-0 truncate" style={{ fontSize: 15, fontWeight: 600, color: "#111827" }}>教研日历</h3>
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2" style={{ fontSize: 13 }}>
+                <div className="flex items-center gap-2" style={{ fontSize: 15 }}>
                   <button className="p-1 hover:bg-gray-100 rounded transition-colors"><ChevronLeft size={14} /></button>
                   <span style={{ fontWeight: 600, color: "#111827" }}>4月20日-4月26日</span>
                   <button className="p-1 hover:bg-gray-100 rounded transition-colors"><ChevronRight size={14} /></button>
                 </div>
-                <button className="px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" style={{ color: "#374151", fontSize: 12 }}>本周</button>
-                <div className="flex rounded-lg border border-gray-200 overflow-hidden" style={{ fontSize: 12 }}>
+                <button className="px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" style={{ color: "#374151", fontSize: 14 }}>本周</button>
+                <div className="flex rounded-lg border border-gray-200 overflow-hidden" style={{ fontSize: 14 }}>
                   <button
                     onClick={() => setCalendarView("week")}
                     className="px-3 py-1 transition-colors"
@@ -280,9 +323,10 @@ export function LessonPrepAnalysisPage({ onMenuOpen }: { onMenuOpen?: () => void
                     style={{ background: calendarView === "month" ? teal : "white", color: calendarView === "month" ? "white" : "#374151" }}
                   >月</button>
                 </div>
+                <ActionBar show={hvCalendar} actions={[{ Icon: Plus, tip: "添加" }, { Icon: RefreshCw, tip: "刷新" }, { Icon: Maximize2, tip: "放大" }]} />
               </div>
             </div>
-            <div className="grid grid-cols-7 border-b border-gray-100 text-center" style={{ background: "#f9fafb", fontSize: 11, color: "#9ca3af" }}>
+            <div className="grid grid-cols-7 border-b border-gray-100 text-center" style={{ background: "#f9fafb", fontSize: 15, color: "#9ca3af" }}>
               {calendarDays.map(d => (
                 <div key={d} className="py-2">{d}</div>
               ))}
@@ -296,12 +340,15 @@ export function LessonPrepAnalysisPage({ onMenuOpen }: { onMenuOpen?: () => void
         </div>
 
         {/* Table */}
-        <div className="glass rounded-[40px] overflow-hidden">
-          <h3 style={{ padding: "10px 16px", fontSize: 13, fontWeight: 600, color: "#111827", borderBottom: "1px solid #f3f4f6" }}>教研活动记录表</h3>
+        <div className="glass rounded-[40px] overflow-hidden" onMouseEnter={() => setHvTable(true)} onMouseLeave={() => setHvTable(false)}>
+          <div className="flex items-center justify-between" style={{ padding: "10px 16px", borderBottom: "1px solid #f3f4f6" }}>
+            <h3 className="flex-1 min-w-0 truncate" style={{ fontSize: 15, fontWeight: 600, color: "#111827" }}>教研活动记录表</h3>
+            <ActionBar show={hvTable} actions={[{ Icon: Upload, tip: "导出" }, { Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]} />
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr style={{ background: "#eff6ff", fontSize: 13 }}>
+                <tr style={{ background: "#eff6ff", fontSize: 15 }}>
                   {["活动主题","活动时间","活动地点","备课组","教研组","教研组长","备课组长","参与教师","主持人","活动记录（主备人模板照片）","其他照片","附件","备注"].map((h, i) => (
                     <th key={h} className="px-4 py-3 font-medium" style={{ color: i === 6 ? "#3b82f6" : "#374151", whiteSpace: "nowrap" }}>{h}</th>
                   ))}
@@ -310,31 +357,31 @@ export function LessonPrepAnalysisPage({ onMenuOpen }: { onMenuOpen?: () => void
               <tbody>
                 {tableRows.map((row) => (
                   <tr key={row.name} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3" style={{ color: "#1e40af", fontSize: 13, whiteSpace: "nowrap" }}>{row.name}</td>
-                    <td className="px-4 py-3" style={{ fontSize: 13, color: "#374151", whiteSpace: "nowrap" }}>{row.time}</td>
-                    <td className="px-4 py-3" style={{ fontSize: 13, color: "#374151", whiteSpace: "nowrap" }}>{row.location}</td>
-                    <td className="px-4 py-3" style={{ fontSize: 13, color: "#374151", whiteSpace: "nowrap" }}>{row.prepGroup}</td>
-                    <td className="px-4 py-3" style={{ fontSize: 13, color: "#374151", whiteSpace: "nowrap" }}>{row.researchGroup}</td>
-                    <td className="px-4 py-3" style={{ fontSize: 13, color: "#374151", whiteSpace: "nowrap" }}>{row.groupLeader}</td>
-                    <td className="px-4 py-3" style={{ fontSize: 13, color: "#3b82f6", whiteSpace: "nowrap" }}>{row.prepLeader}</td>
-                    <td className="px-4 py-3" style={{ fontSize: 13, color: "#374151", whiteSpace: "nowrap" }}>{row.participants}</td>
-                    <td className="px-4 py-3" style={{ fontSize: 13, color: "#374151", whiteSpace: "nowrap" }}>{row.host}</td>
+                    <td className="px-4 py-3" style={{ color: "#1e40af", fontSize: 15, whiteSpace: "nowrap" }}>{row.name}</td>
+                    <td className="px-4 py-3" style={{ fontSize: 15, color: "#374151", whiteSpace: "nowrap" }}>{row.time}</td>
+                    <td className="px-4 py-3" style={{ fontSize: 15, color: "#374151", whiteSpace: "nowrap" }}>{row.location}</td>
+                    <td className="px-4 py-3" style={{ fontSize: 15, color: "#374151", whiteSpace: "nowrap" }}>{row.prepGroup}</td>
+                    <td className="px-4 py-3" style={{ fontSize: 15, color: "#374151", whiteSpace: "nowrap" }}>{row.researchGroup}</td>
+                    <td className="px-4 py-3" style={{ fontSize: 15, color: "#374151", whiteSpace: "nowrap" }}>{row.groupLeader}</td>
+                    <td className="px-4 py-3" style={{ fontSize: 15, color: "#3b82f6", whiteSpace: "nowrap" }}>{row.prepLeader}</td>
+                    <td className="px-4 py-3" style={{ fontSize: 15, color: "#374151", whiteSpace: "nowrap" }}>{row.participants}</td>
+                    <td className="px-4 py-3" style={{ fontSize: 15, color: "#374151", whiteSpace: "nowrap" }}>{row.host}</td>
                     <td className="px-4 py-3 text-center">
                       {row.hasRecord
-                        ? <span style={{ fontSize: 11, color: "#3b82f6", background: "#eff6ff", borderRadius: 4, padding: "2px 8px" }}>查看</span>
-                        : <span style={{ fontSize: 11, color: "#9ca3af" }}>—</span>}
+                        ? <span style={{ fontSize: 15, color: "#3b82f6", background: "#eff6ff", borderRadius: 4, padding: "2px 8px" }}>查看</span>
+                        : <span style={{ fontSize: 15, color: "#9ca3af" }}>—</span>}
                     </td>
                     <td className="px-4 py-3 text-center">
                       {row.hasPhotos
-                        ? <span style={{ fontSize: 11, color: "#3b82f6", background: "#eff6ff", borderRadius: 4, padding: "2px 8px" }}>查看</span>
-                        : <span style={{ fontSize: 11, color: "#9ca3af" }}>—</span>}
+                        ? <span style={{ fontSize: 15, color: "#3b82f6", background: "#eff6ff", borderRadius: 4, padding: "2px 8px" }}>查看</span>
+                        : <span style={{ fontSize: 15, color: "#9ca3af" }}>—</span>}
                     </td>
                     <td className="px-4 py-3 text-center">
                       {row.hasAttach
-                        ? <span style={{ fontSize: 11, color: "#3b82f6", background: "#eff6ff", borderRadius: 4, padding: "2px 8px" }}>下载</span>
-                        : <span style={{ fontSize: 11, color: "#9ca3af" }}>—</span>}
+                        ? <span style={{ fontSize: 15, color: "#3b82f6", background: "#eff6ff", borderRadius: 4, padding: "2px 8px" }}>下载</span>
+                        : <span style={{ fontSize: 15, color: "#9ca3af" }}>—</span>}
                     </td>
-                    <td className="px-4 py-3" style={{ fontSize: 13, color: row.remark ? "#374151" : "#9ca3af", whiteSpace: "nowrap" }}>
+                    <td className="px-4 py-3" style={{ fontSize: 15, color: row.remark ? "#374151" : "#9ca3af", whiteSpace: "nowrap" }}>
                       {row.remark || "—"}
                     </td>
                   </tr>
@@ -342,7 +389,7 @@ export function LessonPrepAnalysisPage({ onMenuOpen }: { onMenuOpen?: () => void
               </tbody>
             </table>
           </div>
-          <div className="flex flex-wrap justify-between items-center px-4 py-3 border-t border-gray-100" style={{ fontSize: 12, color: "#374151" }}>
+          <div className="flex flex-wrap justify-between items-center px-4 py-3 border-t border-gray-100" style={{ fontSize: 14, color: "#374151" }}>
             <div className="flex items-center gap-3">
               <button className="p-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">📋</button>
               <div className="flex items-center gap-1">

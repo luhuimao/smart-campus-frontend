@@ -67,7 +67,7 @@ export function ClassRankFormModal({ onClose }: Props) {
       >
         {/* 头部 */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 shrink-0">
-          <h2 className="text-lg font-bold" style={{ color: "#111827" }}>教师所带班级排名</h2>
+          <h2 className="text-xl font-bold" style={{ color: "#111827" }}>教师所带班级排名</h2>
           <div className="flex items-center gap-4" style={{ color: "#9ca3af" }}>
             <button
               onClick={() => setMaximized(v => !v)}

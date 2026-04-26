@@ -94,7 +94,7 @@ export function TeacherTrainingPage({ onMenuOpen }: { onMenuOpen?: () => void })
           <div className="rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white">
 
             {/* Row 1 — cream: 培训渠道 + 培训名称 */}
-            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6" style={{ backgroundColor: "#fffcf2" }}>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="培训渠道" required>
                 <Select options={["校内培训", "校外培训"]} />
               </Field>
@@ -114,7 +114,7 @@ export function TeacherTrainingPage({ onMenuOpen }: { onMenuOpen?: () => void })
             </div>
 
             {/* Row 3 — cream: 主讲人 + 参训人员 */}
-            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6" style={{ backgroundColor: "#fffcf2" }}>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="主讲人" required>
                 <Input />
               </Field>
@@ -139,7 +139,7 @@ export function TeacherTrainingPage({ onMenuOpen }: { onMenuOpen?: () => void })
             </div>
 
             {/* Row 5 — cream: 备注（全宽） */}
-            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12" style={{ backgroundColor: "#fffcf2" }}>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 bg-white">
               <Field label="备注" full>
                 <textarea
                   rows={5}

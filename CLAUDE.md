@@ -14,14 +14,17 @@
 | 用途 | Tailwind 类 | 实际大小 |
 |------|-------------|---------|
 | 页面大标题 / Banner | `text-4xl` ~ `text-5xl` | 36~48px |
-| 区块标题、Tab 按钮 | `text-lg` | 18px |
+| 区块标题、Tab 按钮 | `text-xl` | 20px |
 | 正文、下拉选项、按钮 | `text-base` | 16px |
-| 次级说明、标签 | `text-sm` | 14px |
-| 大写字段标签（uppercase） | `text-sm` | 14px |
-| 表格内紧凑文字 | `text-xs` | 12px |
-| 侧边栏一级菜单 | `fontSize: 14` | 14px |
-| 侧边栏二级菜单 | `fontSize: 13` | 13px |
-| 侧边栏三级菜单 | `fontSize: 12` | 12px |
+| 次级说明、标签 | `text-base` | 16px |
+| 表单字段标签（field labels） | `text-base` | 16px |
+| 大写字段标签（uppercase） | `.field-label` | 12px |
+| 表格紧凑文字（表头/行号） | `text-sm` | 14px |
+| 表格输入框 | `.table-input` | 14px |
+| 分析页卡片内容 | `fontSize: 15` | 15px |
+| 侧边栏一级菜单 | `fontSize: 15` | 15px |
+| 侧边栏二级菜单 | `fontSize: 14` | 14px |
+| 侧边栏三级菜单 | `fontSize: 13` | 13px |
 
 ### 颜色体系
 - **一师一案（教师端）**：主色蓝 `#3b82f6`，激活 `#2563eb`，激活背景 `rgba(59,130,246,0.1)`，渐变 `#5BC8F5 → #2B8FD9`
@@ -40,7 +43,7 @@
 | `.glass` | 毛玻璃卡片面（background 0.85 + blur + border） |
 | `.page-header` | 顶部导航栏（height 64px + glass + z-index 10） |
 | `.form-footer` | 表单底部操作栏（glass + border-top dashed） |
-| `.field-label` | 大写字段标签（10px bold gray uppercase） |
+| `.field-label` | 大写字段标签（12px bold gray uppercase） |
 | `.form-input` | 标准输入框 / 下拉 / 文本域 |
 | `.table-input` | 表格内紧凑输入框 |
 | `.btn-secondary` | 取消 / 次要操作按钮 |
@@ -93,11 +96,15 @@ page.tsx
 - 筛选器：5 列网格，`.glass` 小卡片，`rounded-[24px]`
 - 数据区：`.glass rounded-[40px]`，Tab 用 `.macos-tab-active`
 
-### 表单页（各 `*Page.tsx` 为模板）
-- 主体：`rounded-[28px] overflow-hidden shadow-sm border bg-white`
-- 交替行背景：白色 `bg-white` / 米色 `#fffcf2`
+### 表单页（`LessonPrepRecordPage.tsx` 为模板）
+- **表单背景：纯白 `bg-white`**（不用毛玻璃 `.glass`，不用灰色背景）
+- 主体容器：`rounded-2xl md:rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white p-5 md:p-10`
+- 可滚动区：`flex-1 overflow-y-auto bg-[#f5f5f7] pb-24`
+- 内容居中：`max-w-5xl mx-auto mt-4 md:mt-10 px-3 md:px-6`
+- 字段布局：`grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8`
 - 字段组件：`<Field>` + `.form-input` / `.table-input`
-- 底部操作栏：`.form-footer`，提交按钮用 `teal` 主题色内联，取消用 `.btn-secondary`
+- 底部操作栏：`mt-8 pt-6 flex justify-start gap-3`，以 `1px dashed #e5e7eb` 上边框分隔；提交按钮 `teal` 主题色内联，草稿/取消用 `.btn-secondary`
+- 交替行背景（仅表格模式）：白色 `bg-white` / 米色 `#fffcf2`
 
 ---
 

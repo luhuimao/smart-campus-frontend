@@ -14,7 +14,7 @@ function Field({ label, required, hint, children }: {
 }) {
   return (
     <div>
-      <label className="block text-sm font-semibold mb-2" style={{ color: "#1d1d1f" }}>
+      <label className="block text-base font-semibold mb-2" style={{ color: "#1d1d1f" }}>
         {required && <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>}
         {label}
       </label>
@@ -78,10 +78,10 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
           <div className="rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white">
 
             {/* Row 1 — cream */}
-            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6" style={{ backgroundColor: "#fffcf2" }}>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="教师姓名" required>
                 <button
-                  className="w-full border border-dashed border-gray-300 bg-white rounded-[10px] px-3.5 py-2.5 flex items-center justify-center gap-2 text-sm text-gray-500 transition-all hover:border-[#00b095] hover:text-[#00b095]"
+                  className="w-full border border-dashed border-gray-300 bg-white rounded-[10px] px-3.5 py-2.5 flex items-center justify-center gap-2 text-base text-gray-500 transition-all hover:border-[#00b095] hover:text-[#00b095]"
                   style={{ minHeight: 44 }}
                 >
                   <Plus className="w-4 h-4" /> 选择成员
@@ -107,7 +107,7 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                       >
                         {hasCert === v && <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: teal }} />}
                       </div>
-                      <span className="text-sm font-medium text-gray-700" onClick={() => setHasCert(v as "yes" | "no")}>{l}</span>
+                      <span className="text-base font-medium text-gray-700" onClick={() => setHasCert(v as "yes" | "no")}>{l}</span>
                     </label>
                   ))}
                 </div>
@@ -134,7 +134,7 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
 
             {/* Row 4 — cream（隐藏当暂无） */}
             {hasCert === "yes" && (
-            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6" style={{ backgroundColor: "#fffcf2" }}>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="党委/行政职务" required>
                 <Input />
               </Field>
@@ -159,7 +159,7 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
             {/* Section: 教资信息 table（隐藏当暂无） */}
             {hasCert === "yes" && (
             <div className="p-8 bg-white border-t border-gray-50">
-              <p className="text-sm font-semibold mb-6">
+              <p className="text-base font-semibold mb-6">
                 <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>教资信息
               </p>
 
@@ -170,14 +170,14 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
               >
                 {/* Header */}
                 {["", "教资证书编号", "教师资格种类", "任教科目", "教师资格证书图片", "获证时间"].map((h, i) => (
-                  <div key={i} className="px-3 py-3 bg-gray-50 text-xs font-semibold text-gray-600 border-b border-r border-gray-100 last:border-r-0">
+                  <div key={i} className="px-3 py-3 bg-gray-50 text-sm font-semibold text-gray-600 border-b border-r border-gray-100 last:border-r-0">
                     {i > 0 && i !== 3 && <span style={{ color: "#ff4d4f", marginRight: 3 }}>*</span>}
                     {h}
                   </div>
                 ))}
 
                 {/* Row 1 */}
-                <div className="px-3 py-2.5 bg-white border-b border-r border-gray-100 flex items-center justify-center text-xs font-bold text-gray-400">1</div>
+                <div className="px-3 py-2.5 bg-white border-b border-r border-gray-100 flex items-center justify-center text-sm font-bold text-gray-400">1</div>
                 <div className="px-2 py-2 bg-white border-b border-r border-gray-100">
                   <input
                     type="text"

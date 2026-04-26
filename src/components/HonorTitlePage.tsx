@@ -14,7 +14,7 @@ function Field({ label, required, hint, children }: {
 }) {
   return (
     <div>
-      <label className="block text-sm font-semibold mb-2" style={{ color: "#1d1d1f" }}>
+      <label className="block text-base font-semibold mb-2" style={{ color: "#1d1d1f" }}>
         {required && <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>}
         {label}
       </label>
@@ -40,7 +40,7 @@ function Select({ options }: { options: string[] }) {
   return (
     <div className="relative">
       <select
-        className="w-full bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs outline-none appearance-none transition-all"
+        className="w-full bg-white border border-gray-200 rounded-lg px-2 py-1 text-sm outline-none appearance-none transition-all"
         onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
         onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
       >
@@ -79,7 +79,7 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
           <div className="flex items-center justify-center gap-5 mb-12">
             <div className="relative h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} />
             <div
-              className="flex items-center gap-3 px-12 py-2 text-white text-sm font-semibold tracking-[0.2em]"
+              className="flex items-center gap-3 px-12 py-2 text-white text-base font-semibold tracking-[0.2em]"
               style={{ backgroundColor: teal, clipPath: "polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%)", boxShadow: "0 4px 12px rgba(0,176,149,0.2)" }}
             >
               <span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" />
@@ -93,7 +93,7 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
           <div className="rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white">
 
             {/* Row 1 — cream */}
-            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6" style={{ backgroundColor: "#fffcf2" }}>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="教师姓名" required>
                 <div className="border border-dashed border-gray-300 bg-white rounded-[10px] px-3 py-2 min-h-[44px] flex items-center flex-wrap gap-2">
                   <div className="flex items-center bg-red-50 text-red-600 px-2 py-1 rounded-lg text-sm border border-red-100 gap-1.5">
@@ -121,7 +121,7 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                       >
                         {hasHonor === v && <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: teal }} />}
                       </div>
-                      <span className="text-sm font-medium text-gray-700">{l}</span>
+                      <span className="text-base font-medium text-gray-700">{l}</span>
                     </label>
                   ))}
                 </div>
@@ -132,7 +132,7 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
             {hasHonor === "yes" && (
               <>
                 {/* Row 3 — cream */}
-                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6" style={{ backgroundColor: "#fffcf2" }}>
+                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
                   <Field label="部门" required><Input /></Field>
                   <Field label="岗位" required><Input /></Field>
                 </div>
@@ -146,7 +146,7 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                 </div>
 
                 {/* Row 5 — cream */}
-                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6" style={{ backgroundColor: "#fffcf2" }}>
+                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
                   <Field label="联系方式" required><Input /></Field>
                   <Field label="担任学科" required><Input /></Field>
                 </div>
@@ -164,7 +164,7 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     {/* Table header */}
                     <div className="grid bg-gray-50 border-b border-gray-100" style={{ gridTemplateColumns: "48px 1fr 1.2fr 1fr 1.2fr 80px" }}>
                       {["", "获评日期", "荣誉称号", "荣誉级别", "颁发单位", "相关照片"].map((h, i) => (
-                        <div key={i} className="px-3 py-3 text-xs font-semibold text-gray-600 border-r border-gray-100 last:border-r-0">
+                        <div key={i} className="px-3 py-3 text-sm font-semibold text-gray-600 border-r border-gray-100 last:border-r-0">
                           {i > 0 && <span style={{ color: "#ff4d4f", marginRight: 3 }}>*</span>}
                           {h}
                         </div>
@@ -174,7 +174,7 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     {/* Table rows */}
                     {rows.map((row, index) => (
                       <div key={row.id} className="grid border-b border-gray-100 last:border-0" style={{ gridTemplateColumns: "48px 1fr 1.2fr 1fr 1.2fr 80px" }}>
-                        <div className="px-3 py-3 flex items-center justify-center text-xs font-bold text-gray-400 border-r border-gray-100">
+                        <div className="px-3 py-3 flex items-center justify-center text-sm font-bold text-gray-400 border-r border-gray-100">
                           {index + 1}
                         </div>
                         {/* 获评日期 */}
@@ -214,13 +214,13 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
 
                   <div className="flex items-center gap-8 mt-5">
                     <button
-                      className="flex items-center gap-1.5 text-sm font-bold transition-colors"
+                      className="flex items-center gap-1.5 text-base font-bold transition-colors"
                       style={{ color: teal }}
                       onClick={() => setRows((r) => [...r, { id: Date.now() }])}
                     >
                       <Plus className="w-4 h-4" /> 添加
                     </button>
-                    <button className="flex items-center gap-1.5 text-sm font-bold transition-colors" style={{ color: teal }}>
+                    <button className="flex items-center gap-1.5 text-base font-bold transition-colors" style={{ color: teal }}>
                       <ClipboardList className="w-4 h-4" /> 快速填报
                     </button>
                   </div>
@@ -236,7 +236,7 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
         className="form-footer shrink-0 flex gap-3 px-10 py-4"
       >
         <button
-          className="px-8 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:translate-y-px"
+          className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px"
           style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}
           onClick={() => setSubmitted(true)}
         >

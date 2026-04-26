@@ -158,7 +158,7 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
           <div>
             <div
               className="flex items-center gap-2.5 rounded-xl cursor-pointer transition-all duration-150"
-              style={{ height: 36, padding: "0 10px", fontSize: 14, fontWeight: 600, color: "#111827" }}
+              style={{ height: 36, padding: "0 10px", fontSize: 15, fontWeight: 600, color: "#111827" }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "rgba(0,0,0,0.04)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
               onClick={() => toggleParent(PARENT_KEY)}
@@ -176,7 +176,7 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
                     <div key={label}>
                       <div
                         className="flex items-center gap-2.5 rounded-xl cursor-pointer transition-all duration-150"
-                        style={{ height: 34, padding: "0 10px", background: isActive ? "rgba(59,130,246,0.1)" : "transparent", fontWeight: isActive ? 600 : 400, fontSize: 14, color: isActive ? "#2563eb" : "#374151" }}
+                        style={{ height: 34, padding: "0 10px", background: isActive ? "rgba(59,130,246,0.1)" : "transparent", fontWeight: isActive ? 600 : 400, fontSize: 15, color: isActive ? "#2563eb" : "#374151" }}
                         onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = "rgba(0,0,0,0.04)"; }}
                         onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
                         onClick={() => {
@@ -213,7 +213,7 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
                               <div key={childLabel}>
                                 <div
                                   className="flex items-center gap-2 rounded-xl cursor-pointer transition-all duration-150"
-                                  style={{ height: 30, padding: "0 10px", fontSize: 13, color: childActive ? "#2563eb" : "#6b7280", background: childActive ? "rgba(59,130,246,0.08)" : "transparent", fontWeight: childActive ? 600 : 400 }}
+                                  style={{ height: 30, padding: "0 10px", fontSize: 14, color: childActive ? "#2563eb" : "#6b7280", background: childActive ? "rgba(59,130,246,0.08)" : "transparent", fontWeight: childActive ? 600 : 400 }}
                                   onMouseEnter={(e) => { if (!childActive) { (e.currentTarget as HTMLDivElement).style.background = "rgba(0,0,0,0.04)"; (e.currentTarget as HTMLDivElement).style.color = "#111827"; } }}
                                   onMouseLeave={(e) => { if (!childActive) { (e.currentTarget as HTMLDivElement).style.background = "transparent"; (e.currentTarget as HTMLDivElement).style.color = "#6b7280"; } }}
                                   onClick={() => {
@@ -234,7 +234,7 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
                                         <div
                                           key={gc}
                                           className="flex items-center gap-2 rounded-xl cursor-pointer transition-all duration-150"
-                                          style={{ height: 28, padding: "0 10px", fontSize: 12, color: gcActive ? "#2563eb" : "#9ca3af", background: gcActive ? "rgba(59,130,246,0.08)" : "transparent", fontWeight: gcActive ? 600 : 400 }}
+                                          style={{ height: 28, padding: "0 10px", fontSize: 13, color: gcActive ? "#2563eb" : "#9ca3af", background: gcActive ? "rgba(59,130,246,0.08)" : "transparent", fontWeight: gcActive ? 600 : 400 }}
                                           onMouseEnter={(e) => { if (!gcActive) { (e.currentTarget as HTMLDivElement).style.background = "rgba(0,0,0,0.04)"; (e.currentTarget as HTMLDivElement).style.color = "#374151"; } }}
                                           onMouseLeave={(e) => { if (!gcActive) { (e.currentTarget as HTMLDivElement).style.background = "transparent"; (e.currentTarget as HTMLDivElement).style.color = "#9ca3af"; } }}
                                           onClick={() => gcPage && handleNavigate(gcPage, gc)}
@@ -262,7 +262,7 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
           <div>
             <div
               className="flex items-center gap-2.5 rounded-xl cursor-pointer transition-all duration-150"
-              style={{ height: 36, padding: "0 10px", fontSize: 14, fontWeight: 600, color: "#111827" }}
+              style={{ height: 36, padding: "0 10px", fontSize: 15, fontWeight: 600, color: "#111827" }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "rgba(0,0,0,0.04)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
               onClick={() => toggleParent("一生一案")}
@@ -280,7 +280,7 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
                     <div key={label}>
                       <div
                         className="flex items-center gap-2.5 rounded-xl cursor-pointer transition-all duration-150"
-                        style={{ height: 34, padding: "0 10px", fontSize: 14, color: isActive ? "#2563eb" : "#374151", background: isActive ? "rgba(59,130,246,0.1)" : "transparent", fontWeight: isActive ? 600 : 400 }}
+                        style={{ height: 34, padding: "0 10px", fontSize: 15, color: isActive ? "#2563eb" : "#374151", background: isActive ? "rgba(59,130,246,0.1)" : "transparent", fontWeight: isActive ? 600 : 400 }}
                         onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = "rgba(0,0,0,0.04)"; }}
                         onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
                         onClick={() => {
@@ -303,7 +303,7 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
                               <div key={childLabel}>
                                 <div
                                   className="flex items-center gap-2 rounded-xl cursor-pointer transition-all duration-150"
-                                  style={{ height: 30, padding: "0 10px", fontSize: 13, color: childActive ? "#2563eb" : "#6b7280", background: childActive ? "rgba(59,130,246,0.08)" : "transparent", fontWeight: childActive ? 600 : 400 }}
+                                  style={{ height: 30, padding: "0 10px", fontSize: 14, color: childActive ? "#2563eb" : "#6b7280", background: childActive ? "rgba(59,130,246,0.08)" : "transparent", fontWeight: childActive ? 600 : 400 }}
                                   onMouseEnter={(e) => { if (!childActive) { (e.currentTarget as HTMLDivElement).style.background = "rgba(0,0,0,0.04)"; (e.currentTarget as HTMLDivElement).style.color = "#111827"; } }}
                                   onMouseLeave={(e) => { if (!childActive) { (e.currentTarget as HTMLDivElement).style.background = "transparent"; (e.currentTarget as HTMLDivElement).style.color = "#6b7280"; } }}
                                   onClick={(e) => {
@@ -326,7 +326,7 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
                                         <div
                                           key={gc}
                                           className="flex items-center gap-2 rounded-xl cursor-pointer transition-all duration-150"
-                                          style={{ height: 28, padding: "0 10px", fontSize: 12, color: gcActive ? "#2563eb" : "#9ca3af", background: gcActive ? "rgba(59,130,246,0.08)" : "transparent", fontWeight: gcActive ? 600 : 400 }}
+                                          style={{ height: 28, padding: "0 10px", fontSize: 13, color: gcActive ? "#2563eb" : "#9ca3af", background: gcActive ? "rgba(59,130,246,0.08)" : "transparent", fontWeight: gcActive ? 600 : 400 }}
                                           onMouseEnter={(e) => { if (!gcActive) { (e.currentTarget as HTMLDivElement).style.background = "rgba(0,0,0,0.04)"; (e.currentTarget as HTMLDivElement).style.color = "#374151"; } }}
                                           onMouseLeave={(e) => { if (!gcActive) { (e.currentTarget as HTMLDivElement).style.background = "transparent"; (e.currentTarget as HTMLDivElement).style.color = "#9ca3af"; } }}
                                           onClick={() => gcPage && handleNavigate(gcPage, gc)}

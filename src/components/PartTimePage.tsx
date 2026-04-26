@@ -112,7 +112,7 @@ export function PartTimePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
           <div className="rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white">
 
             {/* Row 1 — cream: 教师姓名 + 身份证号码（始终显示） */}
-            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6" style={{ backgroundColor: "#fffcf2" }}>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="教师姓名" required>
                 <div className="border border-dashed border-gray-300 bg-white rounded-[10px] px-3 py-2 min-h-[44px] flex items-center flex-wrap gap-2">
                   <div className="flex items-center bg-red-50 text-red-600 px-2 py-1 rounded-lg text-sm border border-red-100 gap-1.5">
@@ -150,7 +150,7 @@ export function PartTimePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
             {hasJob === "yes" && (
               <>
                 {/* Row 3 — cream: 部门 + 岗位 */}
-                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6" style={{ backgroundColor: "#fffcf2" }}>
+                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
                   <Field label="部门" required><Input /></Field>
                   <Field label="岗位" required><Input /></Field>
                 </div>
@@ -164,7 +164,7 @@ export function PartTimePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                 </div>
 
                 {/* Row 5 — cream: 联系方式 + 担任学科 */}
-                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6" style={{ backgroundColor: "#fffcf2" }}>
+                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
                   <Field label="联系方式" required><Input /></Field>
                   <Field label="担任学科" required><Input /></Field>
                 </div>

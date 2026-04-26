@@ -182,8 +182,8 @@ nextjs-portal {
   body {
     @apply bg-background text-foreground;
     font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-    font-size: 14px;
-    line-height: 21px;
+    font-size: 16px;
+    line-height: 24px;
     color: rgb(19, 29, 46);
   }
   html {
@@ -223,7 +223,7 @@ nextjs-portal {
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   padding: 10px 14px;
-  font-size: 14px;
+  font-size: 16px;
   color: #111827;
   outline: none;
   transition: all 0.15s;
@@ -239,7 +239,7 @@ nextjs-portal {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 4px 8px;
-  font-size: 12px;
+  font-size: 14px;
   color: #111827;
   outline: none;
   transition: all 0.15s;
@@ -260,7 +260,7 @@ nextjs-portal {
 .btn-secondary {
   padding: 10px 32px;
   border-radius: 12px;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   color: #374151;
   background: white;
@@ -278,7 +278,7 @@ nextjs-portal {
 
 /* 大写字段标签（10px bold gray uppercase） */
 .field-label {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   color: #6b7280;
   text-transform: uppercase;
