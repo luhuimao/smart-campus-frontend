@@ -66,6 +66,51 @@
 
 ---
 
+## 数据表格样式规范
+
+> 参照 `ResearchActivityAnalysisPage.tsx` 中"教研活动记录表"样式，所有分析/看板页的数据表格统一使用以下规范：
+
+| 元素 | 样式 |
+|------|------|
+| `<thead>` | `style={{ background: "#eff6ff" }}` |
+| `<th>` | `className="px-4 py-3 font-medium whitespace-nowrap"` + `style={{ fontSize: 15, color: "#374151" }}` |
+| `<tbody> <tr>` | `className="border-t border-gray-50 hover:bg-gray-50 transition-colors"` |
+| `<td>`（普通文本） | `className="px-4 py-3 whitespace-nowrap"` + `style={{ fontSize: 15, color: "#374151" }}` |
+| 操作/链接单元格 | `color: "#3b82f6"`, `background: "#eff6ff"`, `borderRadius: 4`, `padding: "2px 8px"` |
+| Badge / 状态标签 | `inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap` + 对应主题色 |
+
+### 分页栏样式规范
+
+> 参照 `ResearchActivityAnalysisPage.tsx` 教研活动记录表底部分页栏，所有数据表格底部分页统一使用：
+
+```tsx
+<div className="flex flex-wrap justify-between items-center px-4 py-3 border-t border-gray-100"
+  style={{ fontSize: 14, color: "#374151" }}>
+  {/* 左侧：操作 + 每页条数 + 总条数 */}
+  <div className="flex items-center gap-3">
+    <button className="p-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">📋</button>
+    <div className="flex items-center gap-1">
+      <select className="border border-gray-200 rounded-lg px-2 py-1 text-xs outline-none"
+        style={{ color: "#374151" }}>
+        {[10, 20, 50, 100].map(n => <option key={n} value={n}>{n} 条/页</option>)}
+      </select>
+      <span style={{ color: "#6b7280" }}>共 N 条</span>
+    </div>
+  </div>
+  {/* 右侧：翻页 */}
+  <div className="flex items-center gap-1">
+    <button className="px-2 py-1 border border-gray-200 rounded-lg text-gray-400 hover:bg-gray-50">‹</button>
+    <input type="text" className="w-8 border border-gray-200 rounded-lg text-center outline-none text-xs"
+      style={{ color: "#374151" }} />
+    <span style={{ color: "#6b7280" }}>/ N</span>
+    <button className="px-2 py-1 border border-gray-200 rounded-lg hover:bg-gray-50"
+      style={{ color: "#374151" }}>›</button>
+  </div>
+</div>
+```
+
+---
+
 ## 页面结构规范
 
 ### 布局骨架

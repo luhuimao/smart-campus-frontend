@@ -58,6 +58,7 @@ const PAGE_TO_LABEL: Partial<Record<PageKey, string>> = {
   "lesson-prep-analysis":      "备课活动数据分析",
   "science-fest-dashboard":    "科技节活动看板",
   "science-fest-form":         "科技节活动登记",
+  "student-home":              "宿舍考勤看板",
   "student-dashboard":         "学生管理看板",
   "learning-analysis-table":   "学情分析表",
 };
@@ -284,7 +285,9 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
                         onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = "rgba(0,0,0,0.04)"; }}
                         onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
                         onClick={() => {
+                          if (label === "首页")         { handleNavigate("student-home", label); return; }
                           if (label === "学生管理看板") { handleNavigate("student-dashboard", label); return; }
+                          if (label === "宿舍考勤看板") { handleNavigate("student-home", label); return; }
                           if (children) toggleYisheng(label);
                         }}
                       >

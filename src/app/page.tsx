@@ -25,8 +25,9 @@ import { ResearchActivityRecordPage } from "@/components/ResearchActivityRecordP
 import { ClassRankPage } from "@/components/ClassRankPage";
 import { CivilizedClassPage } from "@/components/CivilizedClassPage";
 import { CivilizedDormPage } from "@/components/CivilizedDormPage";
+import { StudentHomePage } from "@/components/StudentHomePage";
 
-export type PageKey = "research-dashboard" | "student-dashboard" | "teacher-cert" | "title-info" | "honor-title" | "award-record" | "paper" | "project" | "works" | "teacher-training" | "work-history" | "education" | "part-time" | "class-rank" | "civilized-class" | "civilized-dorm" | "science-fest-dashboard" | "science-fest-form" | "lesson-prep-record" | "learning-analysis-table" | "lesson-prep-analysis" | "research-activity-analysis" | "research-activity-record";
+export type PageKey = "research-dashboard" | "student-home" | "student-dashboard" | "teacher-cert" | "title-info" | "honor-title" | "award-record" | "paper" | "project" | "works" | "teacher-training" | "work-history" | "education" | "part-time" | "class-rank" | "civilized-class" | "civilized-dorm" | "science-fest-dashboard" | "science-fest-form" | "lesson-prep-record" | "learning-analysis-table" | "lesson-prep-analysis" | "research-activity-analysis" | "research-activity-record";
 
 export default function Home() {
   const [activePage, setActivePage] = useState<PageKey>("research-dashboard");
@@ -52,6 +53,7 @@ export default function Home() {
       />
 
       <div style={{ flex: 1, height: "100vh", overflow: "hidden" }}>
+        {activePage === "student-home"             && <StudentHomePage onMenuOpen={onMenuOpen} onNavigate={setActivePage} />}
         {activePage === "student-dashboard"       && <StudentDashboard onMenuOpen={onMenuOpen} />}
         {activePage === "research-dashboard"      && <ResearchDashboard onMenuOpen={onMenuOpen} onNavigate={setActivePage} />}
         {activePage === "teacher-cert"            && <TeacherCertPage onMenuOpen={onMenuOpen} />}

@@ -1,6 +1,7 @@
 "use client";
 
 import { Bell, ChevronRight, ChevronDown, Menu } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 
 interface Crumb { label: string; active?: boolean }
 
@@ -81,11 +82,47 @@ export function PageHeader({ breadcrumbs, left, centered = false, onMenuOpen }: 
   );
 }
 
-/** 发起流程 button — used by form pages that need it */
+const FLOW_OPTIONS = ["发起流程", "查看本人数据", "全部有权限的数据"];
+
+/** 发起流程 dropdown — used by form pages that need it */
 export function FlowButton() {
+  const [selected, setSelected] = useState(FLOW_OPTIONS[0]);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   return (
-    <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-semibold transition-colors">
-      发起流程 <ChevronDown className="w-4 h-4 opacity-50" />
-    </button>
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-semibold transition-colors"
+      >
+        {selected} <ChevronDown className={`w-4 h-4 opacity-50 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div
+          className="absolute left-0 top-full mt-1 min-w-full rounded-xl shadow-lg border border-gray-100 overflow-hidden"
+          style={{ background: "rgba(255,255,255,0.95)", backdropFilter: "blur(16px)", zIndex: 50 }}
+        >
+          {FLOW_OPTIONS.map((opt) => (
+            <button
+              key={opt}
+              onClick={() => { setSelected(opt); setOpen(false); }}
+              className="w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-gray-50 whitespace-nowrap"
+              style={{ color: opt === selected ? "#2563eb" : "#374151", fontWeight: opt === selected ? 600 : 400 }}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
