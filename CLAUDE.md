@@ -141,15 +141,18 @@ page.tsx
 - 筛选器：5 列网格，`.glass` 小卡片，`rounded-[24px]`
 - 数据区：`.glass rounded-[40px]`，Tab 用 `.macos-tab-active`
 
-### 表单页（`LessonPrepRecordPage.tsx` 为模板）
+### 表单页（`ResearchActivityRecordPage.tsx` / `StudentRosterPage.tsx` 为模板）
 - **表单背景：纯白 `bg-white`**（不用毛玻璃 `.glass`，不用灰色背景）
-- 主体容器：`rounded-2xl md:rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white p-5 md:p-10`
+- 主体容器：`rounded-2xl md:rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white`
 - 可滚动区：`flex-1 overflow-y-auto bg-[#f5f5f7] pb-24`
 - 内容居中：`max-w-5xl mx-auto mt-4 md:mt-10 px-3 md:px-6`
-- 字段布局：`grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8`
-- 字段组件：`<Field>` + `.form-input` / `.table-input`
-- 底部操作栏：`mt-8 pt-6 flex justify-start gap-3`，以 `1px dashed #e5e7eb` 上边框分隔；提交按钮 `teal` 主题色内联，草稿/取消用 `.btn-secondary`
-- 交替行背景（仅表格模式）：白色 `bg-white` / 米色 `#fffcf2`
+- 字段布局：`grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6`
+- 字段标签：`text-sm font-semibold mb-2 color: "#1d1d1f"`；必填星号 `color: "#ff4d4f" mr-1`
+- 输入框交互：`onFocus` → `borderColor: "#10b981" + boxShadow: "0 0 0 4px rgba(16,185,129,0.1)"`；`onBlur` → `borderColor: "#e5e7eb" + boxShadow: "none"`
+- Select 字段：使用 `<div className="relative">` 包裹 + `<ChevronDown>` 绝对定位右侧图标，`appearance-none pr-9`
+- 禁用字段：`style={{ background: "#f9fafb", color: "#9ca3af" }}` + `disabled` 属性
+- 底部固定操作栏：使用 `.form-footer` 类（`shrink-0 flex gap-3 px-6 md:px-10 py-4`）；提交/保存按钮用 teal `#10b981` + `boxShadow: "0 4px 12px rgba(16,185,129,0.15)"`，取消用 `.btn-secondary`
+- 区块标题（SectionHeader）：teal 渐变横幅 `linear-gradient(90deg, transparent 0%, #10b981 10%, #10b981 90%, transparent 100%)` + 两端菱形装饰，高度 32px，白色文字
 
 ---
 
