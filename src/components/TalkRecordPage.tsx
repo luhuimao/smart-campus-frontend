@@ -199,7 +199,7 @@ export function TalkRecordPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
           style={{ background: "#10b981", boxShadow: "0 4px 12px rgba(16,185,129,0.15)" }}>
           提交
         </button>
-        <button className="btn-secondary">取消</button>
+        <button className="btn-secondary">保存草稿</button>
       </div>
     </div>
   );
