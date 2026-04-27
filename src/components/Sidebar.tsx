@@ -62,6 +62,7 @@ const PAGE_TO_LABEL: Partial<Record<PageKey, string>> = {
   "student-dashboard":         "学生管理看板",
   "learning-analysis-table":   "学情分析表",
   "student-roster":            "学生花名册",
+  "talk-record":               "一生一案谈心谈话记录表",
 };
 
 interface SidebarProps {
@@ -300,7 +301,7 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
                       {children && expanded[label] && (
                         <div className="flex flex-col gap-0.5 mt-0.5 mb-0.5" style={{ paddingLeft: 14 }}>
                           {children.map(({ label: childLabel, children: grandChildren }) => {
-                            const yishengChildPageMap: Record<string, PageKey> = { "学情分析表": "learning-analysis-table", "学生花名册": "student-roster" };
+                            const yishengChildPageMap: Record<string, PageKey> = { "学情分析表": "learning-analysis-table", "学生花名册": "student-roster", "一生一案谈心谈话记录表": "talk-record" };
                             const childPage   = yishengChildPageMap[childLabel];
                             const childActive = activeLabel === childLabel;
                             return (
