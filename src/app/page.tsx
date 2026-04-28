@@ -28,8 +28,18 @@ import { CivilizedDormPage } from "@/components/CivilizedDormPage";
 import { StudentHomePage } from "@/components/StudentHomePage";
 import { StudentRosterPage } from "@/components/StudentRosterPage";
 import { TalkRecordPage } from "@/components/TalkRecordPage";
+import { StudentAwardPage } from "@/components/StudentAwardPage";
+import { GoodDeedsPage } from "@/components/GoodDeedsPage";
+import { PhysicalTestPage } from "@/components/PhysicalTestPage";
+import { StudentCadreePage } from "@/components/StudentCadreePage";
+import { ReturnRegisterPage } from "@/components/ReturnRegisterPage";
+import { WithdrawalFormPage } from "@/components/WithdrawalFormPage";
+import { ClassTransferPage } from "@/components/ClassTransferPage";
+import { DormAttendancePage } from "@/components/DormAttendancePage";
+import { LearningAnalysisStatsPage } from "@/components/LearningAnalysisStatsPage";
+import { StudentScorePage } from "@/components/StudentScorePage";
 
-export type PageKey = "research-dashboard" | "student-home" | "student-dashboard" | "teacher-cert" | "title-info" | "honor-title" | "award-record" | "paper" | "project" | "works" | "teacher-training" | "work-history" | "education" | "part-time" | "class-rank" | "civilized-class" | "civilized-dorm" | "science-fest-dashboard" | "science-fest-form" | "lesson-prep-record" | "learning-analysis-table" | "lesson-prep-analysis" | "research-activity-analysis" | "research-activity-record" | "student-roster" | "talk-record";
+export type PageKey = "research-dashboard" | "student-home" | "student-dashboard" | "teacher-cert" | "title-info" | "honor-title" | "award-record" | "paper" | "project" | "works" | "teacher-training" | "work-history" | "education" | "part-time" | "class-rank" | "civilized-class" | "civilized-dorm" | "science-fest-dashboard" | "science-fest-form" | "lesson-prep-record" | "learning-analysis-table" | "lesson-prep-analysis" | "research-activity-analysis" | "research-activity-record" | "student-roster" | "talk-record" | "student-award" | "good-deeds" | "physical-test" | "student-cadree" | "return-register" | "withdrawal-form" | "class-transfer" | "dorm-attendance" | "learning-analysis-stats" | "student-score";
 
 export default function Home() {
   const [activePage, setActivePage] = useState<PageKey>("research-dashboard");
@@ -81,6 +91,16 @@ export default function Home() {
         {activePage === "research-activity-record"   && <ResearchActivityRecordPage onMenuOpen={onMenuOpen} />}
         {activePage === "student-roster"              && <StudentRosterPage onMenuOpen={onMenuOpen} />}
         {activePage === "talk-record"                 && <TalkRecordPage onMenuOpen={onMenuOpen} />}
+        {activePage === "student-award"               && <StudentAwardPage onMenuOpen={onMenuOpen} />}
+        {activePage === "good-deeds"                  && <GoodDeedsPage onMenuOpen={onMenuOpen} />}
+        {activePage === "physical-test"               && <PhysicalTestPage onMenuOpen={onMenuOpen} />}
+        {activePage === "student-cadree"              && <StudentCadreePage onMenuOpen={onMenuOpen} />}
+        {activePage === "return-register"             && <ReturnRegisterPage onMenuOpen={onMenuOpen} />}
+        {activePage === "withdrawal-form"             && <WithdrawalFormPage onMenuOpen={onMenuOpen} />}
+        {activePage === "class-transfer"              && <ClassTransferPage onMenuOpen={onMenuOpen} />}
+        {activePage === "dorm-attendance"             && <DormAttendancePage onMenuOpen={onMenuOpen} />}
+        {activePage === "learning-analysis-stats"     && <LearningAnalysisStatsPage onMenuOpen={onMenuOpen} />}
+        {activePage === "student-score"               && <StudentScorePage onMenuOpen={onMenuOpen} />}
       </div>
     </div>
   );

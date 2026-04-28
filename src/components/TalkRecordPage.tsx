@@ -101,7 +101,7 @@ export function TalkRecordPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
 
       <div className="flex-1 overflow-y-auto bg-[#f5f5f7] pb-24">
         <div className="max-w-5xl mx-auto mt-4 md:mt-10 px-3 md:px-6">
-          <div className="rounded-2xl md:rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white px-6 md:px-10 py-8">
+          <div className="rounded-2xl md:rounded-[28px] shadow-sm border border-gray-100 bg-white px-6 md:px-10 py-8">
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
 

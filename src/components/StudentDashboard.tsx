@@ -1,7 +1,7 @@
 "use client";
 
-import { Users, PlusCircle, User, Bell, Menu, Upload, Printer, RefreshCw, ArrowUpDown, Maximize2 } from "lucide-react";
-import { useState } from "react";
+import { Users, PlusCircle, User, Bell, Menu, Upload, Printer, RefreshCw, ArrowUpDown, Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useRef } from "react";
 import React from "react";
 
 const glass = {
@@ -166,6 +166,10 @@ const timeFilters = ["今日", "本周", "本月", "今年"];
 
 export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [activeTab, setActiveTab] = useState(0);
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const scrollTabs = (dir: "left" | "right") => {
+    if (tabsRef.current) tabsRef.current.scrollBy({ left: dir === "left" ? -200 : 200, behavior: "smooth" });
+  };
   const [activeTime, setActiveTime] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -384,22 +388,23 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
           {/* Data Table */}
           <section className="overflow-hidden" style={glass}>
             {/* Tabs */}
-            <div className="flex items-center border-b border-gray-100">
-              <div className="flex items-center overflow-x-auto flex-1 px-8">
+            <div className="flex items-center border-b border-gray-100/50">
+              <button onClick={() => scrollTabs("left")}
+                className="shrink-0 px-2 py-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <ChevronLeft size={18} />
+              </button>
+              <div ref={tabsRef} className="flex flex-1 overflow-x-auto items-center" style={{ scrollbarWidth: "none" }}>
                 {tabs.map((tab, i) => (
-                  <button
-                    key={tab}
-                    className="py-5 px-4 text-xs font-bold whitespace-nowrap transition-colors relative shrink-0"
-                    style={{
-                      color: activeTab === i ? "#0071e3" : "#9ca3af",
-                      borderBottom: activeTab === i ? "2px solid #0071e3" : "2px solid transparent",
-                    }}
-                    onClick={() => setActiveTab(i)}
-                  >
+                  <button key={tab} onClick={() => setActiveTab(i)}
+                    className={`pb-4 px-4 pt-4 text-xl font-bold whitespace-nowrap shrink-0${activeTab === i ? " macos-tab-active" : " text-gray-400 hover:text-gray-600 transition-colors"}`}>
                     {tab}
                   </button>
                 ))}
               </div>
+              <button onClick={() => scrollTabs("right")}
+                className="shrink-0 px-2 py-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <ChevronRight size={18} />
+              </button>
             </div>
 
             {/* Toolbar — hidden for tabs with their own per-table toolbars */}

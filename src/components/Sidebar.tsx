@@ -27,7 +27,7 @@ const yishengItems: YishengItem[] = [
   { icon: Folder, label: "学生成长",   iconColor: "#f97316", children: [{ label: "一生一案谈心谈话记录表" }, { label: "学生获奖记录" }, { label: "好人好事记录" }, { label: "体质检测录入" }, { label: "学生干部风采" }] },
   { icon: Folder, label: "学生管理",   iconColor: "#f97316", children: [{ label: "返校登记表" }, { label: "学生退/转/休学申请表" }, { label: "转科（班）申请表" }, { label: "NFC宿舍考勤（桂宏）", children: ["宿舍考勤记录"] }] },
   { icon: Folder, label: "学生活动",   iconColor: "#f97316", children: undefined },
-  { icon: Folder, label: "学情分析",   iconColor: "#f97316", children: [{ label: "学生成绩" }, { label: "学情分析统计表" }, { label: "学情分析表" }] },
+  { icon: Folder, label: "学情分析",   iconColor: "#f97316", children: [{ label: "学生成绩", children: ["学生成绩表"] }, { label: "学情分析统计表" }, { label: "学情分析表" }] },
   { icon: Folder, label: "基础数据",   iconColor: "#f97316", children: [{ label: "科目" }, { label: "选考科目" }, { label: "学期" }, { label: "年级" }] },
 ];
 
@@ -63,6 +63,16 @@ const PAGE_TO_LABEL: Partial<Record<PageKey, string>> = {
   "learning-analysis-table":   "学情分析表",
   "student-roster":            "学生花名册",
   "talk-record":               "一生一案谈心谈话记录表",
+  "student-award":             "学生获奖记录",
+  "good-deeds":                "好人好事记录",
+  "physical-test":             "体质检测录入",
+  "student-cadree":            "学生干部风采",
+  "return-register":           "返校登记表",
+  "withdrawal-form":           "学生退/转/休学申请表",
+  "class-transfer":            "转科（班）申请表",
+  "dorm-attendance":           "宿舍考勤记录",
+  "learning-analysis-stats":   "学情分析统计表",
+  "student-score":             "学生成绩表",
 };
 
 interface SidebarProps {
@@ -301,7 +311,7 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
                       {children && expanded[label] && (
                         <div className="flex flex-col gap-0.5 mt-0.5 mb-0.5" style={{ paddingLeft: 14 }}>
                           {children.map(({ label: childLabel, children: grandChildren }) => {
-                            const yishengChildPageMap: Record<string, PageKey> = { "学情分析表": "learning-analysis-table", "学生花名册": "student-roster", "一生一案谈心谈话记录表": "talk-record" };
+                            const yishengChildPageMap: Record<string, PageKey> = { "学情分析表": "learning-analysis-table", "学生花名册": "student-roster", "一生一案谈心谈话记录表": "talk-record", "学生获奖记录": "student-award", "好人好事记录": "good-deeds", "体质检测录入": "physical-test", "学生干部风采": "student-cadree", "返校登记表": "return-register", "学生退/转/休学申请表": "withdrawal-form", "转科（班）申请表": "class-transfer", "学情分析统计表": "learning-analysis-stats" };
                             const childPage   = yishengChildPageMap[childLabel];
                             const childActive = activeLabel === childLabel;
                             return (
@@ -317,14 +327,17 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
                                     if (childPage) handleNavigate(childPage, childLabel);
                                   }}
                                 >
-                                  <FileText size={12} style={{ color: childActive ? "#2563eb" : "#d1d5db", flexShrink: 0 }} />
+                                  {grandChildren
+                                    ? <Folder size={12} style={{ color: childActive ? "#2563eb" : "#f97316", flexShrink: 0 }} />
+                                    : <FileText size={12} style={{ color: childActive ? "#2563eb" : "#d1d5db", flexShrink: 0 }} />
+                                  }
                                   <span className="flex-1 truncate">{childLabel}</span>
                                   {grandChildren && (expanded[childLabel] ? <ChevronDown size={11} style={{ color: "#9ca3af", flexShrink: 0 }} /> : <ChevronRight size={11} style={{ color: "#9ca3af", flexShrink: 0 }} />)}
                                 </div>
                                 {grandChildren && expanded[childLabel] && (
                                   <div className="flex flex-col gap-0.5 mt-0.5 mb-0.5" style={{ paddingLeft: 14 }}>
                                     {grandChildren.map((gc) => {
-                                      const yishengGcPageMap: Record<string, PageKey> = { "学情分析表": "learning-analysis-table" };
+                                      const yishengGcPageMap: Record<string, PageKey> = { "学情分析表": "learning-analysis-table", "宿舍考勤记录": "dorm-attendance", "学生成绩表": "student-score" };
                                       const gcPage   = yishengGcPageMap[gc];
                                       const gcActive = activeLabel === gc;
                                       return (
