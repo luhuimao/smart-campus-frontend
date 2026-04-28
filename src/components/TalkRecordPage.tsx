@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Calendar, Plus, Camera } from "lucide-react";
+import { ChevronDown, Plus, Camera } from "lucide-react";
 import { PageHeader } from "./PageHeader";
+import { DatePicker } from "./ui/DatePicker";
 
 const focusStyle = { borderColor: "#10b981", boxShadow: "0 0 0 4px rgba(16,185,129,0.1)" };
 const blurStyle  = { borderColor: "#e5e7eb", boxShadow: "none" };
@@ -49,17 +50,6 @@ function SelectField({ options }: { options: string[] }) {
   );
 }
 
-function DateTimeInput() {
-  return (
-    <div className="relative">
-      <input type="datetime-local" className="form-input pr-10"
-        onFocus={e => Object.assign(e.currentTarget.style, focusStyle)}
-        onBlur={e => Object.assign(e.currentTarget.style, blurStyle)}
-      />
-      <Calendar size={15} className="absolute right-3.5 top-3 pointer-events-none" style={{ color: "#9ca3af" }} />
-    </div>
-  );
-}
 
 function MemberPicker({ label, required, error }: { label: string; required?: boolean; error?: string }) {
   const [members, setMembers] = useState<string[]>([]);
@@ -100,10 +90,7 @@ const TALK_TOPICS = [
 ];
 
 export function TalkRecordPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
-  const [checkedTopics, setCheckedTopics] = useState<Set<string>>(new Set());
-
-  const toggleTopic = (t: string) =>
-    setCheckedTopics(prev => { const s = new Set(prev); s.has(t) ? s.delete(t) : s.add(t); return s; });
+  const [selectedTopic, setSelectedTopic] = useState("");
 
   return (
     <div className="flex flex-col h-full overflow-hidden" style={{ color: "#1d1d1f" }}>
@@ -133,7 +120,7 @@ export function TalkRecordPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
 
               {/* 谈心谈话时间 */}
               <Field label="谈心谈话时间" required>
-                <DateTimeInput />
+                <DatePicker />
               </Field>
 
               {/* 谈话内容 */}
@@ -142,14 +129,14 @@ export function TalkRecordPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                   {TALK_TOPICS.map(t => (
                     <label key={t} className="flex items-center gap-2 cursor-pointer select-none">
                       <span
-                        onClick={() => toggleTopic(t)}
+                        onClick={() => setSelectedTopic(t)}
                         className="shrink-0 flex items-center justify-center rounded-full border transition-colors"
                         style={{
                           width: 18, height: 18,
-                          borderColor: checkedTopics.has(t) ? "#10b981" : "#d1d5db",
+                          borderColor: selectedTopic === t ? "#10b981" : "#d1d5db",
                           background: "white",
                         }}>
-                        {checkedTopics.has(t) && (
+                        {selectedTopic === t && (
                           <span className="rounded-full" style={{ width: 10, height: 10, background: "#10b981", display: "block" }} />
                         )}
                       </span>

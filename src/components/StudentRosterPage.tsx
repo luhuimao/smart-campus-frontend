@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDown, Upload } from "lucide-react";
+import { useState, useRef } from "react";
+import { ChevronDown, ChevronLeft, ChevronRight, Upload } from "lucide-react";
 import { PageHeader } from "./PageHeader";
 
 const focusStyle = { borderColor: "#10b981", boxShadow: "0 0 0 4px rgba(16,185,129,0.1)" };
@@ -97,6 +97,11 @@ const TABS = ["基础信息", "请假数据", "进出数据", "消费数据", "�
 // ── Main component ────────────────────────────────────────────────
 export function StudentRosterPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [activeTab, setActiveTab] = useState(0);
+  const tabsRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (dir: "left" | "right") => {
+    if (tabsRef.current) tabsRef.current.scrollBy({ left: dir === "left" ? -200 : 200, behavior: "smooth" });
+  };
 
   return (
     <div className="flex flex-col h-full overflow-hidden" style={{ color: "#1d1d1f" }}>
@@ -111,13 +116,23 @@ export function StudentRosterPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
           <div className="rounded-2xl md:rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white">
 
             {/* Tab bar */}
-            <div className="flex overflow-x-auto items-center border-b border-gray-100/50">
-              {TABS.map((tab, i) => (
-                <button key={tab} onClick={() => setActiveTab(i)}
-                  className={`pb-4 px-4 pt-4 text-xl font-bold whitespace-nowrap shrink-0${activeTab === i ? " macos-tab-active" : " text-gray-400 hover:text-gray-600 transition-colors"}`}>
-                  {tab}
-                </button>
-              ))}
+            <div className="flex items-center border-b border-gray-100/50">
+              <button onClick={() => scroll("left")}
+                className="shrink-0 px-2 py-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <ChevronLeft size={18} />
+              </button>
+              <div ref={tabsRef} className="flex flex-1 overflow-x-auto items-center" style={{ scrollbarWidth: "none" }}>
+                {TABS.map((tab, i) => (
+                  <button key={tab} onClick={() => setActiveTab(i)}
+                    className={`pb-4 px-4 pt-4 text-xl font-bold whitespace-nowrap shrink-0${activeTab === i ? " macos-tab-active" : " text-gray-400 hover:text-gray-600 transition-colors"}`}>
+                    {tab}
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => scroll("right")}
+                className="shrink-0 px-2 py-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <ChevronRight size={18} />
+              </button>
             </div>
 
             {/* Form content */}
