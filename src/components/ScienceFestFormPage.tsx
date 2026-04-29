@@ -13,7 +13,7 @@ function Field({ label, required, children }: {
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-sm font-semibold" style={{ color: "#1d1d1f" }}>
+      <label className="block text-base font-semibold" style={{ color: "#1d1d1f" }}>
         {required && <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>}
         {label}
       </label>
@@ -116,7 +116,7 @@ export function ScienceFestFormPage({ onMenuOpen }: { onMenuOpen?: () => void })
 
               {/* 参与人员 — row-span-2 */}
               <div className="space-y-1.5 row-span-2">
-                <label className="block text-sm font-semibold" style={{ color: "#1d1d1f" }}>
+                <label className="block text-base font-semibold" style={{ color: "#1d1d1f" }}>
                   <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>参与人员
                 </label>
                 <textarea

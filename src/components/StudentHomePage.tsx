@@ -227,59 +227,53 @@ export function StudentHomePage({ onMenuOpen, onNavigate }: {
             </div>
           </section>
 
-          {/* ── Filters + Stats ── */}
-          <section className="flex flex-col lg:flex-row gap-5">
+          {/* ── 筛选区（独立一行，6 列平铺）── */}
+          <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {FILTER_DEFS.map(({ label, options }) => (
+              <FilterCard key={label} label={label} options={options} />
+            ))}
+          </section>
 
-            {/* Left: 2×3 filter grid */}
-            <div className="grid grid-cols-2 gap-4 w-full lg:w-1/3">
-              {FILTER_DEFS.map(({ label, options }) => (
-                <FilterCard key={label} label={label} options={options} />
-              ))}
+          {/* ── 时间筛选 + 统计卡片（独立一行）── */}
+          <section className="flex flex-col gap-4">
+
+            {/* 扣分时间 */}
+            <div className="glass rounded-[20px] px-4 pt-3 pb-4 flex flex-col gap-2.5">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <p className="text-sm font-semibold text-gray-800 flex-1">扣分时间</p>
+                <span className="text-xs font-semibold text-violet-500 cursor-pointer select-none">动态筛选 ▾</span>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {TIME_OPTIONS.map(opt => (
+                  <button key={opt} onClick={() => setTimePeriod(opt)}
+                    className="px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-150"
+                    style={{ background: timePeriod === opt ? "rgba(139,92,246,0.12)" : "rgba(0,0,0,0.04)", color: timePeriod === opt ? "#7c3aed" : "#6b7280", border: timePeriod === opt ? "1px solid rgba(139,92,246,0.3)" : "1px solid transparent" }}>
+                    {opt}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Right: time filter + 4 stat cards */}
-            <div className="w-full lg:w-2/3 flex flex-col gap-4">
+            {/* 4 stat cards 全宽平铺 */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
-              {/* 扣分时间 */}
-              <div className="glass rounded-[20px] px-4 pt-3 pb-4 flex flex-col gap-2.5">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <p className="text-sm font-semibold text-gray-800 flex-1">扣分时间</p>
-                  <span className="text-xs font-semibold text-violet-500 cursor-pointer select-none">动态筛选 ▾</span>
+              <TiltCard title="扣分类型分布" actions={[{ Icon: RefreshCw, tip: "刷新" }, { Icon: Maximize2, tip: "放大" }]}>
+                <div className="flex-1 flex flex-col items-center justify-center gap-2">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(139,92,246,0.06)" }}>
+                    <PieChart className="w-6 h-6 text-violet-300" />
+                  </div>
+                  <p className="text-sm text-gray-400">暂无数据</p>
                 </div>
-                <div className="flex gap-2 flex-wrap">
-                  {TIME_OPTIONS.map(opt => (
-                    <button key={opt} onClick={() => setTimePeriod(opt)}
-                      className="px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-150"
-                      style={{ background: timePeriod === opt ? "rgba(139,92,246,0.12)" : "rgba(0,0,0,0.04)", color: timePeriod === opt ? "#7c3aed" : "#6b7280", border: timePeriod === opt ? "1px solid rgba(139,92,246,0.3)" : "1px solid transparent" }}>
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              </TiltCard>
 
-              {/* 4 stat cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
-
-                {/* 扣分类型分布 */}
-                <TiltCard title="扣分类型分布" actions={[{ Icon: RefreshCw, tip: "刷新" }, { Icon: Maximize2, tip: "放大" }]}>
-                  <div className="flex-1 flex flex-col items-center justify-center gap-2">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(139,92,246,0.06)" }}>
-                      <PieChart className="w-6 h-6 text-violet-300" />
-                    </div>
-                    <p className="text-sm text-gray-400">暂无数据</p>
+              {BUILDING_STATS.map(({ label, value, color }) => (
+                <TiltCard key={label} title={label} actions={[{ Icon: Upload, tip: "导出" }, { Icon: Maximize2, tip: "放大" }]}>
+                  <div className="flex-1 flex items-center justify-center">
+                    <span className="font-black leading-none" style={{ fontSize: 72, color }}>{value}</span>
                   </div>
                 </TiltCard>
+              ))}
 
-                {/* Building stats */}
-                {BUILDING_STATS.map(({ label, value, color }) => (
-                  <TiltCard key={label} title={label} actions={[{ Icon: Upload, tip: "导出" }, { Icon: Maximize2, tip: "放大" }]}>
-                    <div className="flex-1 flex items-center justify-center">
-                      <span className="font-black leading-none" style={{ fontSize: 72, color }}>{value}</span>
-                    </div>
-                  </TiltCard>
-                ))}
-
-              </div>
             </div>
           </section>
 

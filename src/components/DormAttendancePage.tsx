@@ -12,7 +12,7 @@ function Field({ label, required, children }: {
 }) {
   return (
     <div>
-      <label className="block text-sm font-semibold mb-2" style={{ color: "#1d1d1f" }}>
+      <label className="block text-base font-semibold mb-2" style={{ color: "#1d1d1f" }}>
         {required && <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>}
         {label}
       </label>

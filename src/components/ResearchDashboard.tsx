@@ -383,18 +383,62 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                         {/* 教研活动总数 */}
                         <ResearchGlassCard colSpan="lg:col-span-3" title="教研活动总数" actions={[{ Icon: Upload, tip: "导出" }, { Icon: Maximize2, tip: "放大" }]}>
-                          <div className="flex-1 flex items-center justify-center">
-                            <span className="font-black text-gray-900 leading-none" style={{ fontSize: 100 }}>0</span>
+                          <div className="flex-1 flex flex-col items-center justify-center gap-2">
+                            <span className="font-black text-gray-900 leading-none" style={{ fontSize: 96 }}>24</span>
+                            <span className="text-sm font-semibold" style={{ color: "#10b981" }}>↑ 较上学期 +8</span>
                           </div>
                         </ResearchGlassCard>
 
                         {/* 教研次数折线图 */}
                         <ResearchGlassCard colSpan="lg:col-span-9" title="教研次数" actions={[{ Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]}>
-                          <div className="flex-1 flex flex-col items-center justify-center gap-3">
-                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(0,0,0,0.03)" }}>
-                              <BarChart3 className="w-6 h-6 text-gray-300" />
-                            </div>
-                            <p className="text-sm text-gray-400">暂无数据</p>
+                          <div className="relative h-56">
+                            <svg viewBox="0 0 600 200" className="w-full h-full" preserveAspectRatio="none">
+                              <defs>
+                                <linearGradient id="researchGrad" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="#818cf8" stopOpacity="0.25" />
+                                  <stop offset="100%" stopColor="#818cf8" stopOpacity="0" />
+                                </linearGradient>
+                              </defs>
+                              {[0,1,2,3,4].map(i => (
+                                <line key={i} x1="40" y1={20 + i * 38} x2="580" y2={20 + i * 38}
+                                  stroke="#e2e8f0" strokeWidth="1" strokeDasharray="5,5" />
+                              ))}
+                              {["10","8","6","4","2","0"].map((v, i) => (
+                                <text key={v} x="32" y={24 + i * 38} textAnchor="end" fontSize="11" fill="#94a3b8">{v}</text>
+                              ))}
+                              {(() => {
+                                const pts = [{ x: 80, v: 2 }, { x: 200, v: 5 }, { x: 320, v: 8 }, { x: 440, v: 6 }, { x: 560, v: 9 }];
+                                const toY = (v: number) => 172 - (v / 10) * 152;
+                                const coords = pts.map(p => ({ x: p.x, y: toY(p.v), v: p.v }));
+                                const pathD = coords.map((c, i) => `${i === 0 ? "M" : "L"}${c.x},${c.y}`).join(" ");
+                                const areaD = `${pathD} L${coords[coords.length-1].x},172 L${coords[0].x},172 Z`;
+                                return (
+                                  <>
+                                    <path d={areaD} fill="url(#researchGrad)" />
+                                    <path d={pathD} fill="none" stroke="#818cf8" strokeWidth="2.5" strokeLinejoin="round" />
+                                    {coords.map((c, i) => (
+                                      <g key={i}>
+                                        <circle cx={c.x} cy={c.y} r="5" fill="white" stroke="#818cf8" strokeWidth="2.5" />
+                                        <text x={c.x} y={c.y - 12} textAnchor="middle" fontSize="11" fontWeight="bold" fill="#475569">{c.v}</text>
+                                      </g>
+                                    ))}
+                                  </>
+                                );
+                              })()}
+                              {[
+                                { x: 80, label: "2025年09月" },
+                                { x: 200, label: "2025年10月" },
+                                { x: 320, label: "2025年11月" },
+                                { x: 440, label: "2025年12月" },
+                                { x: 560, label: "2026年01月" },
+                              ].map(m => (
+                                <text key={m.label} x={m.x} y={190} textAnchor="middle" fontSize="11" fill="#475569">{m.label}</text>
+                              ))}
+                            </svg>
+                          </div>
+                          <div className="flex items-center justify-center gap-2 mt-1">
+                            <span className="w-3 h-3 rounded-sm" style={{ background: "#818cf8" }} />
+                            <span className="text-xs text-gray-400 font-medium">教研次数</span>
                           </div>
                         </ResearchGlassCard>
                       </div>
@@ -474,19 +518,44 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                     return (
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <MidGlassCard title="教研活动学科分布" actions={[{ Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]}>
-                          <div className="flex-1 flex flex-col items-center justify-center gap-3">
-                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(0,0,0,0.03)" }}>
-                              <BarChart3 className="w-6 h-6 text-gray-300" />
-                            </div>
-                            <p className="text-sm text-gray-400">暂无数据</p>
+                          <div className="flex-1 flex flex-col justify-center gap-2.5 py-2">
+                            {([
+                              { label: "数学", value: 12, color: "#818cf8" },
+                              { label: "语文", value: 8,  color: "#60a5fa" },
+                              { label: "英语", value: 6,  color: "#34d399" },
+                              { label: "物理", value: 4,  color: "#f472b6" },
+                              { label: "化学", value: 3,  color: "#fb923c" },
+                              { label: "生物", value: 2,  color: "#a78bfa" },
+                            ] as { label: string; value: number; color: string }[]).map(({ label, value, color }) => (
+                              <div key={label} className="flex items-center gap-2">
+                                <span className="shrink-0 text-right font-medium" style={{ fontSize: 12, color: "#6b7280", width: 24 }}>{label}</span>
+                                <div className="flex-1 bg-gray-100 rounded-full overflow-hidden" style={{ height: 10 }}>
+                                  <div className="h-full rounded-full" style={{ width: `${(value / 12) * 100}%`, background: color }} />
+                                </div>
+                                <span className="shrink-0 font-bold" style={{ fontSize: 12, color: "#374151", width: 16, textAlign: "right" }}>{value}</span>
+                              </div>
+                            ))}
                           </div>
                         </MidGlassCard>
                         <MidGlassCard title="教研活动趋势" actions={[{ Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]}>
-                          <div className="flex-1 flex flex-col items-center justify-center gap-3">
-                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(0,0,0,0.03)" }}>
-                              <TrendingUp className="w-6 h-6 text-gray-300" />
-                            </div>
-                            <p className="text-sm text-gray-400">暂无数据</p>
+                          <div className="flex-1 flex items-end gap-2 px-2 pb-6" style={{ position: "relative" }}>
+                            {([
+                              { month: "9月", value: 2 },
+                              { month: "10月", value: 5 },
+                              { month: "11月", value: 8 },
+                              { month: "12月", value: 6 },
+                              { month: "1月", value: 3 },
+                            ] as { month: string; value: number }[]).map(({ month, value }) => (
+                              <div key={month} className="flex-1 flex flex-col items-center gap-1.5">
+                                <span className="text-xs font-bold" style={{ color: "#374151" }}>{value}</span>
+                                <div className="w-full rounded-t-lg" style={{
+                                  height: `${(value / 8) * 140}px`,
+                                  background: "linear-gradient(180deg, #818cf8 0%, #c7d2fe 100%)",
+                                  minHeight: 8,
+                                }} />
+                                <span className="text-xs font-medium" style={{ color: "#9ca3af" }}>{month}</span>
+                              </div>
+                            ))}
                           </div>
                         </MidGlassCard>
                       </div>
@@ -499,7 +568,7 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                   {(() => {
                     const rippleStyle = `@keyframes researchRipple { 0% { transform: scale(0); opacity: 0.45; } 100% { transform: scale(4); opacity: 0; } }`;
 
-                    function ResearchStatCard({ title, selected, onSelect }: { title: string; selected: boolean; onSelect: () => void }) {
+                    function ResearchStatCard({ title, selected, onSelect, chartContent }: { title: string; selected: boolean; onSelect: () => void; chartContent?: React.ReactNode }) {
                       const ref = React.useRef<HTMLDivElement>(null);
                       const [tilt, setTilt] = React.useState({ rx: 0, ry: 0, gx: 50, gy: 50, active: false });
                       const [pressed, setPressed] = React.useState(false);
@@ -568,12 +637,9 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                               )}
                             </div>
                           </div>
-                          {/* 空数据区 */}
-                          <div className="flex-1 flex flex-col items-center justify-center gap-3 p-6 relative z-10">
-                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300" style={{ background: tilt.active ? "rgba(96,165,250,0.08)" : "rgba(0,0,0,0.03)" }}>
-                              <BarChart3 className={`w-6 h-6 transition-colors duration-300 ${tilt.active ? "text-blue-300" : "text-gray-300"}`} />
-                            </div>
-                            <p className="text-sm text-gray-400">暂无数据</p>
+                          {/* 数据区 */}
+                          <div className="flex-1 flex flex-col justify-center p-4 relative z-10">
+                            {chartContent}
                           </div>
                           {/* 分页 */}
                           <div className="px-4 py-3 border-t border-gray-100/60 flex items-center justify-center gap-1 relative z-10">
@@ -587,6 +653,57 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                       );
                     }
 
+                    function MiniBarChart({ bars, labels, color = "#818cf8" }: { bars: number[]; labels: string[]; color?: string }) {
+                      const max = Math.max(...bars);
+                      return (
+                        <div className="flex items-end gap-1.5 w-full" style={{ height: 120 }}>
+                          {bars.map((v, i) => (
+                            <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                              <span className="text-xs font-bold" style={{ color: "#374151", fontSize: 10 }}>{v}</span>
+                              <div className="w-full rounded-t" style={{
+                                height: `${(v / max) * 80}px`,
+                                background: color,
+                                minHeight: 4,
+                                opacity: 0.85,
+                              }} />
+                              <span className="text-center leading-tight" style={{ fontSize: 9, color: "#9ca3af" }}>{labels[i]}</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+
+                    function HBarChart({ data }: { data: { label: string; value: number; color: string }[] }) {
+                      const max = Math.max(...data.map(d => d.value));
+                      return (
+                        <div className="flex flex-col gap-2.5 w-full py-2">
+                          {data.map(({ label, value, color }) => (
+                            <div key={label} className="flex items-center gap-2">
+                              <span className="shrink-0 text-right font-medium" style={{ fontSize: 11, color: "#6b7280", width: 28 }}>{label}</span>
+                              <div className="flex-1 bg-gray-100 rounded-full overflow-hidden" style={{ height: 9 }}>
+                                <div className="h-full rounded-full" style={{ width: `${(value / max) * 100}%`, background: color }} />
+                              </div>
+                              <span className="shrink-0 font-bold" style={{ fontSize: 11, color: "#374151", width: 18, textAlign: "right" }}>{value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+
+                    const researchCharts: Record<string, React.ReactNode> = {
+                      "每周学科教研次数": <MiniBarChart bars={[2,4,3,5,1,3,4,2]} labels={["W1","W2","W3","W4","W5","W6","W7","W8"]} color="#818cf8" />,
+                      "每月学科教研次数": <MiniBarChart bars={[8,12,7,15,10,9]} labels={["9月","10月","11月","12月","1月","2月"]} color="#60a5fa" />,
+                      "学期学科教研次数": <HBarChart data={[
+                        { label: "数学", value: 12, color: "#818cf8" },
+                        { label: "语文", value: 8,  color: "#60a5fa" },
+                        { label: "英语", value: 6,  color: "#34d399" },
+                        { label: "物理", value: 4,  color: "#fb923c" },
+                        { label: "化学", value: 3,  color: "#f472b6" },
+                        { label: "生物", value: 2,  color: "#a78bfa" },
+                      ]} />,
+                      "教师参与次数": <MiniBarChart bars={[5,8,3,9,6,4,7,5]} labels={["王","李","张","刘","陈","杨","赵","吴"]} color="#34d399" />,
+                    };
+
                     function ResearchStatGroup() {
                       const [sel, setSel] = React.useState<string | null>(null);
                       return (
@@ -594,7 +711,7 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                           <style>{rippleStyle}</style>
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                             {["每周学科教研次数", "每月学科教研次数", "学期学科教研次数", "教师参与次数"].map(title => (
-                              <ResearchStatCard key={title} title={title} selected={sel === title} onSelect={() => setSel(p => p === title ? null : title)} />
+                              <ResearchStatCard key={title} title={title} selected={sel === title} onSelect={() => setSel(p => p === title ? null : title)} chartContent={researchCharts[title]} />
                             ))}
                           </div>
                         </>
@@ -795,9 +912,9 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                       100% { transform: scale(4);   opacity: 0; }
                     }`;
 
-                    function StatCard({ title, highlight, selected, onSelect }: {
+                    function StatCard({ title, highlight, selected, onSelect, chartContent }: {
                       title: string; highlight?: boolean;
-                      selected: boolean; onSelect: () => void;
+                      selected: boolean; onSelect: () => void; chartContent?: React.ReactNode;
                     }) {
                       const ref = React.useRef<HTMLDivElement>(null);
                       const [tilt, setTilt] = React.useState({ rx: 0, ry: 0, gx: 50, gy: 50, active: false });
@@ -933,15 +1050,9 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                               )}
                             </div>
                           </div>
-                          {/* 空数据区 */}
-                          <div className="flex-1 flex flex-col items-center justify-center gap-3 p-6 relative z-10">
-                            <div
-                              className="w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300"
-                              style={{ background: tilt.active ? "rgba(96,165,250,0.08)" : "rgba(0,0,0,0.03)" }}
-                            >
-                              <BarChart3 className={`w-6 h-6 transition-colors duration-300 ${tilt.active ? "text-blue-300" : "text-gray-300"}`} />
-                            </div>
-                            <p className="text-sm text-gray-400">暂无数据</p>
+                          {/* 数据区 */}
+                          <div className="flex-1 flex flex-col justify-center p-4 relative z-10">
+                            {chartContent}
                           </div>
                           {/* 分页 */}
                           <div className="px-4 py-3 border-t border-gray-100/60 flex items-center justify-center gap-1 relative z-10">
@@ -958,6 +1069,52 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                         </div>
                       );
                     }
+
+                    function LessonMiniBar({ bars, labels, color = "#60a5fa" }: { bars: number[]; labels: string[]; color?: string }) {
+                      const max = Math.max(...bars);
+                      return (
+                        <div className="flex items-end gap-1.5 w-full" style={{ height: 120 }}>
+                          {bars.map((v, i) => (
+                            <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                              <span style={{ fontSize: 10, color: "#374151", fontWeight: 700 }}>{v}</span>
+                              <div className="w-full rounded-t" style={{ height: `${(v / max) * 80}px`, background: color, minHeight: 4, opacity: 0.85 }} />
+                              <span className="text-center leading-tight" style={{ fontSize: 9, color: "#9ca3af" }}>{labels[i]}</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+
+                    function LessonHBar({ data }: { data: { label: string; value: number; color: string }[] }) {
+                      const max = Math.max(...data.map(d => d.value));
+                      return (
+                        <div className="flex flex-col gap-2.5 w-full py-2">
+                          {data.map(({ label, value, color }) => (
+                            <div key={label} className="flex items-center gap-2">
+                              <span className="shrink-0 text-right font-medium" style={{ fontSize: 11, color: "#6b7280", width: 28 }}>{label}</span>
+                              <div className="flex-1 bg-gray-100 rounded-full overflow-hidden" style={{ height: 9 }}>
+                                <div className="h-full rounded-full" style={{ width: `${(value / max) * 100}%`, background: color }} />
+                              </div>
+                              <span className="shrink-0 font-bold" style={{ fontSize: 11, color: "#374151", width: 18, textAlign: "right" }}>{value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+
+                    const lessonCharts: Record<string, React.ReactNode> = {
+                      "每周备课组备课次数": <LessonMiniBar bars={[5,8,6,9,4,7,8,6]} labels={["W1","W2","W3","W4","W5","W6","W7","W8"]} color="#60a5fa" />,
+                      "每月备课组备课次数": <LessonMiniBar bars={[20,35,28,42,30,38]} labels={["9月","10月","11月","12月","1月","2月"]} color="#818cf8" />,
+                      "备课组备课次数": <LessonHBar data={[
+                        { label: "数学", value: 24, color: "#60a5fa" },
+                        { label: "语文", value: 18, color: "#818cf8" },
+                        { label: "英语", value: 15, color: "#34d399" },
+                        { label: "物理", value: 10, color: "#fb923c" },
+                        { label: "化学", value: 8,  color: "#f472b6" },
+                        { label: "生物", value: 5,  color: "#a78bfa" },
+                      ]} />,
+                      "备课教师参与次数": <LessonMiniBar bars={[12,8,15,6,10,9,11,7]} labels={["王","李","张","刘","陈","杨","赵","吴"]} color="#34d399" />,
+                    };
 
                     // StatCardGroup：持有共享 selectedTitle，实现互斥选中
                     function StatCardGroup() {
@@ -981,6 +1138,7 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                                 highlight={undefined}
                                 selected={selectedTitle === title}
                                 onSelect={() => handleSelect(title)}
+                                chartContent={lessonCharts[title]}
                               />
                             ))}
                           </div>

@@ -266,7 +266,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                   className="p-5 flex flex-col justify-between transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
                   style={{ ...glass, borderLeft: `4px solid ${color}` }}
                 >
-                  <p className="text-[10px] font-bold text-gray-400 uppercase">{label}</p>
+                  <p className="text-[14px] font-bold text-gray-800 uppercase">{label}</p>
                   <span className={`text-2xl font-black ${textColor}`}>{value}</span>
                 </div>
               ))}
@@ -283,17 +283,17 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
           <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Pie chart */}
             <div className="p-6 flex flex-col transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg" style={glass}>
-              <h3 className="text-sm font-bold text-gray-500 mb-6 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-gray-800 mb-6 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" /> 男女比例
               </h3>
               <div className="flex-1 flex items-center justify-center relative">
                 <div className="w-32 h-32 rounded-full rotate-45 shadow-inner" style={{ border: "12px solid #3b82f6", borderLeftColor: "#34d399" }} />
                 <div className="absolute text-center">
-                  <p className="text-xs font-bold text-gray-400">占比</p>
+                  <p className="text-xs font-bold text-gray-800">占比</p>
                   <p className="text-sm font-black">57.4%</p>
                 </div>
               </div>
-              <div className="mt-6 flex justify-center gap-6 text-[10px] font-bold text-gray-400">
+              <div className="mt-6 flex justify-center gap-6 text-[10px] font-bold text-gray-800">
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500" /> 男</span>
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400" /> 女</span>
               </div>
@@ -301,7 +301,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
 
             {/* Bar chart */}
             <div className="p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg" style={glass}>
-              <h3 className="text-sm font-bold text-gray-500 mb-6 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-gray-800 mb-6 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" /> 各年级人数
               </h3>
               <div className="flex items-end justify-between h-32 px-4">
@@ -319,7 +319,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
 
             {/* Class count table */}
             <div className="p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg" style={glass}>
-              <h3 className="text-sm font-bold text-gray-500 mb-4 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" /> 各年级班级数
               </h3>
               <div className="space-y-2">
@@ -334,7 +334,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
 
             {/* Consume progress */}
             <div className="p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg" style={glass}>
-              <h3 className="text-sm font-bold text-gray-500 mb-6 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-gray-800 mb-6 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0" /> 消费情况
               </h3>
               <div className="space-y-4">
@@ -355,7 +355,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
           {/* Search & Filters */}
           <section className="p-6 flex flex-wrap items-end gap-6" style={glass}>
             <div className="flex-1 min-w-[200px] space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">学生姓名</label>
+              <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">学生姓名</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
                 <input
@@ -369,13 +369,13 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
               </div>
             </div>
             <div className="flex-1 min-w-[200px] space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">班级选择</label>
+              <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">班级选择</label>
               <select className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer" style={{ background: "rgba(0,0,0,0.04)", border: "none" }}>
                 <option>等于任意一个</option>
               </select>
             </div>
             <div className="flex-1 min-w-[200px] space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">提交时间</label>
+              <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">提交时间</label>
               <select className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer" style={{ background: "rgba(0,0,0,0.04)", border: "none" }}>
                 <option>本周 (动态筛选)</option>
               </select>

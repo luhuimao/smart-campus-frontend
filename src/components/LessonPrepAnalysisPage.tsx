@@ -237,7 +237,7 @@ export function LessonPrepAnalysisPage({ onMenuOpen }: { onMenuOpen?: () => void
               <ActionBar show={hvTotal} actions={[{ Icon: Upload, tip: "导出" }, { Icon: Maximize2, tip: "放大" }]} />
             </div>
             <div className="flex-1 flex items-center justify-center p-6">
-              <div style={{ fontSize: 64, fontWeight: 300, color: "#111827", lineHeight: 1 }}>82</div>
+              <div style={{ fontSize: 64, fontWeight: 500, color: "#111827", lineHeight: 1 }}>82</div>
             </div>
           </div>
           <div className="glass md:col-span-3 flex flex-col overflow-hidden" onMouseEnter={() => setHvChart(true)} onMouseLeave={() => setHvChart(false)}>

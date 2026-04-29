@@ -19,7 +19,7 @@ function Field({ label, required, hint, error, children }: {
 }) {
   return (
     <div style={{ background: error ? "#fffbe6" : "transparent", borderRadius: 8, padding: error ? "10px 12px" : 0 }}>
-      <label className="block text-sm font-semibold mb-2" style={{ color: "#1d1d1f" }}>
+      <label className="block text-base font-semibold mb-2" style={{ color: "#1d1d1f" }}>
         {required && <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>}
         {label}
       </label>

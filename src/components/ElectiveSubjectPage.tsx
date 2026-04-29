@@ -6,24 +6,18 @@ import { PageHeader } from "./PageHeader";
 const focusStyle = { borderColor: "#10b981", boxShadow: "0 0 0 4px rgba(16,185,129,0.1)" };
 const blurStyle  = { borderColor: "#e5e7eb", boxShadow: "none" };
 
-function Field({ label, required, children }: {
-  label: string; required?: boolean; children: React.ReactNode;
-}) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-base font-semibold mb-2" style={{ color: "#1d1d1f" }}>
-        {required && <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>}
-        {label}
-      </label>
+      <label className="block text-base font-semibold mb-2" style={{ color: "#1d1d1f" }}>{label}</label>
       {children}
     </div>
   );
 }
 
-function Input({ placeholder = "" }: { placeholder?: string }) {
+function Input() {
   return (
     <input
-      placeholder={placeholder}
       className="form-input"
       onFocus={e => Object.assign(e.currentTarget.style, focusStyle)}
       onBlur={e => Object.assign(e.currentTarget.style, blurStyle)}
@@ -49,11 +43,11 @@ function SelectField({ options }: { options: string[] }) {
   );
 }
 
-export function StudentScorePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
+export function ElectiveSubjectPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   return (
     <div className="flex flex-col h-full overflow-hidden" style={{ color: "#1d1d1f" }}>
       <PageHeader
-        breadcrumbs={[{ label: "学情分析" }, { label: "学生成绩" }, { label: "学生成绩表", active: true }]}
+        breadcrumbs={[{ label: "基础数据" }, { label: "选考科目", active: true }]}
         onMenuOpen={onMenuOpen}
       />
 
@@ -63,28 +57,24 @@ export function StudentScorePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
 
-              <Field label="学期" required>
-                <SelectField options={["2023-2024学年第一学期", "2023-2024学年第二学期", "2024-2025学年第一学期", "2024-2025学年第二学期"]} />
+              <Field label="选科科目">
+                <Input />
               </Field>
 
-              <Field label="考试名称" required>
-                <Input placeholder="请输入考试名称" />
+              <Field label="选考方向">
+                <Input />
               </Field>
 
-              <Field label="班级" required>
-                <SelectField options={["高一(1)班", "高一(2)班", "高一(3)班", "高二(1)班", "高二(2)班", "高三(1)班", "高三(2)班"]} />
+              <Field label="选科1">
+                <Input />
               </Field>
 
-              <Field label="学生姓名" required>
-                <SelectField options={[]} />
+              <Field label="选科2">
+                <Input />
               </Field>
 
-              <Field label="学科" required>
-                <SelectField options={["语文", "数学", "英语", "物理", "化学", "生物", "历史", "地理", "政治"]} />
-              </Field>
-
-              <Field label="分数" required>
-                <Input placeholder="请输入分数" />
+              <Field label="开科年级类别">
+                <SelectField options={["高二英语","高二日语","高三常规英语","高三常规日语","高三复读"]} />
               </Field>
 
             </div>

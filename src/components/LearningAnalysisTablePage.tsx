@@ -23,7 +23,7 @@ function Field({ label, required, children }: {
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-sm font-semibold" style={{ color: "#1d1d1f" }}>
+      <label className="block text-base font-semibold" style={{ color: "#1d1d1f" }}>
         {required && <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>}
         {label}
       </label>
@@ -269,7 +269,7 @@ export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => v
 
       {mode === "add-only" ? (
         <>
-          <div className="flex-1 overflow-y-auto bg-[#f5f5f7]">
+          <div className="flex-1 overflow-y-auto bg-[#f5f5f7] pb-6">
             <main className="max-w-5xl mx-auto mt-4 md:mt-10 px-3 md:px-6">
               <div className="rounded-2xl md:rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white p-5 md:p-10">
 

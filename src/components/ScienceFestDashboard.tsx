@@ -4,7 +4,7 @@ import { ChevronDown, ChevronRight, ChevronLeft, ChevronsLeft, Info, Upload, Ref
 import { useState, useEffect, useRef } from "react";
 
 const TIME_OPTIONS = ["等于","不等于","大于等于","小于等于","选择范围","动态筛选","为空","不为空"];
-import { PageHeader, FlowButton } from "./PageHeader";
+import { PageHeader } from "./PageHeader";
 import { DatePicker, DateRangePicker } from "./ui/DatePicker";
 
 const teal = "#00b095";
@@ -95,14 +95,6 @@ function ActionBar({ show, actions }: { show: boolean; actions: ActionItem[] }) 
   );
 }
 
-function EmptyState({ message = "暂无数据" }: { message?: string }) {
-  return (
-    <div className="flex-1 flex flex-col items-center justify-center text-gray-300">
-      <Info className="w-10 h-10 mb-2 opacity-50" />
-      <p className="text-sm">{message}</p>
-    </div>
-  );
-}
 
 const mockActivities = [
   { id: 1, teacher: "甘育攀", group: "理化教研组", groupLeader: "孙志远", name: "科技小发明展评活动", time: "2026-04-22 09:00", location: "科技楼一楼展厅",   desc: "组织学生展示自制科技小发明，评选优秀作品",     hasPhoto: true,  hasVideo: true  },
@@ -184,8 +176,9 @@ export function ScienceFestDashboard({ onMenuOpen }: { onMenuOpen?: () => void }
               <h3 className="text-sm font-semibold text-gray-800 flex-1 min-w-0 truncate">科技节活动总次数</h3>
               <ActionBar show={hvTotal} actions={[{ Icon: Upload, tip: "导出" }, { Icon: Maximize2, tip: "放大" }]} />
             </div>
-            <div className="flex-1 flex items-center justify-center p-4">
-              <span className="text-8xl font-light" style={{ color: "#1d1d1f" }}>0</span>
+            <div className="flex-1 flex flex-col items-center justify-center p-4 gap-1">
+              <span className="text-8xl font-light" style={{ color: "#1d1d1f" }}>7</span>
+              <span className="text-xs font-semibold" style={{ color: "#10b981" }}>↑ 较上学期 +3</span>
             </div>
           </div>
 
@@ -196,7 +189,55 @@ export function ScienceFestDashboard({ onMenuOpen }: { onMenuOpen?: () => void }
               <h3 className="text-sm font-semibold text-gray-800 flex-1 min-w-0 truncate">活动次数</h3>
               <ActionBar show={hvChart} actions={[{ Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]} />
             </div>
-            <EmptyState />
+            <div className="flex-1 flex flex-col px-4 pb-3 pt-2">
+              <div className="relative flex-1">
+                <svg viewBox="0 0 600 180" className="w-full h-full" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="sfGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#00b095" stopOpacity="0.2" />
+                      <stop offset="100%" stopColor="#00b095" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  {[0,1,2,3].map(i => (
+                    <line key={i} x1="36" y1={16 + i * 44} x2="580" y2={16 + i * 44}
+                      stroke="#f0f0f0" strokeWidth="1" strokeDasharray="4,4" />
+                  ))}
+                  {["4","3","2","1","0"].map((v, i) => (
+                    <text key={v} x="28" y={20 + i * 44} textAnchor="end" fontSize="10" fill="#9ca3af">{v}</text>
+                  ))}
+                  {(() => {
+                    const pts = [{ x: 80, v: 1 }, { x: 190, v: 2 }, { x: 300, v: 1 }, { x: 410, v: 3 }, { x: 520, v: 2 }];
+                    const toY = (v: number) => 156 - (v / 4) * 140;
+                    const coords = pts.map(p => ({ x: p.x, y: toY(p.v), v: p.v }));
+                    const pathD = coords.map((c, i) => `${i === 0 ? "M" : "L"}${c.x},${c.y}`).join(" ");
+                    const areaD = `${pathD} L${coords[coords.length-1].x},156 L${coords[0].x},156 Z`;
+                    return (
+                      <>
+                        <path d={areaD} fill="url(#sfGrad)" />
+                        <path d={pathD} fill="none" stroke="#00b095" strokeWidth="2" strokeLinejoin="round" />
+                        {coords.map((c, idx) => (
+                          <g key={idx}>
+                            <circle cx={c.x} cy={c.y} r="4" fill="white" stroke="#00b095" strokeWidth="2" />
+                            <text x={c.x} y={c.y - 9} textAnchor="middle" fontSize="10" fontWeight="bold" fill="#374151">{c.v}</text>
+                          </g>
+                        ))}
+                      </>
+                    );
+                  })()}
+                  {[
+                    { x: 80, label: "2025年11月" }, { x: 190, label: "2025年12月" },
+                    { x: 300, label: "2026年01月" }, { x: 410, label: "2026年03月" },
+                    { x: 520, label: "2026年04月" },
+                  ].map(m => (
+                    <text key={m.label} x={m.x} y={172} textAnchor="middle" fontSize="10" fill="#6b7280">{m.label}</text>
+                  ))}
+                </svg>
+              </div>
+              <div className="flex items-center justify-center gap-2 mt-1">
+                <span className="w-3 h-3 rounded-sm" style={{ background: "#00b095" }} />
+                <span className="text-xs text-gray-400 font-medium">活动次数</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -209,7 +250,23 @@ export function ScienceFestDashboard({ onMenuOpen }: { onMenuOpen?: () => void }
               <h3 className="text-sm font-semibold text-gray-800 flex-1 min-w-0 truncate">教研组活动情况统计</h3>
               <ActionBar show={hvGroup} actions={[{ Icon: Upload, tip: "导出" }, { Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]} />
             </div>
-            <div className="flex-1" />
+            <div className="flex-1 flex flex-col justify-center gap-2.5 px-4 py-3">
+              {([
+                { label: "理化教研组", value: 3, color: "#00b095" },
+                { label: "数学教研组", value: 2, color: "#60a5fa" },
+                { label: "英语教研组", value: 1, color: "#818cf8" },
+                { label: "史地教研组", value: 1, color: "#fb923c" },
+                { label: "政治教研组", value: 1, color: "#f472b6" },
+              ] as { label: string; value: number; color: string }[]).map(({ label, value, color }) => (
+                <div key={label} className="flex items-center gap-2">
+                  <span className="shrink-0 text-right" style={{ fontSize: 11, color: "#6b7280", width: 60 }}>{label}</span>
+                  <div className="flex-1 bg-gray-100 rounded-full overflow-hidden" style={{ height: 8 }}>
+                    <div className="h-full rounded-full" style={{ width: `${(value / 3) * 100}%`, background: color }} />
+                  </div>
+                  <span className="shrink-0 font-bold" style={{ fontSize: 11, color: "#374151", width: 12, textAlign: "right" }}>{value}</span>
+                </div>
+              ))}
+            </div>
             <div className="px-3 py-2.5 border-t border-gray-50 flex items-center justify-center gap-1">
               <button className="w-6 h-6 border border-gray-200 rounded flex items-center justify-center text-gray-400 hover:bg-gray-50 transition-colors">
                 <ChevronsLeft className="w-3 h-3" />
@@ -237,7 +294,23 @@ export function ScienceFestDashboard({ onMenuOpen }: { onMenuOpen?: () => void }
                 <span className="text-xs text-blue-500">计数</span>
                 <div className="w-6 h-6 rounded-full bg-orange-400 text-white text-[10px] flex items-center justify-center font-bold">0</div>
               </div>
-              <div className="flex-1" />
+              <div className="flex-1 flex flex-col gap-2 pt-2 overflow-hidden">
+                {([
+                  { name: "甘育攀", count: 1 }, { name: "黄景民", count: 1 },
+                  { name: "张丽燕", count: 1 }, { name: "李枝芳", count: 1 },
+                  { name: "莫燕",   count: 1 }, { name: "郑茹",   count: 1 },
+                  { name: "廖永会", count: 1 },
+                ] as { name: string; count: number }[]).map(({ name, count }) => (
+                  <div key={name} className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full bg-orange-400 text-white flex items-center justify-center font-bold shrink-0" style={{ fontSize: 9 }}>{name[0]}</div>
+                    <span className="shrink-0" style={{ fontSize: 11, color: "#374151", width: 36 }}>{name}</span>
+                    <div className="flex-1 bg-gray-100 rounded-full overflow-hidden" style={{ height: 7 }}>
+                      <div className="h-full rounded-full" style={{ width: "100%", background: "#fb923c" }} />
+                    </div>
+                    <span className="shrink-0 font-bold" style={{ fontSize: 11, color: "#374151" }}>{count}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -270,7 +343,7 @@ export function ScienceFestDashboard({ onMenuOpen }: { onMenuOpen?: () => void }
             </div>
             {/* Calendar grid */}
             <div className="flex-1 grid grid-cols-7">
-              {WEEK_DAYS.map((day, i) => (
+              {WEEK_DAYS.map((day) => (
                 <div key={day} className="flex flex-col border-r last:border-r-0 border-gray-50">
                   <div className="py-2 text-[10px] text-gray-400 text-center border-b border-gray-50">{day}</div>
                   <div className="flex-1 bg-slate-50 opacity-40" />

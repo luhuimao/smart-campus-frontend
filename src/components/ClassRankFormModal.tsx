@@ -14,7 +14,7 @@ function Field({ label, hint, children }: {
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium mb-2" style={{ color: "#262626" }}>{label}</label>
+      <label className="block text-base font-semibold mb-2" style={{ color: "#262626" }}>{label}</label>
       {hint && <p className="text-sm mb-2" style={{ color: "#8c8c8c" }}>{hint}</p>}
       {children}
     </div>

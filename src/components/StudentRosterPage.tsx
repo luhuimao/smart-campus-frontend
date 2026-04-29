@@ -25,7 +25,7 @@ function Field({ label, required, children }: {
 }) {
   return (
     <div>
-      <label className="block text-sm font-semibold mb-2" style={{ color: "#1d1d1f" }}>
+      <label className="block text-base font-semibold mb-2" style={{ color: "#1d1d1f" }}>
         {required && <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>}
         {label}
       </label>
@@ -71,8 +71,8 @@ function PhotoZone({ label, hint }: { label: string; hint: string }) {
   return (
     <div className="border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-2 py-8 cursor-pointer hover:border-emerald-300 hover:bg-emerald-50/30 transition-colors">
       <Upload className="w-6 h-6 text-gray-300" />
-      <span className="text-sm text-gray-400">{label}</span>
-      <span className="text-xs text-gray-300 text-center px-2">{hint}</span>
+      <span className="text-base text-gray-400">{label}</span>
+      <span className="text-sm text-gray-300 text-center px-2">{hint}</span>
     </div>
   );
 }
@@ -82,7 +82,7 @@ function RadioGroup({ name, options }: { name: string; options: string[] }) {
   return (
     <div className="flex items-center gap-6 h-10">
       {options.map(opt => (
-        <label key={opt} className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: "#374151" }}>
+        <label key={opt} className="flex items-center gap-2 text-base cursor-pointer" style={{ color: "#374151" }}>
           <input type="radio" name={name} value={opt} className="w-4 h-4 accent-emerald-500" />
           {opt}
         </label>
