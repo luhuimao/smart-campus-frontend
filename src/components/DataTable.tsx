@@ -93,8 +93,8 @@ export function DataTable<T extends { id: number }>({
       <div className="overflow-x-auto flex-1">
         <table className="w-full text-left" style={{ minWidth }}>
           <thead>
-            <tr style={{ background: "#f8f9fa", fontSize: 13 }}>
-              <th className="w-10 px-3 py-2.5 border-b border-r border-gray-100">
+            <tr style={{ background: "#eff6ff" }}>
+              <th className="w-10 px-3 py-3 border-b border-r border-gray-100">
                 <input
                   type="checkbox"
                   checked={allSelected}
@@ -106,8 +106,8 @@ export function DataTable<T extends { id: number }>({
               {columns.map(col => (
                 <th
                   key={col.key}
-                  className="px-3 py-2.5 font-medium border-b border-r border-gray-100 whitespace-nowrap"
-                  style={{ color: col.headerColor ?? "#262626", minWidth: col.minWidth }}
+                  className="px-4 py-3 font-medium border-b border-r border-gray-100 whitespace-nowrap"
+                  style={{ fontSize: 15, color: col.headerColor ?? "#374151", minWidth: col.minWidth }}
                 >
                   {col.label}
                 </th>
@@ -118,10 +118,10 @@ export function DataTable<T extends { id: number }>({
             {paginated.map(row => (
               <tr
                 key={row.id}
-                className="border-b border-gray-50 hover:bg-black/[0.02] transition-colors cursor-pointer"
+                className="border-t border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
                 style={{ background: selected.has(row.id) ? "rgba(0,176,149,0.04)" : undefined }}
               >
-                <td className="px-3 py-2.5 border-r border-gray-50">
+                <td className="px-3 py-3 border-r border-gray-50">
                   <input
                     type="checkbox"
                     checked={selected.has(row.id)}
@@ -133,8 +133,8 @@ export function DataTable<T extends { id: number }>({
                 {columns.map(col => (
                   <td
                     key={col.key}
-                    className={`px-3 py-2.5 whitespace-nowrap ${col.textSize ?? "text-sm"}`}
-                    style={{ color: col.cellColor ?? "#374151" }}
+                    className="px-4 py-3 whitespace-nowrap"
+                    style={{ fontSize: 15, color: col.cellColor ?? "#374151" }}
                   >
                     {col.render ? col.render(row) : getValue(row, col.key)}
                   </td>
