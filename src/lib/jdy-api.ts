@@ -272,6 +272,20 @@ export const STUDENT_SUPPORT_STATUS_WIDGET_IDS = {
   资助金额:     "_widget_1554887983871",
   备注:         "_widget_1554887983992",
 } as const;
+//谈心谈话记录表
+export const STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS = {
+  谈心教师:         "_widget_1763971800147",
+  班级名称:         "_widget_1770193644178",
+  学生姓名:         "_widget_1763971800133",
+  学生身份证:       "_widget_1763971800175",
+  学生学号:         "_widget_1763971800176",
+  谈心教师学科:     "_widget_1763971800152",
+  谈心谈话时间:     "_widget_1763971800155",
+  谈话内容:         "_widget_1763971800158",
+  谈心谈话内容记录: "_widget_1763971800160",
+  教师指导建议:     "_widget_1763971800164",
+  沟通照片:         "_widget_1763971800168",
+} as const;
 //学生花名册
 export const STUDENT_INFO_WIDGET_IDS = {
   学籍状态_教务: "student_status",
