@@ -1433,8 +1433,16 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     onRowClick={setSelectedSupport}
                   />
                 </div>
+              ) : activeTab === 6 ? (
+                /* ── 学生成长 ── */
+                <div className="flex flex-col items-center justify-center py-24 text-gray-400">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mb-4 opacity-30">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+                  </svg>
+                  <p className="text-base font-semibold">学生成长模块建设中</p>
+                  <p className="text-sm mt-1">Coming soon</p>
+                </div>
               ) : activeTab === 7 ? (
-                /* ── 一生一案谈心谈话记录表 ── */
                 <table className="w-full text-left">
                   <thead style={{ background: "#eff6ff" }}>
                     <tr>
