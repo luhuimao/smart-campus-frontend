@@ -6,6 +6,8 @@ import {
   RefreshCw, ArrowUpDown, Maximize2, Upload,
 } from "lucide-react";
 import React, { useState } from "react";
+import { useResearchDashboard, useBeikeDashboard } from "@/hooks/use-research-dashboard";
+import type { ActiveFilters, BeikeActiveFilters } from "@/hooks/use-research-dashboard";
 
 const glass = {
   background: "rgba(255,255,255,0.8)",
@@ -35,6 +37,10 @@ import type { PageKey } from "@/app/page";
 export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () => void; onNavigate?: (page: PageKey) => void }) {
   const [activeTab, setActiveTab] = useState<"research" | "lesson">("research");
   const [moreOpen, setMoreOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<ActiveFilters>({ semester: "", group: "", subject: "" });
+  const [beikeFilters, setBeikeFilters] = useState<BeikeActiveFilters>({ semester: "", group: "", subject: "" });
+  const { data: researchData, isPending: researchPending, isError: researchError, filterOptions } = useResearchDashboard(activeFilters);
+  const { data: beikeData, isPending: beikePending, filterOptions: beikeFilterOptions } = useBeikeDashboard(beikeFilters);
 
   const moreActions: { icon: React.ElementType; label: string; bg: string; color: string; hover: string; target: PageKey }[] = [
     { icon: FilePenLine, label: "添加教研记录", bg: "bg-blue-50", color: "text-blue-600", hover: "group-hover:bg-blue-600", target: "research-activity-record" },
@@ -205,66 +211,45 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
               backgroundSize: "0.85rem",
               paddingRight: "1.6rem",
             };
-            const opStyle = {
-              width: 76,
-              paddingLeft: 7,
-              paddingRight: 20,
-              paddingTop: 5,
-              paddingBottom: 5,
-              border: "1px solid rgba(0,0,0,0.07)",
-              backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23b0b7bf'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "right 0.3rem center",
-              backgroundSize: "0.6rem",
-            };
 
-            function FilterCard({ label, options }: { label: string; options: string[] }) {
-              const [op, setOp] = useState("等于");
-              const hideValue = op === "为空" || op === "不为空";
+            type FilterKey = "semester" | "group" | "subject";
+            const filterDefs: { label: string; key: FilterKey; options: string[] }[] = [
+              { label: "学期", key: "semester", options: filterOptions.semesters },
+              { label: "教研组", key: "group", options: filterOptions.groups },
+              { label: "学科分类", key: "subject", options: filterOptions.subjects },
+            ];
+
+            function FilterCard({ label, filterKey, options }: { label: string; filterKey: FilterKey; options: string[] }) {
+              const value = activeFilters[filterKey];
               return (
                 <div className="px-4 pt-4 pb-5 rounded-[20px] apple-hover border border-white/60 flex flex-col gap-3" style={glass}>
-                  {/* 标题行：label + 条件运算符 */}
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <p className="text-sm font-black text-gray-400 uppercase tracking-wider flex-1 min-w-0 truncate">
-                      {label}
-                    </p>
-                    <select
-                      value={op}
-                      onChange={e => setOp(e.target.value)}
-                      className="appearance-none shrink-0 text-xs font-semibold text-gray-500 bg-black/[0.04] rounded-lg outline-none cursor-pointer hover:bg-black/[0.07] transition-colors"
-                      style={opStyle as React.CSSProperties}
-                    >
-                      <option>等于</option>
-                      <option>不等于</option>
-                      <option>等于任意一个</option>
-                      <option>不等于任意一个</option>
-                      <option>包含</option>
-                      <option>不包含</option>
-                      <option>为空</option>
-                      <option>不为空</option>
-                    </select>
+                    <p className="text-sm font-black text-gray-400 uppercase tracking-wider flex-1 min-w-0 truncate">{label}</p>
+                    {value && (
+                      <button
+                        onClick={() => setActiveFilters(f => ({ ...f, [filterKey]: "" }))}
+                        className="shrink-0 text-xs text-gray-400 hover:text-gray-600 transition-colors px-1"
+                        title="清除筛选"
+                      >✕</button>
+                    )}
                   </div>
-
-                  {/* 值下拉框 — 为空/不为空时隐藏 */}
-                  <div
-                    className="overflow-hidden transition-all duration-200"
-                    style={{ maxHeight: hideValue ? 0 : 60, opacity: hideValue ? 0 : 1 }}
+                  <select
+                    value={value}
+                    onChange={e => setActiveFilters(f => ({ ...f, [filterKey]: e.target.value }))}
+                    className="w-full appearance-none bg-white/40 border-none rounded-xl px-3 py-2.5 text-base font-bold text-gray-700 outline-none cursor-pointer"
+                    style={valueSelectStyle as React.CSSProperties}
                   >
-                    <select
-                      className="w-full appearance-none bg-white/40 border-none rounded-xl px-3 py-2.5 text-base font-bold text-gray-700 outline-none cursor-pointer"
-                      style={valueSelectStyle as React.CSSProperties}
-                    >
-                      {options.map((o) => <option key={o}>{o}</option>)}
-                    </select>
-                  </div>
+                    <option value="">全部</option>
+                    {options.map(o => <option key={o} value={o}>{o}</option>)}
+                  </select>
                 </div>
               );
             }
 
             return (
-              <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                {filters.map(({ label, options }) => (
-                  <FilterCard key={label} label={label} options={options} />
+              <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filterDefs.map(({ label, key, options }) => (
+                  <FilterCard key={key} label={label} filterKey={key} options={options} />
                 ))}
               </section>
             );
@@ -384,8 +369,12 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                         {/* 教研活动总数 */}
                         <ResearchGlassCard colSpan="lg:col-span-3" title="教研活动总数" actions={[{ Icon: Upload, tip: "导出" }, { Icon: Maximize2, tip: "放大" }]}>
                           <div className="flex-1 flex flex-col items-center justify-center gap-2">
-                            <span className="font-black text-gray-900 leading-none" style={{ fontSize: 96 }}>24</span>
-                            <span className="text-sm font-semibold" style={{ color: "#10b981" }}>↑ 较上学期 +8</span>
+                            <span className="font-black text-gray-900 leading-none" style={{ fontSize: 96 }}>
+                              {researchPending ? "—" : researchError ? "!" : researchData?.total ?? 0}
+                            </span>
+                            <span className="text-sm font-semibold" style={{ color: "#10b981" }}>
+                              {researchError ? "加载失败" : researchPending ? "加载中…" : `共 ${researchData?.total ?? 0} 条记录`}
+                            </span>
                           </div>
                         </ResearchGlassCard>
 
@@ -407,9 +396,19 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                                 <text key={v} x="32" y={24 + i * 38} textAnchor="end" fontSize="11" fill="#94a3b8">{v}</text>
                               ))}
                               {(() => {
-                                const pts = [{ x: 80, v: 2 }, { x: 200, v: 5 }, { x: 320, v: 8 }, { x: 440, v: 6 }, { x: 560, v: 9 }];
-                                const toY = (v: number) => 172 - (v / 10) * 152;
-                                const coords = pts.map(p => ({ x: p.x, y: toY(p.v), v: p.v }));
+                                const trend = researchData?.trendByMonth ?? [];
+                                if (trend.length === 0) {
+                                  return (
+                                    <text x="300" y="100" textAnchor="middle" fontSize="13" fill="#94a3b8">
+                                      {researchPending ? "加载中…" : researchError ? "加载失败" : "暂无数据"}
+                                    </text>
+                                  );
+                                }
+                                const maxV = Math.max(10, ...trend.map(t => t.value));
+                                const xs = trend.length === 1 ? [300] : trend.map((_, i) => 80 + (i * (560 - 80)) / (trend.length - 1));
+                                const pts = trend.map((t, i) => ({ x: xs[i], v: t.value, label: t.month }));
+                                const toY = (v: number) => 172 - (v / maxV) * 152;
+                                const coords = pts.map(p => ({ x: p.x, y: toY(p.v), v: p.v, label: p.label }));
                                 const pathD = coords.map((c, i) => `${i === 0 ? "M" : "L"}${c.x},${c.y}`).join(" ");
                                 const areaD = `${pathD} L${coords[coords.length-1].x},172 L${coords[0].x},172 Z`;
                                 return (
@@ -420,20 +419,13 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                                       <g key={i}>
                                         <circle cx={c.x} cy={c.y} r="5" fill="white" stroke="#818cf8" strokeWidth="2.5" />
                                         <text x={c.x} y={c.y - 12} textAnchor="middle" fontSize="11" fontWeight="bold" fill="#475569">{c.v}</text>
+                                        <text x={c.x} y={190} textAnchor="middle" fontSize="11" fill="#475569">{c.label}</text>
                                       </g>
                                     ))}
                                   </>
                                 );
                               })()}
-                              {[
-                                { x: 80, label: "2025年09月" },
-                                { x: 200, label: "2025年10月" },
-                                { x: 320, label: "2025年11月" },
-                                { x: 440, label: "2025年12月" },
-                                { x: 560, label: "2026年01月" },
-                              ].map(m => (
-                                <text key={m.label} x={m.x} y={190} textAnchor="middle" fontSize="11" fill="#475569">{m.label}</text>
-                              ))}
+                              {/* 月份标签已在上方 coords 里绘制 */}
                             </svg>
                           </div>
                           <div className="flex items-center justify-center gap-2 mt-1">
@@ -447,7 +439,7 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
 
                   {/* 中部：教研活动学科分布 + 教研活动趋势（GlassCard 交互） */}
                   {(() => {
-                    function MidGlassCard({ title, actions, children }: { title: string; actions?: { Icon: React.ElementType; tip: string }[]; children: React.ReactNode }) {
+                    function MidGlassCard({ title, actions, children }: { title: string; actions?: { Icon: React.ElementType; tip: string; onClick?: () => void }[]; children: React.ReactNode }) {
                       const ref = React.useRef<HTMLDivElement>(null);
                       const [tilt, setTilt] = React.useState({ rx: 0, ry: 0, gx: 50, gy: 50, active: false });
                       const [pressed, setPressed] = React.useState(false);
@@ -494,9 +486,12 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                               <p className="text-sm font-bold text-gray-600 flex-1 min-w-0 truncate" title={title}>{title}</p>
                               {tilt.active && actions && (
                                 <div className="flex items-center gap-0.5 shrink-0">
-                                  {actions.map(({ Icon, tip }) => (
+                                  {actions.map(({ Icon, tip, onClick }) => (
                                     <div key={tip} className="relative group/tip">
-                                      <button onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()}
+                                      <button
+                                        onClick={e => { e.stopPropagation(); onClick?.(); }}
+                                        onMouseDown={e => e.stopPropagation()}
+                                        onMouseUp={e => e.stopPropagation()}
                                         className="w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-black/[0.06] transition-colors">
                                         <Icon size={12} />
                                       </button>
@@ -515,47 +510,117 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                       );
                     }
 
+                    function SubjectDistCard() {
+                      const [modalOpen, setModalOpen] = React.useState(false);
+                      const allList = researchData?.subjectDistribution ?? [];
+                      const displayList = allList.slice(0, 6);
+                      const max = Math.max(1, ...allList.map(d => d.value));
+                      const hasMore = allList.length > 6;
+
+                      function BarRow({ label, value, color }: { label: string; value: number; color: string }) {
+                        return (
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", flexWrap: "nowrap" }}>
+                            <span
+                              title={label}
+                              style={{ display: "inline-block", fontSize: 12, color: "#6b7280", flexShrink: 0, width: 72, minWidth: 72, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                            >{label}</span>
+                            <div style={{ flex: 1, minWidth: 0, background: "#f3f4f6", borderRadius: 999, overflow: "hidden", height: 10 }}>
+                              <div style={{ height: "100%", borderRadius: 999, width: `${(value / max) * 100}%`, background: color, transition: "width 0.5s" }} />
+                            </div>
+                            <span style={{ fontSize: 12, color: "#374151", fontWeight: 700, flexShrink: 0, width: 20, textAlign: "right" }}>{value}</span>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <>
+                          <MidGlassCard title="教研活动学科分布" actions={[
+                            { Icon: RefreshCw, tip: "刷新" },
+                            { Icon: ArrowUpDown, tip: "排序" },
+                            { Icon: Maximize2, tip: "展开全部", onClick: () => setModalOpen(true) },
+                          ]}>
+                            <div className="flex-1 flex flex-col justify-center gap-2.5 py-2">
+                              {allList.length === 0
+                                ? <div className="text-center text-xs text-gray-400">{researchPending ? "加载中…" : researchError ? "加载失败" : "暂无数据"}</div>
+                                : displayList.map(({ label, value, color }) => (
+                                    <BarRow key={label} label={label} value={value} color={color} />
+                                  ))
+                              }
+                              {hasMore && (
+                                <button
+                                  className="mt-1 text-xs font-medium transition-colors"
+                                  style={{ color: "#3b82f6" }}
+                                  onClick={e => { e.stopPropagation(); setModalOpen(true); }}
+                                  onMouseDown={e => e.stopPropagation()}
+                                  onMouseUp={e => e.stopPropagation()}
+                                >
+                                  还有 {allList.length - 6} 个学科 · 点击查看全部 →
+                                </button>
+                              )}
+                            </div>
+                          </MidGlassCard>
+
+                          {/* 全量展开 Modal */}
+                          {modalOpen && (
+                            <div
+                              className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden"
+                              style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(6px)" }}
+                              onClick={() => setModalOpen(false)}
+                            >
+                              <div
+                                className="w-full max-w-md mx-4 rounded-[28px] shadow-2xl flex flex-col overflow-hidden"
+                                style={{ background: "rgba(255,255,255,0.97)", border: "1px solid rgba(255,255,255,0.4)", maxHeight: "80vh" }}
+                                onClick={e => e.stopPropagation()}
+                              >
+                                <div className="flex items-center justify-between px-6 pt-6 pb-4 shrink-0">
+                                  <div>
+                                    <p className="text-base font-bold text-gray-800">教研活动学科分布</p>
+                                    <p className="text-xs text-gray-400 mt-0.5">共 {allList.length} 个学科</p>
+                                  </div>
+                                  <button
+                                    onClick={() => setModalOpen(false)}
+                                    className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400"
+                                  >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                                    </svg>
+                                  </button>
+                                </div>
+                                <div className="flex flex-col gap-3 overflow-y-auto px-6 pb-6" style={{ scrollbarWidth: "thin", scrollbarColor: "#e5e7eb transparent" }}>
+                                  {allList.map(({ label, value, color }) => (
+                                    <BarRow key={label} label={label} value={value} color={color} />
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      );
+                    }
+
                     return (
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <MidGlassCard title="教研活动学科分布" actions={[{ Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]}>
-                          <div className="flex-1 flex flex-col justify-center gap-2.5 py-2">
-                            {([
-                              { label: "数学", value: 12, color: "#818cf8" },
-                              { label: "语文", value: 8,  color: "#60a5fa" },
-                              { label: "英语", value: 6,  color: "#34d399" },
-                              { label: "物理", value: 4,  color: "#f472b6" },
-                              { label: "化学", value: 3,  color: "#fb923c" },
-                              { label: "生物", value: 2,  color: "#a78bfa" },
-                            ] as { label: string; value: number; color: string }[]).map(({ label, value, color }) => (
-                              <div key={label} className="flex items-center gap-2">
-                                <span className="shrink-0 text-right font-medium" style={{ fontSize: 12, color: "#6b7280", width: 24 }}>{label}</span>
-                                <div className="flex-1 bg-gray-100 rounded-full overflow-hidden" style={{ height: 10 }}>
-                                  <div className="h-full rounded-full" style={{ width: `${(value / 12) * 100}%`, background: color }} />
-                                </div>
-                                <span className="shrink-0 font-bold" style={{ fontSize: 12, color: "#374151", width: 16, textAlign: "right" }}>{value}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </MidGlassCard>
+                        <SubjectDistCard />
                         <MidGlassCard title="教研活动趋势" actions={[{ Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]}>
                           <div className="flex-1 flex items-end gap-2 px-2 pb-6" style={{ position: "relative" }}>
-                            {([
-                              { month: "9月", value: 2 },
-                              { month: "10月", value: 5 },
-                              { month: "11月", value: 8 },
-                              { month: "12月", value: 6 },
-                              { month: "1月", value: 3 },
-                            ] as { month: string; value: number }[]).map(({ month, value }) => (
-                              <div key={month} className="flex-1 flex flex-col items-center gap-1.5">
-                                <span className="text-xs font-bold" style={{ color: "#374151" }}>{value}</span>
-                                <div className="w-full rounded-t-lg" style={{
-                                  height: `${(value / 8) * 140}px`,
-                                  background: "linear-gradient(180deg, #818cf8 0%, #c7d2fe 100%)",
-                                  minHeight: 8,
-                                }} />
-                                <span className="text-xs font-medium" style={{ color: "#9ca3af" }}>{month}</span>
-                              </div>
-                            ))}
+                            {(() => {
+                              const list = researchData?.monthStats ?? [];
+                              if (list.length === 0) {
+                                return <div className="w-full text-center text-xs text-gray-400 self-center">{researchPending ? "加载中…" : researchError ? "加载失败" : "暂无数据"}</div>;
+                              }
+                              const max = Math.max(1, ...list.map(d => d.value));
+                              return list.map(({ label, value }) => (
+                                <div key={label} className="flex-1 flex flex-col items-center gap-1.5">
+                                  <span className="text-xs font-bold" style={{ color: "#374151" }}>{value}</span>
+                                  <div className="w-full rounded-t-lg" style={{
+                                    height: `${(value / max) * 140}px`,
+                                    background: "linear-gradient(180deg, #818cf8 0%, #c7d2fe 100%)",
+                                    minHeight: 8,
+                                  }} />
+                                  <span className="text-xs font-medium" style={{ color: "#9ca3af" }}>{label}</span>
+                                </div>
+                              ));
+                            })()}
                           </div>
                         </MidGlassCard>
                       </div>
@@ -568,7 +633,7 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                   {(() => {
                     const rippleStyle = `@keyframes researchRipple { 0% { transform: scale(0); opacity: 0.45; } 100% { transform: scale(4); opacity: 0; } }`;
 
-                    function ResearchStatCard({ title, selected, onSelect, chartContent }: { title: string; selected: boolean; onSelect: () => void; chartContent?: React.ReactNode }) {
+                    function ResearchStatCard({ title, selected, onSelect, chartContent, pagination }: { title: string; selected: boolean; onSelect: () => void; chartContent?: React.ReactNode; pagination?: { page: number; total: number; onPage: (p: number) => void } }) {
                       const ref = React.useRef<HTMLDivElement>(null);
                       const [tilt, setTilt] = React.useState({ rx: 0, ry: 0, gx: 50, gy: 50, active: false });
                       const [pressed, setPressed] = React.useState(false);
@@ -643,30 +708,45 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                           </div>
                           {/* 分页 */}
                           <div className="px-4 py-3 border-t border-gray-100/60 flex items-center justify-center gap-1 relative z-10">
-                            {["⟪", "‹", null, "›", "⟫"].map((btn, i) => (
-                              btn === null
-                                ? <div key="page" className="flex items-center border border-gray-200 rounded px-2.5 h-7 mx-1 gap-1"><span className="text-xs text-gray-600">1</span><span className="text-gray-300 text-xs">/</span><span className="text-xs text-gray-600">1</span></div>
-                                : <button key={i} className="flex items-center justify-center w-7 h-7 border border-gray-200 rounded text-gray-400 hover:bg-gray-50 transition-colors text-xs font-mono">{btn}</button>
-                            ))}
+                            {(() => {
+                              const pg = pagination ?? { page: 1, total: 1, onPage: () => {} };
+                              const { page, total, onPage } = pg;
+                              return (
+                                <>
+                                  <button onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); onPage(1); }} disabled={page === 1} className="flex items-center justify-center w-7 h-7 border border-gray-200 rounded text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-colors text-xs font-mono">⟪</button>
+                                  <button onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); onPage(Math.max(1, page - 1)); }} disabled={page === 1} className="flex items-center justify-center w-7 h-7 border border-gray-200 rounded text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-colors text-xs font-mono">‹</button>
+                                  <div className="flex items-center border border-gray-200 rounded px-2.5 h-7 mx-1 gap-1"><span className="text-xs text-gray-600">{page}</span><span className="text-gray-300 text-xs">/</span><span className="text-xs text-gray-600">{total}</span></div>
+                                  <button onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); onPage(Math.min(total, page + 1)); }} disabled={page === total} className="flex items-center justify-center w-7 h-7 border border-gray-200 rounded text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-colors text-xs font-mono">›</button>
+                                  <button onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); onPage(total); }} disabled={page === total} className="flex items-center justify-center w-7 h-7 border border-gray-200 rounded text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-colors text-xs font-mono">⟫</button>
+                                </>
+                              );
+                            })()}
                           </div>
                         </div>
                       );
                     }
 
                     function MiniBarChart({ bars, labels, color = "#818cf8" }: { bars: number[]; labels: string[]; color?: string }) {
-                      const max = Math.max(...bars);
+                      if (!bars.length) return null;
+                      const max = Math.max(1, ...bars);
                       return (
                         <div className="flex items-end gap-1.5 w-full" style={{ height: 120 }}>
                           {bars.map((v, i) => (
-                            <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                              <span className="text-xs font-bold" style={{ color: "#374151", fontSize: 10 }}>{v}</span>
-                              <div className="w-full rounded-t" style={{
-                                height: `${(v / max) * 80}px`,
-                                background: color,
-                                minHeight: 4,
-                                opacity: 0.85,
-                              }} />
-                              <span className="text-center leading-tight" style={{ fontSize: 9, color: "#9ca3af" }}>{labels[i]}</span>
+                            <div key={i} className="flex-1 flex flex-col items-center" style={{ height: "100%" }}>
+                              {/* 数值 + 柱体区域，固定高度，底部对齐 */}
+                              <div className="flex-1 flex flex-col items-center justify-end" style={{ width: "100%" }}>
+                                <span style={{ fontSize: 10, color: "#374151", fontWeight: 700, lineHeight: 1, marginBottom: 2 }}>{v}</span>
+                                <div className="w-full rounded-t" style={{
+                                  height: `${(v / max) * 72}px`,
+                                  background: color,
+                                  minHeight: 4,
+                                  opacity: 0.85,
+                                }} />
+                              </div>
+                              {/* 标签区域，固定高度 */}
+                              <div style={{ height: 32, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: 3, width: "100%" }}>
+                                <span className="text-center leading-tight" style={{ fontSize: 9, color: "#9ca3af", display: "block", width: "100%", wordBreak: "break-all" }}>{labels[i]}</span>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -674,44 +754,83 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                     }
 
                     function HBarChart({ data }: { data: { label: string; value: number; color: string }[] }) {
-                      const max = Math.max(...data.map(d => d.value));
+                      if (!data.length) return null;
+                      const max = Math.max(1, ...data.map(d => d.value));
                       return (
                         <div className="flex flex-col gap-2.5 w-full py-2">
                           {data.map(({ label, value, color }) => (
-                            <div key={label} className="flex items-center gap-2">
-                              <span className="shrink-0 text-right font-medium" style={{ fontSize: 11, color: "#6b7280", width: 28 }}>{label}</span>
-                              <div className="flex-1 bg-gray-100 rounded-full overflow-hidden" style={{ height: 9 }}>
-                                <div className="h-full rounded-full" style={{ width: `${(value / max) * 100}%`, background: color }} />
+                            <div key={label} style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap" }}>
+                              <span title={label} style={{ display: "inline-block", flexShrink: 0, width: 44, minWidth: 44, fontSize: 11, color: "#6b7280", textAlign: "right", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: 500 }}>{label}</span>
+                              <div style={{ flex: 1, minWidth: 0, background: "#f3f4f6", borderRadius: 999, overflow: "hidden", height: 9 }}>
+                                <div style={{ height: "100%", borderRadius: 999, width: `${(value / max) * 100}%`, background: color }} />
                               </div>
-                              <span className="shrink-0 font-bold" style={{ fontSize: 11, color: "#374151", width: 18, textAlign: "right" }}>{value}</span>
+                              <span style={{ flexShrink: 0, fontWeight: 700, fontSize: 11, color: "#374151", width: 18, textAlign: "right" }}>{value}</span>
                             </div>
                           ))}
                         </div>
                       );
                     }
 
-                    const researchCharts: Record<string, React.ReactNode> = {
-                      "每周学科教研次数": <MiniBarChart bars={[2,4,3,5,1,3,4,2]} labels={["W1","W2","W3","W4","W5","W6","W7","W8"]} color="#818cf8" />,
-                      "每月学科教研次数": <MiniBarChart bars={[8,12,7,15,10,9]} labels={["9月","10月","11月","12月","1月","2月"]} color="#60a5fa" />,
-                      "学期学科教研次数": <HBarChart data={[
-                        { label: "数学", value: 12, color: "#818cf8" },
-                        { label: "语文", value: 8,  color: "#60a5fa" },
-                        { label: "英语", value: 6,  color: "#34d399" },
-                        { label: "物理", value: 4,  color: "#fb923c" },
-                        { label: "化学", value: 3,  color: "#f472b6" },
-                        { label: "生物", value: 2,  color: "#a78bfa" },
-                      ]} />,
-                      "教师参与次数": <MiniBarChart bars={[5,8,3,9,6,4,7,5]} labels={["王","李","张","刘","陈","杨","赵","吴"]} color="#34d399" />,
-                    };
+                    function ChartSkeleton() {
+                      return (
+                        <div className="flex items-end gap-1.5 w-full animate-pulse" style={{ height: 120 }}>
+                          {[60,80,50,90,70,40,85,65].map((h, i) => (
+                            <div key={i} className="flex-1 rounded-t bg-gray-200" style={{ height: h }} />
+                          ))}
+                        </div>
+                      );
+                    }
+
+                    const PAGE_SIZE = 6;
 
                     function ResearchStatGroup() {
                       const [sel, setSel] = React.useState<string | null>(null);
+                      const [semesterPage, setSemesterPage] = React.useState(1);
+
+                      const semesterList = researchData?.semesterStats ?? [];
+                      const semesterTotal = Math.max(1, Math.ceil(semesterList.length / PAGE_SIZE));
+                      const semesterSlice = semesterList.slice((semesterPage - 1) * PAGE_SIZE, semesterPage * PAGE_SIZE);
+
+                      const charts: Record<string, { content: React.ReactNode; pagination?: { page: number; total: number; onPage: (p: number) => void } }> = {
+                        "每周学科教研次数": {
+                          content: researchPending ? <ChartSkeleton /> : (() => {
+                            const list = researchData?.weekStats ?? [];
+                            return list.length ? <MiniBarChart bars={list.map(d => d.value)} labels={list.map(d => d.label)} color="#818cf8" /> : <div className="flex items-center justify-center h-28 text-xs text-gray-400">暂无数据</div>;
+                          })(),
+                        },
+                        "每月学科教研次数": {
+                          content: researchPending ? <ChartSkeleton /> : (() => {
+                            const list = researchData?.monthStats ?? [];
+                            return list.length ? <MiniBarChart bars={list.map(d => d.value)} labels={list.map(d => d.label)} color="#60a5fa" /> : <div className="flex items-center justify-center h-28 text-xs text-gray-400">暂无数据</div>;
+                          })(),
+                        },
+                        "学期学科教研次数": {
+                          content: researchPending ? <ChartSkeleton /> : (
+                            semesterList.length ? <HBarChart data={semesterSlice} /> : <div className="flex items-center justify-center h-28 text-xs text-gray-400">暂无数据</div>
+                          ),
+                          pagination: { page: semesterPage, total: semesterTotal, onPage: setSemesterPage },
+                        },
+                        "教师参与次数": {
+                          content: researchPending ? <ChartSkeleton /> : (() => {
+                            const list = researchData?.teacherParticipation ?? [];
+                            return list.length ? <MiniBarChart bars={list.map(d => d.value)} labels={list.map(d => d.label)} color="#34d399" /> : <div className="flex items-center justify-center h-28 text-xs text-gray-400">暂无数据</div>;
+                          })(),
+                        },
+                      };
+
                       return (
                         <>
                           <style>{rippleStyle}</style>
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                            {["每周学科教研次数", "每月学科教研次数", "学期学科教研次数", "教师参与次数"].map(title => (
-                              <ResearchStatCard key={title} title={title} selected={sel === title} onSelect={() => setSel(p => p === title ? null : title)} chartContent={researchCharts[title]} />
+                            {(["每周学科教研次数", "每月学科教研次数", "学期学科教研次数", "教师参与次数"] as const).map(title => (
+                              <ResearchStatCard
+                                key={title}
+                                title={title}
+                                selected={sel === title}
+                                onSelect={() => setSel(p => p === title ? null : title)}
+                                chartContent={charts[title].content}
+                                pagination={charts[title].pagination}
+                              />
                             ))}
                           </div>
                         </>
@@ -728,6 +847,48 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
               {/* ── 备课记录 Tab ── */}
               {activeTab === "lesson" && (
                 <div className="space-y-6">
+
+                  {/* 备课筛选器 */}
+                  {(() => {
+                    const valueSelectStyle = {
+                      backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")",
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "right 0.6rem center",
+                      backgroundSize: "0.85rem",
+                      paddingRight: "1.6rem",
+                    };
+                    type BeikeKey = "semester" | "group" | "subject";
+                    const { semesters: beikeSemesters, groups: beikeGroups, subjects: beikeSubjects } = beikeFilterOptions;
+                    const defs: { label: string; key: BeikeKey; options: string[] }[] = [
+                      { label: "学期", key: "semester", options: beikeSemesters },
+                      { label: "备课组", key: "group", options: beikeGroups },
+                      { label: "学科分类", key: "subject", options: beikeSubjects },
+                    ];
+                    return (
+                      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {defs.map(({ label, key, options }) => (
+                          <div key={key} className="px-4 pt-4 pb-5 rounded-[20px] apple-hover border border-white/60 flex flex-col gap-3" style={glass}>
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <p className="text-sm font-black text-gray-400 uppercase tracking-wider flex-1 min-w-0 truncate">{label}</p>
+                              {beikeFilters[key] && (
+                                <button onClick={() => setBeikeFilters(f => ({ ...f, [key]: "" }))} className="shrink-0 text-xs text-gray-400 hover:text-gray-600 transition-colors px-1" title="清除筛选">✕</button>
+                              )}
+                            </div>
+                            <select
+                              value={beikeFilters[key]}
+                              onChange={e => setBeikeFilters(f => ({ ...f, [key]: e.target.value }))}
+                              className="w-full appearance-none bg-white/40 border-none rounded-xl px-3 py-2.5 text-base font-bold text-gray-700 outline-none cursor-pointer"
+                              style={valueSelectStyle as React.CSSProperties}
+                            >
+                              <option value="">全部</option>
+                              {options.map(o => <option key={o} value={o}>{o}</option>)}
+                            </select>
+                          </div>
+                        ))}
+                      </section>
+                    );
+                  })()}
+
                   {/* 顶部：总数 + 折线图（带鼠标交互效果） */}
                   {(() => {
                     // 通用毛玻璃交互卡片组件
@@ -844,55 +1005,52 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                         {/* 备课记录总数 */}
                         <GlassCard colSpan="lg:col-span-3" title="备课记录总数" actions={[{ Icon: Upload, tip: "导出" }, { Icon: Maximize2, tip: "放大" }]}>
                           <div className="flex-1 flex items-center justify-center">
-                            <span className="font-black text-gray-900 leading-none" style={{ fontSize: 100 }}>90</span>
+                            {beikePending
+                              ? <div className="w-24 h-24 rounded-full bg-gray-100 animate-pulse" />
+                              : <span className="font-black text-gray-900 leading-none" style={{ fontSize: 100 }}>{beikeData?.total ?? 0}</span>
+                            }
                           </div>
                         </GlassCard>
 
                         {/* 备课活动次数折线图 */}
                         <GlassCard colSpan="lg:col-span-9" title="备课活动次数" actions={[{ Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]}>
                           <div className="relative h-56">
-                            <svg viewBox="0 0 600 200" className="w-full h-full" preserveAspectRatio="none">
-                              <defs>
-                                <linearGradient id="lessonGrad" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.25" />
-                                  <stop offset="100%" stopColor="#60a5fa" stopOpacity="0" />
-                                </linearGradient>
-                              </defs>
-                              {[0,1,2,3,4].map(i => (
-                                <line key={i} x1="40" y1={20 + i * 38} x2="580" y2={20 + i * 38}
-                                  stroke="#e2e8f0" strokeWidth="1" strokeDasharray="5,5" />
-                              ))}
-                              {["50","40","30","20","10","0"].map((v, i) => (
-                                <text key={v} x="32" y={24 + i * 38} textAnchor="end" fontSize="11" fill="#94a3b8">{v}</text>
-                              ))}
-                              {(() => {
-                                const pts = [{ x: 100, v: 1 }, { x: 240, v: 8 }, { x: 380, v: 46 }, { x: 520, v: 35 }];
-                                const toY = (v: number) => 172 - (v / 50) * 152;
-                                const coords = pts.map(p => ({ x: p.x, y: toY(p.v), v: p.v }));
-                                const pathD = coords.map((c, i) => `${i === 0 ? "M" : "L"}${c.x},${c.y}`).join(" ");
-                                const areaD = `${pathD} L${coords[coords.length-1].x},172 L${coords[0].x},172 Z`;
-                                return (
-                                  <>
-                                    <path d={areaD} fill="url(#lessonGrad)" />
-                                    <path d={pathD} fill="none" stroke="#60a5fa" strokeWidth="2.5" strokeLinejoin="round" />
-                                    {coords.map((c, i) => (
-                                      <g key={i}>
-                                        <circle cx={c.x} cy={c.y} r="5" fill="white" stroke="#60a5fa" strokeWidth="2.5" />
-                                        <text x={c.x} y={c.y - 12} textAnchor="middle" fontSize="11" fontWeight="bold" fill="#475569">{c.v}</text>
-                                      </g>
-                                    ))}
-                                  </>
-                                );
-                              })()}
-                              {[
-                                { x: 100, label: "2025年12月" },
-                                { x: 240, label: "2026年02月" },
-                                { x: 380, label: "2026年03月" },
-                                { x: 520, label: "2026年04月" },
-                              ].map(m => (
-                                <text key={m.label} x={m.x} y={190} textAnchor="middle" fontSize="11" fill="#475569">{m.label}</text>
-                              ))}
-                            </svg>
+                            {beikePending ? (
+                              <div className="w-full h-full bg-gray-100 animate-pulse rounded-xl" />
+                            ) : (() => {
+                              const list = beikeData?.trendByMonth ?? [];
+                              if (!list.length) return <div className="flex items-center justify-center h-full text-xs text-gray-400">暂无数据</div>;
+                              const maxV = Math.max(1, ...list.map(d => d.value));
+                              const w = 600, padL = 40, padR = 20, padT = 20, padB = 30, chartH = 152;
+                              const step = list.length > 1 ? (w - padL - padR) / (list.length - 1) : 0;
+                              const toX = (i: number) => padL + i * step;
+                              const toY = (v: number) => padT + chartH - (v / maxV) * chartH;
+                              const coords = list.map((d, i) => ({ x: toX(i), y: toY(d.value), v: d.value, label: d.month }));
+                              const pathD = coords.map((c, i) => `${i === 0 ? "M" : "L"}${c.x},${c.y}`).join(" ");
+                              const areaD = `${pathD} L${coords[coords.length - 1].x},${padT + chartH} L${coords[0].x},${padT + chartH} Z`;
+                              return (
+                                <svg viewBox={`0 0 ${w} ${padT + chartH + padB}`} className="w-full h-full" preserveAspectRatio="none">
+                                  <defs>
+                                    <linearGradient id="lessonGrad" x1="0" y1="0" x2="0" y2="1">
+                                      <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.25" />
+                                      <stop offset="100%" stopColor="#60a5fa" stopOpacity="0" />
+                                    </linearGradient>
+                                  </defs>
+                                  {[0,1,2,3,4].map(i => (
+                                    <line key={i} x1={padL} y1={padT + i * (chartH / 4)} x2={w - padR} y2={padT + i * (chartH / 4)} stroke="#e2e8f0" strokeWidth="1" strokeDasharray="5,5" />
+                                  ))}
+                                  <path d={areaD} fill="url(#lessonGrad)" />
+                                  <path d={pathD} fill="none" stroke="#60a5fa" strokeWidth="2.5" strokeLinejoin="round" />
+                                  {coords.map((c, i) => (
+                                    <g key={i}>
+                                      <circle cx={c.x} cy={c.y} r="5" fill="white" stroke="#60a5fa" strokeWidth="2.5" />
+                                      <text x={c.x} y={c.y - 10} textAnchor="middle" fontSize="11" fontWeight="bold" fill="#475569">{c.v}</text>
+                                      <text x={c.x} y={padT + chartH + 18} textAnchor="middle" fontSize="10" fill="#94a3b8">{c.label.replace(/^\d+年/, "")}</text>
+                                    </g>
+                                  ))}
+                                </svg>
+                              );
+                            })()}
                           </div>
                           <div className="flex items-center justify-center gap-2 mt-1">
                             <span className="w-3 h-3 rounded-sm" style={{ background: "#60a5fa" }} />
@@ -1071,14 +1229,19 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                     }
 
                     function LessonMiniBar({ bars, labels, color = "#60a5fa" }: { bars: number[]; labels: string[]; color?: string }) {
-                      const max = Math.max(...bars);
+                      if (!bars.length) return null;
+                      const max = Math.max(1, ...bars);
                       return (
                         <div className="flex items-end gap-1.5 w-full" style={{ height: 120 }}>
                           {bars.map((v, i) => (
-                            <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                              <span style={{ fontSize: 10, color: "#374151", fontWeight: 700 }}>{v}</span>
-                              <div className="w-full rounded-t" style={{ height: `${(v / max) * 80}px`, background: color, minHeight: 4, opacity: 0.85 }} />
-                              <span className="text-center leading-tight" style={{ fontSize: 9, color: "#9ca3af" }}>{labels[i]}</span>
+                            <div key={i} className="flex-1 flex flex-col items-center" style={{ height: "100%" }}>
+                              <div className="flex-1 flex flex-col items-center justify-end" style={{ width: "100%" }}>
+                                <span style={{ fontSize: 10, color: "#374151", fontWeight: 700, lineHeight: 1, marginBottom: 2 }}>{v}</span>
+                                <div className="w-full rounded-t" style={{ height: `${(v / max) * 72}px`, background: color, minHeight: 4, opacity: 0.85 }} />
+                              </div>
+                              <div style={{ height: 32, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: 3, width: "100%" }}>
+                                <span className="text-center leading-tight" style={{ fontSize: 9, color: "#9ca3af", display: "block", width: "100%", wordBreak: "break-all" }}>{labels[i]}</span>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -1086,34 +1249,48 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                     }
 
                     function LessonHBar({ data }: { data: { label: string; value: number; color: string }[] }) {
-                      const max = Math.max(...data.map(d => d.value));
+                      if (!data.length) return null;
+                      const max = Math.max(1, ...data.map(d => d.value));
                       return (
                         <div className="flex flex-col gap-2.5 w-full py-2">
                           {data.map(({ label, value, color }) => (
-                            <div key={label} className="flex items-center gap-2">
-                              <span className="shrink-0 text-right font-medium" style={{ fontSize: 11, color: "#6b7280", width: 28 }}>{label}</span>
-                              <div className="flex-1 bg-gray-100 rounded-full overflow-hidden" style={{ height: 9 }}>
-                                <div className="h-full rounded-full" style={{ width: `${(value / max) * 100}%`, background: color }} />
+                            <div key={label} style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap" }}>
+                              <span title={label} style={{ display: "inline-block", flexShrink: 0, width: 44, minWidth: 44, fontSize: 11, color: "#6b7280", textAlign: "right", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: 500 }}>{label}</span>
+                              <div style={{ flex: 1, minWidth: 0, background: "#f3f4f6", borderRadius: 999, overflow: "hidden", height: 9 }}>
+                                <div style={{ height: "100%", borderRadius: 999, width: `${(value / max) * 100}%`, background: color }} />
                               </div>
-                              <span className="shrink-0 font-bold" style={{ fontSize: 11, color: "#374151", width: 18, textAlign: "right" }}>{value}</span>
+                              <span style={{ flexShrink: 0, fontWeight: 700, fontSize: 11, color: "#374151", width: 18, textAlign: "right" }}>{value}</span>
                             </div>
                           ))}
                         </div>
                       );
                     }
 
+                    const ChartSkeleton2 = () => (
+                      <div className="flex items-end gap-1.5 w-full animate-pulse" style={{ height: 120 }}>
+                        {[60,80,50,90,70,85,55,75].map((h, i) => (
+                          <div key={i} className="flex-1 bg-gray-200 rounded-t" style={{ height: h }} />
+                        ))}
+                      </div>
+                    );
+
                     const lessonCharts: Record<string, React.ReactNode> = {
-                      "每周备课组备课次数": <LessonMiniBar bars={[5,8,6,9,4,7,8,6]} labels={["W1","W2","W3","W4","W5","W6","W7","W8"]} color="#60a5fa" />,
-                      "每月备课组备课次数": <LessonMiniBar bars={[20,35,28,42,30,38]} labels={["9月","10月","11月","12月","1月","2月"]} color="#818cf8" />,
-                      "备课组备课次数": <LessonHBar data={[
-                        { label: "数学", value: 24, color: "#60a5fa" },
-                        { label: "语文", value: 18, color: "#818cf8" },
-                        { label: "英语", value: 15, color: "#34d399" },
-                        { label: "物理", value: 10, color: "#fb923c" },
-                        { label: "化学", value: 8,  color: "#f472b6" },
-                        { label: "生物", value: 5,  color: "#a78bfa" },
-                      ]} />,
-                      "备课教师参与次数": <LessonMiniBar bars={[12,8,15,6,10,9,11,7]} labels={["王","李","张","刘","陈","杨","赵","吴"]} color="#34d399" />,
+                      "每周备课组备课次数": beikePending ? <ChartSkeleton2 /> : (() => {
+                        const list = beikeData?.weekStats ?? [];
+                        return list.length ? <LessonMiniBar bars={list.map(d => d.value)} labels={list.map(d => d.label)} color="#60a5fa" /> : <div className="flex items-center justify-center h-28 text-xs text-gray-400">暂无数据</div>;
+                      })(),
+                      "每月备课组备课次数": beikePending ? <ChartSkeleton2 /> : (() => {
+                        const list = beikeData?.monthStats ?? [];
+                        return list.length ? <LessonMiniBar bars={list.map(d => d.value)} labels={list.map(d => d.label)} color="#818cf8" /> : <div className="flex items-center justify-center h-28 text-xs text-gray-400">暂无数据</div>;
+                      })(),
+                      "备课组备课次数": beikePending ? <ChartSkeleton2 /> : (() => {
+                        const list = beikeData?.semesterStats ?? [];
+                        return list.length ? <LessonHBar data={list.slice(0, 6)} /> : <div className="flex items-center justify-center h-28 text-xs text-gray-400">暂无数据</div>;
+                      })(),
+                      "备课教师参与次数": beikePending ? <ChartSkeleton2 /> : (() => {
+                        const list = beikeData?.teacherParticipation ?? [];
+                        return list.length ? <LessonMiniBar bars={list.map(d => d.value)} labels={list.map(d => d.label)} color="#34d399" /> : <div className="flex items-center justify-center h-28 text-xs text-gray-400">暂无数据</div>;
+                      })(),
                     };
 
                     // StatCardGroup：持有共享 selectedTitle，实现互斥选中

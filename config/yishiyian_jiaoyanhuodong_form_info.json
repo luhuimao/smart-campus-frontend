@@ -1,0 +1,139 @@
+{
+  "widgets": [
+    {
+      "name": "_widget_1732691646451",
+      "widgetName": "_widget_1732691646451",
+      "label": "学期",
+      "type": "text"
+    },
+    {
+      "name": "_widget_1732691646452",
+      "widgetName": "_widget_1732691646452",
+      "label": "教研主题",
+      "type": "text"
+    },
+    {
+      "name": "_widget_1732691646458",
+      "widgetName": "_widget_1732691646458",
+      "label": "教研学科",
+      "type": "combo"
+    },
+    {
+      "name": "_widget_1732691646453",
+      "widgetName": "_widget_1732691646453",
+      "label": "时间",
+      "type": "datetime"
+    },
+    {
+      "name": "_widget_1765435056130",
+      "widgetName": "_widget_1765435056130",
+      "label": "周次",
+      "type": "text"
+    },
+    {
+      "name": "_widget_1765444447933",
+      "widgetName": "_widget_1765444447933",
+      "label": "地点",
+      "type": "text"
+    },
+    {
+      "name": "_widget_1765444447936",
+      "widgetName": "_widget_1765444447936",
+      "label": "教研组",
+      "type": "combo"
+    },
+    {
+      "name": "_widget_1765446318144",
+      "widgetName": "_widget_1765446318144",
+      "label": "教研组长",
+      "type": "user"
+    },
+    {
+      "name": "_widget_1732691646460",
+      "widgetName": "_widget_1732691646460",
+      "label": "主持人",
+      "type": "user"
+    },
+    {
+      "name": "_widget_1733213305523",
+      "widgetName": "_widget_1733213305523",
+      "label": "记录人",
+      "type": "user"
+    },
+    {
+      "name": "_widget_1732691646459",
+      "widgetName": "_widget_1732691646459",
+      "label": "参与人员",
+      "type": "usergroup"
+    },
+    {
+      "name": "_widget_1773652483451",
+      "widgetName": "_widget_1773652483451",
+      "label": "应到人数",
+      "type": "number"
+    },
+    {
+      "name": "_widget_1773652483452",
+      "widgetName": "_widget_1773652483452",
+      "label": "实到人数",
+      "type": "number"
+    },
+    {
+      "name": "_widget_1773652483454",
+      "widgetName": "_widget_1773652483454",
+      "label": "未到场人员情况说明",
+      "type": "textarea"
+    },
+    {
+      "name": "_widget_1732691646461",
+      "widgetName": "_widget_1732691646461",
+      "label": "内容记录",
+      "type": "textarea"
+    },
+    {
+      "name": "_widget_1733213305518",
+      "widgetName": "_widget_1733213305518",
+      "label": "照片",
+      "type": "image"
+    },
+    {
+      "name": "_widget_1733213305520",
+      "widgetName": "_widget_1733213305520",
+      "label": "其他附件",
+      "type": "upload"
+    },
+    {
+      "name": "_widget_1732691646464",
+      "widgetName": "_widget_1732691646464",
+      "label": "学科部门",
+      "type": "dept"
+    },
+    {
+      "name": "_widget_1732691646465",
+      "widgetName": "_widget_1732691646465",
+      "label": "教研参加次数",
+      "type": "text"
+    }
+  ],
+  "sysWidgets": [
+    {
+      "name": "creator"
+    },
+    {
+      "name": "updater"
+    },
+    {
+      "name": "deleter"
+    },
+    {
+      "name": "createTime"
+    },
+    {
+      "name": "updateTime"
+    },
+    {
+      "name": "deleteTime"
+    }
+  ],
+  "dataModifyTime": "2026-05-08T10:29:15.565Z"
+}

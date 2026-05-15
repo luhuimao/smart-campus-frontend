@@ -1,0 +1,139 @@
+{
+  "widgets": [
+    {
+      "name": "_widget_1732696211408",
+      "widgetName": "_widget_1732696211408",
+      "label": "学期",
+      "type": "text"
+    },
+    {
+      "name": "_widget_1732696211409",
+      "widgetName": "_widget_1732696211409",
+      "label": "主题",
+      "type": "text"
+    },
+    {
+      "name": "_widget_1765444555656",
+      "widgetName": "_widget_1765444555656",
+      "label": "备课学科",
+      "type": "combo"
+    },
+    {
+      "name": "_widget_1732696211410",
+      "widgetName": "_widget_1732696211410",
+      "label": "时间",
+      "type": "datetime"
+    },
+    {
+      "name": "_widget_1765441909812",
+      "widgetName": "_widget_1765441909812",
+      "label": "周次",
+      "type": "text"
+    },
+    {
+      "name": "_widget_1732696211411",
+      "widgetName": "_widget_1732696211411",
+      "label": "地点",
+      "type": "text"
+    },
+    {
+      "name": "_widget_1732696211412",
+      "widgetName": "_widget_1732696211412",
+      "label": "备课组",
+      "type": "combo"
+    },
+    {
+      "name": "_widget_1732696211419",
+      "widgetName": "_widget_1732696211419",
+      "label": "备课组长",
+      "type": "user"
+    },
+    {
+      "name": "_widget_1732696211421",
+      "widgetName": "_widget_1732696211421",
+      "label": "主持人",
+      "type": "user"
+    },
+    {
+      "name": "_widget_1732696211425",
+      "widgetName": "_widget_1732696211425",
+      "label": "记录人",
+      "type": "user"
+    },
+    {
+      "name": "_widget_1732696211420",
+      "widgetName": "_widget_1732696211420",
+      "label": "参与人员",
+      "type": "usergroup"
+    },
+    {
+      "name": "_widget_1773653435868",
+      "widgetName": "_widget_1773653435868",
+      "label": "应到人数",
+      "type": "number"
+    },
+    {
+      "name": "_widget_1773653435869",
+      "widgetName": "_widget_1773653435869",
+      "label": "实到人数",
+      "type": "number"
+    },
+    {
+      "name": "_widget_1773653435872",
+      "widgetName": "_widget_1773653435872",
+      "label": "未到场人员情况说明",
+      "type": "textarea"
+    },
+    {
+      "name": "_widget_1732696211423",
+      "widgetName": "_widget_1732696211423",
+      "label": "内容记录",
+      "type": "textarea"
+    },
+    {
+      "name": "_widget_1733300024349",
+      "widgetName": "_widget_1733300024349",
+      "label": "照片",
+      "type": "image"
+    },
+    {
+      "name": "_widget_1733300024357",
+      "widgetName": "_widget_1733300024357",
+      "label": "附件",
+      "type": "upload"
+    },
+    {
+      "name": "_widget_1732696211426",
+      "widgetName": "_widget_1732696211426",
+      "label": "学科部门",
+      "type": "dept"
+    },
+    {
+      "name": "_widget_1732696211427",
+      "widgetName": "_widget_1732696211427",
+      "label": "备课参加次数",
+      "type": "text"
+    }
+  ],
+  "sysWidgets": [
+    {
+      "name": "creator"
+    },
+    {
+      "name": "updater"
+    },
+    {
+      "name": "deleter"
+    },
+    {
+      "name": "createTime"
+    },
+    {
+      "name": "updateTime"
+    },
+    {
+      "name": "deleteTime"
+    }
+  ],
+  "dataModifyTime": "2026-05-12T03:51:49.841Z"
+}

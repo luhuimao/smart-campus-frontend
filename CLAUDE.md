@@ -156,6 +156,146 @@ page.tsx
 
 ---
 
+## API 数据接入规范
+
+> 参照 `ResearchDashboard.tsx` 的完整实现模式，所有需要接入简道云数据的页面统一遵循以下规范。
+
+### 数据层：Hook（`src/hooks/`）
+
+每个业务模块对应一个 hook 文件，负责：
+1. 用 `useQuery`（TanStack Query）调用 `jdyListAll` 拉取全量数据，`staleTime: 5 * 60 * 1000`，`refetchInterval: 60_000`
+2. 用 `useMemo` 派生筛选选项（`filterOptions`）和过滤后的记录（`filtered`）
+3. 用 `useMemo` 对过滤后记录做聚合计算（`derive()`），输出标准化的 `DashboardData`
+
+```ts
+// 标准 DashboardData 结构
+interface DashboardData {
+  total: number;
+  trendByMonth: { month: string; value: number }[];   // 最近 5 个月
+  subjectDistribution: { label: string; value: number; color: string }[];
+  weekStats:   { label: string; value: number }[];    // 最多 8 周
+  monthStats:  { label: string; value: number }[];    // 最近 6 个月
+  semesterStats: { label: string; value: number; color: string }[];
+  teacherParticipation: { label: string; value: number }[];  // 最多 8 人
+  raw: ResearchRecord[];
+}
+```
+
+### API 配置（`src/lib/jdy-api.ts`）
+
+- `JDY_CONFIG`：维护各表单的 `app_id` + `entry_id`
+- `WIDGET_IDS` / `BEIKE_WIDGET_IDS`：各表单字段的 widget ID 常量
+- 新增表单时同步添加对应的 `CONFIG` 和 `WIDGET_IDS` 常量
+
+```ts
+// 新增表单示例
+export const JDY_CONFIG = {
+  JIAOYAN_ACTIVITY: { app_id: "...", entry_id: "..." },
+  BEIKE_ACTIVITY:   { app_id: "...", entry_id: "..." },
+  // 新表单追加在此
+} as const;
+```
+
+### 字段映射（`normalize` 函数）
+
+原始 JDY 记录字段类型多样（string / number / object / array），统一用工具函数提取：
+- `pickStr(record, widgetId)`：提取字符串，支持 user 类型（取 `.name`）、combo、text
+- `pickNum(record, widgetId)`：提取数字
+
+### 客户端筛选模式
+
+**不做服务端筛选**，一次性拉取全量数据后在内存中过滤：
+
+```ts
+// 组件层：维护 activeFilters state
+const [activeFilters, setActiveFilters] = useState<ActiveFilters>({ semester: "", group: "", subject: "" });
+
+// Hook 层：useMemo 过滤
+const filtered = useMemo(() => allRecords?.filter(r => {
+  if (filters?.semester && r.学期 !== filters.semester) return false;
+  if (filters?.group   && r.教研组 !== filters.group)   return false;
+  if (filters?.subject && r.教研学科 !== filters.subject) return false;
+  return true;
+}), [allRecords, filters?.semester, filters?.group, filters?.subject]);
+```
+
+### 筛选器 UI 模式
+
+```tsx
+// 下拉选择器（带清除按钮）
+const valueSelectStyle = {
+  backgroundImage: "url(\"data:image/svg+xml,...\")",  // 自定义箭头
+  backgroundRepeat: "no-repeat",
+  backgroundPosition: "right 0.6rem center",
+  backgroundSize: "0.85rem",
+  paddingRight: "1.6rem",
+};
+
+<div className="px-4 pt-4 pb-5 rounded-[20px] apple-hover border border-white/60 flex flex-col gap-3" style={glass}>
+  <div className="flex items-center gap-1.5 min-w-0">
+    <p className="text-sm font-black text-gray-400 uppercase tracking-wider flex-1 min-w-0 truncate">{label}</p>
+    {value && <button onClick={() => clearFilter(key)} className="shrink-0 text-xs text-gray-400 hover:text-gray-600 px-1">✕</button>}
+  </div>
+  <select value={value} onChange={e => setFilter(key, e.target.value)}
+    className="w-full appearance-none bg-white/40 border-none rounded-xl px-3 py-2.5 text-base font-bold text-gray-700 outline-none cursor-pointer"
+    style={valueSelectStyle}>
+    <option value="">全部</option>
+    {options.map(o => <option key={o} value={o}>{o}</option>)}
+  </select>
+</div>
+```
+
+### 加载 / 错误状态
+
+| 状态 | 处理方式 |
+|------|---------|
+| `isPending` | 数字显示 `—`，图表显示骨架屏（`animate-pulse` 灰色条） |
+| `isError` | 数字显示 `!`，图表区显示"加载失败"文字 |
+| 空数据 | 图表区显示"暂无数据"文字 |
+
+骨架屏示例：
+```tsx
+function ChartSkeleton() {
+  return (
+    <div className="flex items-end gap-1.5 w-full animate-pulse" style={{ height: 120 }}>
+      {[60,80,50,90,70,40,85,65].map((h, i) => (
+        <div key={i} className="flex-1 rounded-t bg-gray-200" style={{ height: h }} />
+      ))}
+    </div>
+  );
+}
+```
+
+### 折线图（SVG）标准模式
+
+```tsx
+// viewBox="0 0 600 {padT + chartH + padB}"，preserveAspectRatio="none"
+const w = 600, padL = 40, padR = 20, padT = 20, padB = 30, chartH = 152;
+const toX = (i: number) => padL + i * ((w - padL - padR) / (list.length - 1));
+const toY = (v: number) => padT + chartH - (v / maxV) * chartH;
+// 渐变 fill + 折线 stroke + 数据点 circle + 月份 text
+```
+
+### 柱状图（MiniBarChart）标准模式
+
+- 容器高度固定 `120px`，分为柱体区（`flex-1 flex-col items-end`）+ 标签区（固定 `32px`）
+- 标签竖向显示：`wordBreak: "break-all"`, `fontSize: 9`
+- 颜色：周统计 `#818cf8`，月统计 `#60a5fa`，教师参与 `#34d399`
+
+### 水平条形图（HBarChart）标准模式
+
+- 标签宽度固定 `44px`，`overflow: hidden`, `textOverflow: ellipsis`，`title` 属性保留完整文字
+- 进度条高度 `9px`，`borderRadius: 999`
+- 数值宽度固定 `18px`，右对齐
+
+### 注意事项
+
+- 新增 export 到 `jdy-api.ts` 后，**必须重启 dev server**（Turbopack 模块缓存不会自动感知新 export）
+- `jdyListAll` 默认 `pageSize: 100, maxPages: 20`，最多拉取 2000 条
+- 简道云 API 通过 `/api/jdy/data/list` Next.js 路由代理，API Key 在服务端环境变量中，不暴露给客户端
+
+---
+
 ## 组件开发规范
 
 - 新增组件放在 `src/components/`，命名导出 + PascalCase

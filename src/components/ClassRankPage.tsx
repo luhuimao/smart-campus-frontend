@@ -5,6 +5,7 @@ import { Plus, Trash2, Clock, Search } from "lucide-react";
 import { PageHeader } from "./PageHeader";
 import { ClassRankFormModal } from "./ClassRankFormModal";
 import { DataTable, ColDef } from "./DataTable";
+import { useClassRank, type ClassRankRecord } from "@/hooks/use-research-dashboard";
 
 const teal = "#00b095";
 
@@ -125,53 +126,25 @@ function SearchBox({ value, onChange }: { value: string; onChange: (v: string) =
 
 
 
-const rows = [
-  { id: 1, semester: "2025-2026学年第二学期", exam: "期中考试", grade: "高一", class: "高一(1)班", teacher: "黄景民", subject: "高中数学", classRank: 1, submitter: "黄景民", submitTime: "2026-04-22 09:14", updateTime: "2026-04-22 09:14" },
-  { id: 2, semester: "2025-2026学年第二学期", exam: "期中考试", grade: "高一", class: "高一(3)班", teacher: "黄景民", subject: "高中数学", classRank: 3, submitter: "黄景民", submitTime: "2026-04-22 09:18", updateTime: "2026-04-22 09:18" },
-  { id: 3, semester: "2025-2026学年第二学期", exam: "期中考试", grade: "高二", class: "高二(2)班", teacher: "莫燕",  subject: "高中数学", classRank: 2, submitter: "莫燕",  submitTime: "2026-04-21 14:30", updateTime: "2026-04-21 15:02" },
-  { id: 4, semester: "2025-2026学年第二学期", exam: "月考",    grade: "高一", class: "高一(1)班", teacher: "黄景民", subject: "高中数学", classRank: 1, submitter: "黄景民", submitTime: "2026-04-10 08:50", updateTime: "2026-04-10 08:50" },
-  { id: 5, semester: "2025-2026学年第一学期", exam: "期末考试", grade: "高一", class: "高一(1)班", teacher: "黄景民", subject: "高中数学", classRank: 2, submitter: "黄景民", submitTime: "2026-01-18 10:05", updateTime: "2026-01-18 10:05" },
-  { id: 6, semester: "2025-2026学年第一学期", exam: "期末考试", grade: "高一", class: "高一(3)班", teacher: "黄景民", subject: "高中数学", classRank: 4, submitter: "黄景民", submitTime: "2026-01-18 10:22", updateTime: "2026-01-19 09:10" },
-];
-
-function RankBadge({ rank }: { rank: number }) {
-  const color =
-    rank === 1 ? { bg: "#fef3c7", text: "#d97706" } :
-    rank === 2 ? { bg: "#f3f4f6", text: "#6b7280" } :
-    rank === 3 ? { bg: "#fef3e8", text: "#c05621" } :
-    { bg: "#eff6ff", text: "#3b82f6" };
-  return (
-    <span
-      className="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold"
-      style={{ background: color.bg, color: color.text }}
-    >
-      {rank}
-    </span>
-  );
-}
-
-
-type Row = typeof rows[number];
+type Row = ClassRankRecord;
 
 const COLUMNS: ColDef<Row>[] = [
-  { key: "semester",  label: "学期",   textSize: "text-sm" },
-  { key: "exam",      label: "考试名称" },
-  { key: "grade",     label: "年级" },
-  { key: "class",     label: "班级",   cellColor: "#1e40af" },
-  { key: "teacher",   label: "教师姓名" },
-  { key: "subject",   label: "学科" },
-  { key: "classRank", label: "班级排名", headerColor: "#3b82f6", render: r => <RankBadge rank={r.classRank} /> },
-  { key: "submitter", label: "提交人" },
-  { key: "submitTime", label: "提交时间", cellColor: "#6b7280", textSize: "text-sm" },
-  { key: "updateTime", label: "更新时间", cellColor: "#6b7280", textSize: "text-sm" },
+  { key: "学期",     label: "学期",   textSize: "text-sm" },
+  { key: "考试名称", label: "考试名称" },
+  { key: "年级",     label: "年级" },
+  { key: "班级",     label: "班级",   cellColor: "#1e40af" },
+  { key: "教师姓名", label: "教师姓名" },
+  { key: "学科",     label: "学科" },
+  { key: "班级排名", label: "班级排名", headerColor: "#3b82f6" },
 ];
 
 export function ClassRankPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const { raw, isPending, isError } = useClassRank();
 
-  const filtered = rows.filter(r =>
-    r.class.includes(search) || r.exam.includes(search) || r.subject.includes(search)
+  const filtered = raw.filter(r =>
+    r.班级.includes(search) || r.考试名称.includes(search) || r.学科.includes(search)
   );
 
   return (
@@ -249,7 +222,7 @@ export function ClassRankPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                 </button>
               </Tooltip>
               <Tooltip text="刷新">
-                <button className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-black/[0.05] transition-all">
+                <button className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-black/[0.05] transition-all" onClick={() => window.location.reload()}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
                   </svg>
@@ -265,7 +238,13 @@ export function ClassRankPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
             </div>
           </div>
 
-          <DataTable columns={COLUMNS} rows={filtered} minWidth={1000} />
+          {isPending ? (
+            <div className="flex items-center justify-center py-20 text-sm text-gray-400">加载中...</div>
+          ) : isError ? (
+            <div className="flex items-center justify-center py-20 text-sm text-red-400">加载失败，请稍后重试</div>
+          ) : (
+            <DataTable columns={COLUMNS} rows={filtered} minWidth={1000} />
+          )}
 
         </div>
       </div>

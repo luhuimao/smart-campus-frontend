@@ -3,102 +3,46 @@
 import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Upload, RefreshCw, ArrowUpDown, Maximize2, Unlink, Plus } from "lucide-react";
 import { PageHeader } from "./PageHeader";
-import { DatePicker, DateRangePicker } from "./ui/DatePicker";
+import { useResearchDashboard } from "@/hooks/use-research-dashboard";
+import type { ActiveFilters } from "@/hooks/use-research-dashboard";
+import { TrendLineChart } from "./ui/TrendLineChart";
+import { DashboardTable, PhotoList, FileBadgeList } from "./ui/DashboardTable";
+import type { ColumnDef } from "./ui/DashboardTable";
 
 const teal = "#13c2c2";
-
-// ── 数据 ──────────────────────────────────────────────────────────────────────
-
-const subjects = [
-  "高中思想政治","高中数学","高中英语","高中历史",
-  "高中地理","高中物理","高中生物学","高中语文","高中俄语","汇总",
-];
-
-const teacherCounts = [
-  { name: "孙有璋", count: 2 },
-  { name: "农兆年", count: 3 },
-  { name: "沈太何", count: 3 },
-  { name: "黄景民", count: 4 },
-  { name: "莫燕",   count: 4 },
-  { name: "甘育攀", count: 6 },
-  { name: "张丽燕", count: 5 },
-];
-
-const tableRows = [
-  { reporter: "甘育攀", dept: "政治教研组", theme: "新课标背景下思政课教学策略研讨", time: "2026-04-22 09:00", location: "行政楼三楼会议室", subject: "高中思想政治", participants: "甘育攀、孙有璋、农兆年", hasRecord: true,  hasPhotos: true,  hasAttach: true,  remark: "" },
-  { reporter: "黄景民", dept: "数学教研组", theme: "数学核心素养培育路径探讨",       time: "2026-04-18 14:00", location: "明达楼二楼辅导室", subject: "高中数学",     participants: "黄景民、莫燕、沈太何",   hasRecord: true,  hasPhotos: false, hasAttach: true,  remark: "" },
-  { reporter: "张丽燕", dept: "英语教研组", theme: "英语写作专项教研",               time: "2026-04-15 08:30", location: "图书馆报告厅",    subject: "高中英语",     participants: "张丽燕、何春柳、钱伟",   hasRecord: false, hasPhotos: true,  hasAttach: false, remark: "资料整理中" },
-  { reporter: "孙有璋", dept: "史地教研组", theme: "历史史料教学法研讨",             time: "2026-04-12 10:00", location: "行政楼三楼会议室", subject: "高中历史",     participants: "孙有璋、沈太何",         hasRecord: true,  hasPhotos: true,  hasAttach: true,  remark: "" },
-  { reporter: "郑茹",   dept: "史地教研组", theme: "地理区域认知与综合思维教研",     time: "2026-04-10 09:30", location: "明达楼二楼辅导室", subject: "高中地理",     participants: "郑茹、韩冰、农兆年",     hasRecord: true,  hasPhotos: false, hasAttach: false, remark: "" },
-  { reporter: "甘育攀", dept: "理化教研组", theme: "物理实验教学研讨",               time: "2026-03-28 14:30", location: "实验楼一楼研讨室", subject: "高中物理",     participants: "黄景民、甘育攀、李金月", hasRecord: false, hasPhotos: true,  hasAttach: true,  remark: "实验报告待提交" },
-  { reporter: "李枝芳", dept: "理化教研组", theme: "生物学新教材使用研讨",           time: "2026-03-25 09:00", location: "实验楼一楼研讨室", subject: "高中生物学",   participants: "李枝芳、曹磊、莫燕",     hasRecord: true,  hasPhotos: true,  hasAttach: true,  remark: "" },
-  { reporter: "张敏",   dept: "语文教研组", theme: "语文整本书阅读教学策略",         time: "2026-03-20 09:00", location: "图书馆报告厅",    subject: "高中语文",     participants: "张敏、吴晓峰、农兆年",   hasRecord: true,  hasPhotos: true,  hasAttach: false, remark: "" },
-  { reporter: "沈太何", dept: "外语教研组", theme: "俄语口语教学研讨",               time: "2026-03-15 10:00", location: "语音室",          subject: "高中俄语",     participants: "沈太何、田中花子",       hasRecord: false, hasPhotos: false, hasAttach: false, remark: "资料待补充" },
-  { reporter: "甘育攀", dept: "全体教研组", theme: "跨学科主题教学研讨",             time: "2026-02-26 14:00", location: "行政楼三楼会议室", subject: "汇总",         participants: "全体教师",               hasRecord: true,  hasPhotos: true,  hasAttach: true,  remark: "全员参与" },
-];
+const PAGE_SIZE = 20;
 
 const calendarDays = ["20 周一","21 周二","22 周三","23 周四","24 周五","25 周六","26 周日"];
 
-// ── SVG 折线图 ────────────────────────────────────────────────────────────────
+// ── 通用组件 ──────────────────────────────────────────────────────────────────
 
-const CHART_DATA   = [1, 4, 22, 12];
-const CHART_LABELS = ["2025年12月","2026年02月","2026年03月","2026年04月"];
-const W = 600, H = 160, PAD_L = 32, PAD_R = 16, PAD_T = 20, PAD_B = 28;
-const MAX_VAL = 25;
+type ActionItem = { Icon: React.ElementType; tip: string; onClick?: () => void; tipAlign?: "center" | "right" };
 
-function pointX(i: number) { return PAD_L + (i / (CHART_DATA.length - 1)) * (W - PAD_L - PAD_R); }
-function pointY(v: number) { return PAD_T + (1 - v / MAX_VAL) * (H - PAD_T - PAD_B); }
-
-function ResearchChart() {
-  const pts      = CHART_DATA.map((v, i) => `${pointX(i)},${pointY(v)}`).join(" ");
-  const areaPath = [
-    `M ${pointX(0)},${pointY(CHART_DATA[0])}`,
-    ...CHART_DATA.slice(1).map((v, i) => `L ${pointX(i + 1)},${pointY(v)}`),
-    `L ${pointX(CHART_DATA.length - 1)},${H - PAD_B}`,
-    `L ${pointX(0)},${H - PAD_B} Z`,
-  ].join(" ");
-
+function ActionBar({ show, actions }: { show: boolean; actions: ActionItem[] }) {
+  if (!show) return null;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="none" style={{ display: "block" }}>
-      <defs>
-        <linearGradient id="researchAreaGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#93c5fd" stopOpacity="0.5" />
-          <stop offset="100%" stopColor="#93c5fd" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {[0, 5, 10, 15, 20, 25].map(v => (
-        <g key={v}>
-          <line x1={PAD_L} x2={W - PAD_R} y1={pointY(v)} y2={pointY(v)} stroke="#f3f4f6" strokeWidth="1" strokeDasharray="3 3" />
-          <text x={PAD_L - 4} y={pointY(v) + 3} textAnchor="end" fill="#999" fontSize="8">{v}</text>
-        </g>
+    <div className="flex items-center gap-0.5 shrink-0">
+      {actions.map(({ Icon, tip, onClick, tipAlign = "center" }) => (
+        <div key={tip} className="relative group/tip">
+          <button
+            onClick={onClick}
+            className="w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-black/[0.06] transition-colors"
+          >
+            <Icon size={12} />
+          </button>
+          <div className={`pointer-events-none absolute top-full mt-2 opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 z-50 ${tipAlign === "right" ? "right-0" : "left-1/2 -translate-x-1/2"}`}>
+            {tipAlign !== "right" && <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-800/90" />}
+            <div className="px-2 py-1 bg-gray-800/90 text-white text-xs font-medium rounded-md whitespace-nowrap">{tip}</div>
+          </div>
+        </div>
       ))}
-      <path d={areaPath} fill="url(#researchAreaGrad)" />
-      <polyline points={pts} fill="none" stroke="#60a5fa" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
-      {CHART_DATA.map((v, i) => (
-        <g key={i}>
-          <circle cx={pointX(i)} cy={pointY(v)} r="4" fill="white" stroke="#60a5fa" strokeWidth="2" />
-          <text x={pointX(i)} y={pointY(v) - 7} textAnchor="middle" fill="#666" fontSize="9">{v}</text>
-        </g>
-      ))}
-      {CHART_LABELS.map((l, i) => (
-        <text key={i} x={pointX(i)} y={H - PAD_B + 14} textAnchor="middle" fill="#666" fontSize="8">{l}</text>
-      ))}
-    </svg>
+    </div>
   );
 }
 
-// ── 通用组件 ──────────────────────────────────────────────────────────────────
-
-const SUBJECT_OPTIONS     = ["等于","不等于","等于任意一个","不等于任意一个","包含","不包含","为空","不为空"];
-const PARTICIPANT_OPTIONS = ["包含任意一个","同时包含","等于","为空","不为空"];
-const TIME_OPTIONS        = ["等于","不等于","大于等于","小于等于","选择范围","动态筛选","为空","不为空"];
-
-function FilterCard({ title, options, children }: {
-  title: string;
-  options?: string[];
-  children: React.ReactNode | ((condition: string) => React.ReactNode);
+function FilterDropdown({ label, value, options, onChange }: {
+  label: string; value: string; options: string[]; onChange: (v: string) => void;
 }) {
-  const [condition, setCondition] = useState(options?.[0] ?? "");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -112,78 +56,361 @@ function FilterCard({ title, options, children }: {
   return (
     <div className="glass" style={{ padding: "12px 16px", position: "relative", zIndex: open ? 100 : 1 }}>
       <div className="flex justify-between items-center mb-2">
-        <span className="text-sm font-semibold text-gray-800">{title}</span>
-        {options && (
-          <div className="relative" ref={ref}>
-            <button onClick={() => setOpen(v => !v)}
-              style={{ color: teal, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", gap: 2 }}>
-              {condition}
-              <ChevronRight size={11} style={{ transform: open ? "rotate(270deg)" : "rotate(90deg)", transition: "transform 0.15s" }} />
-            </button>
-            {open && (
-              <div className="absolute right-0 rounded-xl overflow-hidden"
-                style={{ top: "calc(100% + 4px)", minWidth: 140, background: "white", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid rgba(0,0,0,0.06)", zIndex: 200 }}>
-                {options.map(opt => (
-                  <button key={opt} onClick={() => { setCondition(opt); setOpen(false); }}
-                    className="w-full text-left px-3 py-2 transition-colors"
-                    style={{ fontSize: 14, color: opt === condition ? teal : "#374151", background: opt === condition ? "rgba(19,194,194,0.06)" : "transparent" }}
-                    onMouseEnter={e => { if (opt !== condition) (e.currentTarget as HTMLButtonElement).style.background = "rgba(0,0,0,0.04)"; }}
-                    onMouseLeave={e => { if (opt !== condition) (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
-                  >{opt}</button>
-                ))}
-              </div>
-            )}
+        <span className="text-sm font-semibold text-gray-800">{label}</span>
+        {value && (
+          <button onClick={() => onChange("")} className="text-xs text-gray-400 hover:text-gray-600 px-1">✕</button>
+        )}
+      </div>
+      <div className="relative" ref={ref}>
+        <button
+          onClick={() => setOpen(v => !v)}
+          className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left"
+          style={{ border: "1px solid #e5e7eb", background: "white", fontSize: 15, color: value ? "#374151" : "#9ca3af" }}
+        >
+          <span className="truncate">{value || "全部"}</span>
+          <ChevronRight size={12} style={{ transform: open ? "rotate(270deg)" : "rotate(90deg)", transition: "transform 0.15s", flexShrink: 0, color: "#9ca3af" }} />
+        </button>
+        {open && (
+          <div className="absolute left-0 right-0 rounded-xl overflow-hidden"
+            style={{ top: "calc(100% + 4px)", background: "white", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid rgba(0,0,0,0.06)", zIndex: 200, maxHeight: 200, overflowY: "auto" }}>
+            <button
+              onClick={() => { onChange(""); setOpen(false); }}
+              className="w-full text-left px-3 py-2 transition-colors"
+              style={{ fontSize: 14, color: !value ? teal : "#374151", background: !value ? "rgba(19,194,194,0.06)" : "transparent" }}
+            >全部</button>
+            {options.map(opt => (
+              <button key={opt} onClick={() => { onChange(opt); setOpen(false); }}
+                className="w-full text-left px-3 py-2 transition-colors"
+                style={{ fontSize: 14, color: opt === value ? teal : "#374151", background: opt === value ? "rgba(19,194,194,0.06)" : "transparent" }}
+              >{opt}</button>
+            ))}
           </div>
         )}
       </div>
-      {typeof children === "function" ? children(condition) : children}
     </div>
   );
 }
 
-function CustomSelect({ placeholder }: { placeholder: string }) {
+function TableWithTopScrollbar({ children }: { children: React.ReactNode }) {
+  const topRef = useRef<HTMLDivElement>(null);
+  const botRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    const el = botRef.current;
+    if (!el) return;
+    const obs = new ResizeObserver(() => {
+      setWidth(el.scrollWidth);
+    });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  function onTopScroll() {
+    if (botRef.current && topRef.current) botRef.current.scrollLeft = topRef.current.scrollLeft;
+  }
+  function onBotScroll() {
+    if (topRef.current && botRef.current) topRef.current.scrollLeft = botRef.current.scrollLeft;
+  }
+
   return (
-    <div className="relative">
-      <select className="w-full outline-none appearance-none pr-8 py-1.5 pl-3 rounded-lg"
-        style={{ border: "1px solid #e5e7eb", color: "#9ca3af", background: "white", fontSize: 15 }}
-        defaultValue="">
-        <option value="" disabled>{placeholder}</option>
-      </select>
-      <ChevronRight size={12} className="absolute right-2 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" style={{ color: "#9ca3af" }} />
+    <div>
+      {/* 顶部镜像滚动条 */}
+      <div ref={topRef} onScroll={onTopScroll} style={{ overflowX: "auto", overflowY: "hidden", height: 12 }}>
+        <div style={{ width, height: 1 }} />
+      </div>
+      {/* 实际表格 */}
+      <div ref={botRef} onScroll={onBotScroll} className="overflow-x-auto">
+        {children}
+      </div>
     </div>
   );
 }
 
-function PaginationBar({ current, total }: { current: number; total: number }) {
+// 照片 hover 预览（fixed 定位，不受 overflow 裁剪）
+function PhotoPreview({ src, alt }: { src: string; alt: string }) {
+  const [visible, setVisible] = useState(false);
+  const [floatPos, setFloatPos] = useState({ x: 0, y: 0 });
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const thumbRef = useRef<HTMLDivElement>(null);
+
+  function clearHide() {
+    if (hideTimer.current) { clearTimeout(hideTimer.current); hideTimer.current = null; }
+  }
+  function scheduleHide() {
+    clearHide();
+    hideTimer.current = setTimeout(() => setVisible(false), 400);
+  }
+
+  function onThumbEnter() {
+    clearHide();
+    // 用缩略图元素的位置计算浮层坐标，固定在缩略图正上方
+    const el = thumbRef.current;
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      setFloatPos({ x: rect.left, y: rect.top });
+    }
+    setVisible(true);
+  }
+
+  // 浮层宽 240，高约 240；紧贴缩略图上方，左对齐缩略图
+  // 浮层紧贴缩略图上方 8px
+  const FLOAT_H = 244;
+  const left = Math.min(floatPos.x, window.innerWidth - 260);
+  const top  = floatPos.y - FLOAT_H - 4;
+
   return (
-    <div className="flex justify-center items-center gap-1 p-2 border-t border-gray-100" style={{ fontSize: 14 }}>
-      {["«","‹"].map(s => <button key={s} className="px-2 py-1 rounded border border-gray-200 text-gray-400 hover:bg-gray-50">{s}</button>)}
-      <span className="px-3 text-gray-500">{current} / {total}</span>
-      {["›","»"].map(s => <button key={s} className="px-2 py-1 rounded border border-gray-200 text-gray-400 hover:bg-gray-50">{s}</button>)}
-    </div>
-  );
-}
-
-// ── 卡片 hover 操作图标栏 ─────────────────────────────────────────────────────
-
-type ActionItem = { Icon: React.ElementType; tip: string };
-
-function ActionBar({ show, actions }: { show: boolean; actions: ActionItem[] }) {
-  if (!show) return null;
-  return (
-    <div className="flex items-center gap-0.5 shrink-0">
-      {actions.map(({ Icon, tip }) => (
-        <div key={tip} className="relative group/tip">
-          <button className="w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-black/[0.06] transition-colors">
-            <Icon size={12} />
-          </button>
-          <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 z-50">
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-800/90" />
-            <div className="px-2 py-1 bg-gray-800/90 text-white text-xs font-medium rounded-md whitespace-nowrap">{tip}</div>
-          </div>
+    <div ref={thumbRef} className="shrink-0 inline-block"
+      onMouseEnter={onThumbEnter}
+      onMouseLeave={scheduleHide}
+    >
+      <img src={src} alt={alt} className="rounded object-cover cursor-pointer" style={{ width: 32, height: 32 }} />
+      {visible && (
+        <div
+          className="z-[9999] rounded-xl shadow-2xl flex flex-col"
+          style={{ position: "fixed", left, top, width: 240, background: "#fff", border: "1px solid #e5e7eb", overflow: "hidden" }}
+          onMouseEnter={clearHide}
+          onMouseLeave={scheduleHide}
+        >
+          <img src={src} alt={alt} className="object-contain w-full" style={{ maxHeight: 200 }} />
+          <a
+            href={src}
+            download={alt || "photo"}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-center gap-1.5 py-2 text-xs font-medium hover:bg-blue-50 transition-colors"
+            style={{ color: "#3b82f6", borderTop: "1px solid #f3f4f6" }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            下载图片
+          </a>
         </div>
-      ))}
+      )}
     </div>
+  );
+}
+
+import type { ResearchRecord } from "@/hooks/use-research-dashboard";
+
+// ── 图片全屏预览 ──────────────────────────────────────────────────────────────
+
+function ImageLightbox({ images, index, onClose }: { images: { name: string; url: string }[]; index: number; onClose: () => void }) {
+  const [cur, setCur] = useState(index);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft")  setCur(i => Math.max(0, i - 1));
+      if (e.key === "ArrowRight") setCur(i => Math.min(images.length - 1, i + 1));
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [images.length, onClose]);
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center"
+      style={{ background: "rgba(0,0,0,0.85)" }}
+      onClick={onClose}
+    >
+      {/* 关闭 */}
+      <button className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white z-10"
+        onClick={onClose}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      {/* 下载 */}
+      <a href={images[cur].url} download={images[cur].name} target="_blank" rel="noreferrer"
+        className="absolute top-4 right-16 w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white z-10"
+        onClick={e => e.stopPropagation()}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+      </a>
+      {/* 上一张 */}
+      {cur > 0 && (
+        <button className="absolute left-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white z-10"
+          onClick={e => { e.stopPropagation(); setCur(i => i - 1); }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+      )}
+      {/* 下一张 */}
+      {cur < images.length - 1 && (
+        <button className="absolute right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white z-10"
+          onClick={e => { e.stopPropagation(); setCur(i => i + 1); }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      )}
+      {/* 图片 */}
+      <img src={images[cur].url} alt={images[cur].name}
+        className="max-w-[90vw] max-h-[85vh] object-contain rounded-lg shadow-2xl mx-auto block"
+        onClick={e => e.stopPropagation()}
+      />
+      {/* 计数 */}
+      {images.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/40 text-white text-xs font-medium">
+          {cur + 1} / {images.length}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── 详情抽屉 ──────────────────────────────────────────────────────────────────
+
+function RecordDrawer({ record, onClose }: { record: ResearchRecord | null; onClose: () => void }) {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  useEffect(() => {
+    if (!record) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [record, onClose]);
+
+  function formatTime(iso: string) {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+  }
+
+  return (
+    <>
+      {/* 遮罩 */}
+      <div
+        className="fixed inset-0 z-40 transition-opacity duration-300"
+        style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
+        onClick={onClose}
+      />
+      {/* 抽屉 */}
+      <div
+        className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+        style={{
+          width: 480,
+          maxWidth: "100vw",
+          background: "#fff",
+          transform: record ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)",
+        }}
+      >
+        {record && (
+          <>
+            {/* 顶部 */}
+            <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+              <div className="flex-1 min-w-0 pr-4">
+                <p className="text-xs font-semibold text-blue-500 mb-1">{record.学期 || "—"}</p>
+                <h2 className="text-base font-bold text-gray-900 leading-snug">{record.教研主题 || "—"}</h2>
+              </div>
+              <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* 内容 */}
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+
+              {/* 基本信息 */}
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">基本信息</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[
+                    { label: "教研学科", value: record.教研学科 },
+                    { label: "教研组",   value: record.教研组 },
+                    { label: "学科部门", value: record.学科部门 },
+                    { label: "教研组长", value: record.教研组长 },
+                    { label: "主持人",   value: record.主持人 },
+                    { label: "教研时间", value: formatTime(record.时间) },
+                    { label: "教研地点", value: record.地点 },
+                    { label: "周次",     value: record.周次 },
+                    { label: "应到人数", value: record.应到人数 ? String(record.应到人数) : "" },
+                    { label: "实到人数", value: record.实到人数 ? String(record.实到人数) : "" },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium text-gray-800">{value || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* 参与人员 */}
+              {record.参与人员 && (
+                <section>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">参与人员</p>
+                  <p className="text-base text-gray-800 leading-relaxed">{record.参与人员}</p>
+                </section>
+              )}
+
+              {/* 内容记录 */}
+              {record.内容记录 && (
+                <section>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">内容记录</p>
+                  <p className="text-base text-gray-800 leading-relaxed whitespace-pre-wrap">{record.内容记录}</p>
+                </section>
+              )}
+
+              {/* 备注 */}
+              {record.备注 && (
+                <section>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">备注</p>
+                  <p className="text-base text-gray-800 leading-relaxed">{record.备注}</p>
+                </section>
+              )}
+
+              {/* 照片 */}
+              {record.照片.length > 0 && (
+                <section>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">照片（{record.照片.length} 张）</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {record.照片.map((f, i) => (
+                      <button key={i} onClick={() => setLightboxIndex(i)}
+                        className="block rounded-lg overflow-hidden aspect-square bg-gray-100 hover:opacity-80 transition-opacity cursor-zoom-in">
+                        <img src={f.url} alt={f.name} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* 附件 */}
+              {record.附件.length > 0 && (
+                <section>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">附件（{record.附件.length} 个）</p>
+                  <div className="flex flex-col gap-2">
+                    {record.附件.map((f, i) => (
+                      <a key={i} href={f.url} target="_blank" rel="noreferrer" download={f.name}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors group">
+                        <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                          </svg>
+                        </div>
+                        <span className="flex-1 min-w-0 text-base text-gray-700 truncate group-hover:text-blue-600 transition-colors">{f.name || "附件"}</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                      </a>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+            </div>
+          </>
+        )}
+      </div>
+      {lightboxIndex !== null && record && (
+        <ImageLightbox
+          images={record.照片}
+          index={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
+    </>
   );
 }
 
@@ -191,16 +418,106 @@ function ActionBar({ show, actions }: { show: boolean; actions: ActionItem[] }) 
 
 export function ResearchActivityAnalysisPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [calendarView, setCalendarView] = useState<"week" | "month">("week");
+  const [calendarOffset, setCalendarOffset] = useState(0); // 周偏移量
   const [hvTotal,    setHvTotal]    = useState(false);
   const [hvChart,    setHvChart]    = useState(false);
   const [hvSubject,  setHvSubject]  = useState(false);
   const [hvTeacher,  setHvTeacher]  = useState(false);
   const [hvCalendar, setHvCalendar] = useState(false);
   const [hvTable,    setHvTable]    = useState(false);
+  const [tablePage,  setTablePage]  = useState(1);
+  const [tablePageSize, setTablePageSize] = useState(20);
+  const [tableSortAsc, setTableSortAsc] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<ResearchRecord | null>(null);
+  const [teacherPage, setTeacherPage] = useState(1);
+  const [subjectPage, setSubjectPage] = useState(1);
+  const LIST_PAGE_SIZE = 6;
+
+  const [activeFilters, setActiveFilters] = useState<ActiveFilters>({ semester: "", group: "", subject: "" });
+
+  const { data, filterOptions, isPending, isError, raw } = useResearchDashboard(activeFilters);
+
+  // 筛选变化时重置分页
+  useEffect(() => {
+    setTablePage(1);
+    setTeacherPage(1);
+    setSubjectPage(1);
+  }, [activeFilters.semester, activeFilters.group, activeFilters.subject]);
+
+  const totalRows  = raw.length;
+  const sortedRaw  = [...raw].sort((a, b) => {
+    const ta = new Date(a.时间).getTime() || 0;
+    const tb = new Date(b.时间).getTime() || 0;
+    return tableSortAsc ? ta - tb : tb - ta;
+  });
+  const totalPages = Math.max(1, Math.ceil(totalRows / tablePageSize));
+  const pageRows   = sortedRaw.slice((tablePage - 1) * tablePageSize, tablePage * tablePageSize);
+
+  // 折线图数据
+  const trend = data?.trendByMonth ?? [];
+
+  // 学科列表
+  const subjectList = data?.subjectDistribution ?? [];
+  const subjectTotalPages = Math.max(1, Math.ceil(subjectList.length / LIST_PAGE_SIZE));
+  const subjectPageRows = subjectList.slice((subjectPage - 1) * LIST_PAGE_SIZE, subjectPage * LIST_PAGE_SIZE);
+
+  // 教师参与
+  const teacherList = data?.teacherParticipation ?? [];
+  const teacherTotal = teacherList.reduce((s, t) => s + t.value, 0);
+  const teacherTotalPages = Math.max(1, Math.ceil(teacherList.length / LIST_PAGE_SIZE));
+  const teacherPageRows = teacherList.slice((teacherPage - 1) * LIST_PAGE_SIZE, teacherPage * LIST_PAGE_SIZE);
+
+  function formatTime(iso: string) {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+  }
+
+  // 日历：计算当前周的7天
+  const weekDays = (() => {
+    const today = new Date();
+    const dow = today.getDay() === 0 ? 6 : today.getDay() - 1;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - dow + calendarOffset * 7);
+    monday.setHours(0, 0, 0, 0);
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      return d;
+    });
+  })();
+
+  const weekLabel = (() => {
+    const s = weekDays[0], e = weekDays[6];
+    if (s.getMonth() === e.getMonth())
+      return `${s.getMonth()+1}月${s.getDate()}日-${e.getDate()}日`;
+    return `${s.getMonth()+1}月${s.getDate()}日-${e.getMonth()+1}月${e.getDate()}日`;
+  })();
+
+  const DAY_NAMES = ["周一","周二","周三","周四","周五","周六","周日"];
+
+  const eventsByDate = (() => {
+    const map = new Map<string, typeof raw>();
+    for (const r of raw) {
+      if (!r.时间) continue;
+      const d = new Date(r.时间);
+      if (isNaN(d.getTime())) continue;
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(r);
+    }
+    return map;
+  })();
+
+  const todayStr = (() => {
+    const t = new Date();
+    return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`;
+  })();
 
   return (
-    <div className="flex flex-col h-full overflow-hidden"
-      style={{ background: "#f5f5f7" }}>
+    <div className="flex flex-col h-full overflow-hidden" style={{ background: "#f5f5f7" }}>
+      <RecordDrawer record={selectedRecord} onClose={() => setSelectedRecord(null)} />
 
       <PageHeader
         breadcrumbs={[{ label: "教研活动" }, { label: "教研活动数据分析", active: true }]}
@@ -211,19 +528,24 @@ export function ResearchActivityAnalysisPage({ onMenuOpen }: { onMenuOpen?: () =
 
         {/* 筛选器 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <FilterCard title="教研学科" options={SUBJECT_OPTIONS}>
-            <CustomSelect placeholder="请选择" />
-          </FilterCard>
-          <FilterCard title="参与教师" options={PARTICIPANT_OPTIONS}>
-            <CustomSelect placeholder="请选择" />
-          </FilterCard>
-          <FilterCard title="教研时间" options={TIME_OPTIONS}>
-            {(cond) => {
-              if (cond === "为空" || cond === "不为空") return null;
-              if (cond === "选择范围") return <DateRangePicker />;
-              return <DatePicker />;
-            }}
-          </FilterCard>
+          <FilterDropdown
+            label="学期"
+            value={activeFilters.semester}
+            options={filterOptions.semesters}
+            onChange={v => setActiveFilters(f => ({ ...f, semester: v }))}
+          />
+          <FilterDropdown
+            label="教研组"
+            value={activeFilters.group}
+            options={filterOptions.groups}
+            onChange={v => setActiveFilters(f => ({ ...f, group: v }))}
+          />
+          <FilterDropdown
+            label="教研学科"
+            value={activeFilters.subject}
+            options={filterOptions.subjects}
+            onChange={v => setActiveFilters(f => ({ ...f, subject: v }))}
+          />
         </div>
 
         {/* 统计 + 折线图 */}
@@ -233,23 +555,34 @@ export function ResearchActivityAnalysisPage({ onMenuOpen }: { onMenuOpen?: () =
               <p className="flex-1 min-w-0 truncate" title="教研活动总数" style={{ fontSize: 15, fontWeight: 500, color: "#374151" }}>教研活动总数</p>
               <ActionBar show={hvTotal} actions={[{ Icon: Upload, tip: "导出" }, { Icon: Maximize2, tip: "放大" }]} />
             </div>
-            <div className="flex-1 flex items-center justify-center p-6">
-              <div style={{ fontSize: 64, fontWeight: 500, color: "#111827", lineHeight: 1 }}>39</div>
+            <div className="flex-1 flex flex-col items-center justify-center gap-2 p-6">
+              {isPending ? (
+                <div className="w-20 h-20 rounded-full bg-gray-100 animate-pulse" />
+              ) : (
+                <>
+                  <span className="font-black text-gray-900 leading-none" style={{ fontSize: 96 }}>
+                    {isError ? "!" : data?.total ?? 0}
+                  </span>
+                  <span className="text-sm font-semibold" style={{ color: "#10b981" }}>
+                    {isError ? "加载失败" : `共 ${data?.total ?? 0} 条记录`}
+                  </span>
+                </>
+              )}
             </div>
           </div>
+
           <div className="glass md:col-span-3 flex flex-col overflow-hidden" onMouseEnter={() => setHvChart(true)} onMouseLeave={() => setHvChart(false)}>
             <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 shrink-0">
               <p className="flex-1 min-w-0 truncate" title="教研次数" style={{ fontSize: 15, fontWeight: 500, color: "#374151" }}>教研次数</p>
               <ActionBar show={hvChart} actions={[{ Icon: Unlink, tip: "取消联动" }, { Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]} />
             </div>
-            <div className="flex-1 p-4">
-              <div style={{ height: 160 }}>
-                <ResearchChart />
-              </div>
-              <div className="flex justify-center mt-2 gap-1 items-center">
-                <div className="w-3 h-3 rounded-sm" style={{ background: "#93c5fd" }} />
-                <span style={{ fontSize: 15, color: "#9ca3af" }}>教研次数</span>
-              </div>
+            <div className="flex-1 p-4" style={{ height: 200 }}>
+              <TrendLineChart
+                data={trend}
+                isPending={isPending}
+                isError={isError}
+                legendLabel="教研次数"
+              />
             </div>
           </div>
         </div>
@@ -259,145 +592,243 @@ export function ResearchActivityAnalysisPage({ onMenuOpen }: { onMenuOpen?: () =
 
           {/* 学科教研情况 */}
           <div className="glass lg:col-span-2 flex flex-col overflow-hidden shadow-sm" onMouseEnter={() => setHvSubject(true)} onMouseLeave={() => setHvSubject(false)}>
-            <div className="flex items-center justify-between border-b border-gray-100" style={{ padding: "10px 12px" }}>
+            <div className="flex items-center justify-between border-b border-gray-100 shrink-0" style={{ padding: "10px 12px" }}>
               <h3 className="font-semibold flex-1 min-w-0 truncate" title="学科教研情况" style={{ fontSize: 15, color: "#111827" }}>学科教研情况</h3>
               <ActionBar show={hvSubject} actions={[{ Icon: Unlink, tip: "取消联动" }, { Icon: Upload, tip: "导出" }, { Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]} />
             </div>
-            <div className="flex-1 overflow-y-auto">
-              <ul>
-                {subjects.map((s, i) => (
-                  <li key={s} className="border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors"
-                    style={{ padding: "8px 12px", fontSize: 15, color: "#374151", background: i === 0 ? "#f9fafb" : undefined }}>
-                    {s}
-                  </li>
-                ))}
-              </ul>
+            <div className="flex-1 overflow-hidden">
+              {isPending ? (
+                <div className="p-3 space-y-2">
+                  {[1,2,3,4,5,6].map(i => <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />)}
+                </div>
+              ) : subjectList.length === 0 ? (
+                <div className="flex items-center justify-center h-20 text-sm text-gray-400">暂无数据</div>
+              ) : (
+                <ul>
+                  {subjectPageRows.map(({ label, value }, i) => (
+                    <li key={label} className="flex justify-between items-center border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors"
+                      style={{ padding: "8px 12px", fontSize: 15, color: "#374151", background: i === 0 && subjectPage === 1 ? "#f9fafb" : undefined }}>
+                      <span className="truncate flex-1 min-w-0" title={label}>{label}</span>
+                      <span className="ml-2 shrink-0 px-1.5 py-0.5 rounded-full text-xs font-bold" style={{ background: "#eff6ff", color: "#3b82f6" }}>{value}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            <PaginationBar current={1} total={1} />
+            <div className="flex justify-center items-center gap-1 p-2 border-t border-gray-100 shrink-0 mt-auto" style={{ fontSize: 14 }}>
+              <button onClick={() => setSubjectPage(p => Math.max(1, p - 1))} disabled={subjectPage === 1}
+                className="px-2 py-1 rounded border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-40">‹</button>
+              <span className="px-2 text-gray-500">{subjectPage} / {subjectTotalPages}</span>
+              <button onClick={() => setSubjectPage(p => Math.min(subjectTotalPages, p + 1))} disabled={subjectPage === subjectTotalPages}
+                className="px-2 py-1 rounded border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-40">›</button>
+            </div>
           </div>
 
           {/* 教师参与次数 */}
           <div className="glass lg:col-span-2 flex flex-col overflow-hidden shadow-sm" onMouseEnter={() => setHvTeacher(true)} onMouseLeave={() => setHvTeacher(false)}>
-            <div className="flex items-center justify-between border-b border-gray-100" style={{ padding: "10px 12px" }}>
+            <div className="flex items-center justify-between border-b border-gray-100 shrink-0" style={{ padding: "10px 12px" }}>
               <h3 className="font-semibold flex-1 min-w-0 truncate" title="教师参与次数" style={{ fontSize: 15, color: "#111827" }}>教师参与次数</h3>
               <ActionBar show={hvTeacher} actions={[{ Icon: Upload, tip: "导出" }, { Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]} />
             </div>
-            <div className="flex-1 overflow-y-auto">
-              {/* 汇总行 */}
+            <div className="flex-1 overflow-hidden">
               <div className="flex justify-between items-center border-b border-gray-50 px-3 py-2">
                 <span style={{ fontSize: 14, color: "#3b82f6" }}>计数</span>
-                <span className="px-2 py-0.5 rounded-full text-white" style={{ fontSize: 15, background: "#fb923c" }}>583</span>
+                <span className="px-2 py-0.5 rounded-full text-white" style={{ fontSize: 15, background: "#fb923c" }}>{teacherTotal}</span>
               </div>
-              <ul>
-                {teacherCounts.map((t, i) => (
-                  <li key={t.name} className="flex justify-between items-center border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors"
-                    style={{ padding: "8px 12px", background: i === 0 ? "#f9fafb" : undefined }}>
-                    <span style={{ fontSize: 15, color: "#374151" }}>{t.name}</span>
-                    <span className="px-2 py-0.5 rounded-full" style={{ fontSize: 15, background: "#eff6ff", color: "#3b82f6" }}>{t.count}</span>
-                  </li>
-                ))}
-              </ul>
+              {isPending ? (
+                <div className="p-3 space-y-2">
+                  {[1,2,3,4,5].map(i => <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />)}
+                </div>
+              ) : teacherList.length === 0 ? (
+                <div className="flex items-center justify-center h-20 text-sm text-gray-400">暂无数据</div>
+              ) : (
+                <ul>
+                  {teacherPageRows.map((t, i) => (
+                    <li key={t.label} className="flex justify-between items-center border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors"
+                      style={{ padding: "8px 12px", background: i === 0 && teacherPage === 1 ? "#f9fafb" : undefined }}>
+                      <span style={{ fontSize: 15, color: "#374151" }}>{t.label}</span>
+                      <span className="px-2 py-0.5 rounded-full" style={{ fontSize: 15, background: "#eff6ff", color: "#3b82f6" }}>{t.value}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            <PaginationBar current={1} total={2} />
+            <div className="flex justify-center items-center gap-1 p-2 border-t border-gray-100 shrink-0 mt-auto" style={{ fontSize: 14 }}>
+              <button onClick={() => setTeacherPage(p => Math.max(1, p - 1))} disabled={teacherPage === 1}
+                className="px-2 py-1 rounded border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-40">‹</button>
+              <span className="px-2 text-gray-500">{teacherPage} / {teacherTotalPages}</span>
+              <button onClick={() => setTeacherPage(p => Math.min(teacherTotalPages, p + 1))} disabled={teacherPage === teacherTotalPages}
+                className="px-2 py-1 rounded border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-40">›</button>
+            </div>
           </div>
 
           {/* 日历 */}
           <div className="glass lg:col-span-8 flex flex-col overflow-hidden shadow-sm" onMouseEnter={() => setHvCalendar(true)} onMouseLeave={() => setHvCalendar(false)}>
             <div className="flex justify-between items-center border-b border-gray-100" style={{ padding: "10px 12px" }}>
               <h3 className="flex-1 min-w-0 truncate" title="教研日历" style={{ fontSize: 15, fontWeight: 600, color: "#111827" }}>教研日历</h3>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2" style={{ fontSize: 15 }}>
-                  <button className="p-1 hover:bg-gray-100 rounded transition-colors"><ChevronLeft size={14} /></button>
-                  <span style={{ fontWeight: 600, color: "#111827" }}>4月20日-4月26日</span>
-                  <button className="p-1 hover:bg-gray-100 rounded transition-colors"><ChevronRight size={14} /></button>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1" style={{ fontSize: 14 }}>
+                  <button className="p-1 hover:bg-gray-100 rounded transition-colors" onClick={() => setCalendarOffset(o => o - 1)}><ChevronLeft size={14} /></button>
+                  <span style={{ fontWeight: 600, color: "#111827", minWidth: 120, textAlign: "center" }}>
+                    {calendarView === "week" ? weekLabel : (() => {
+                      const t = new Date(); t.setMonth(t.getMonth() + calendarOffset);
+                      return `${t.getFullYear()}年${t.getMonth()+1}月`;
+                    })()}
+                  </span>
+                  <button className="p-1 hover:bg-gray-100 rounded transition-colors" onClick={() => setCalendarOffset(o => o + 1)}><ChevronRight size={14} /></button>
                 </div>
-                <button className="px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" style={{ color: "#374151", fontSize: 14 }}>本周</button>
+                <button className="px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" style={{ color: "#374151", fontSize: 14 }}
+                  onClick={() => setCalendarOffset(0)}>{calendarView === "week" ? "本周" : "本月"}</button>
                 <div className="flex rounded-lg border border-gray-200 overflow-hidden" style={{ fontSize: 14 }}>
-                  <button onClick={() => setCalendarView("week")} className="px-3 py-1 transition-colors"
+                  <button onClick={() => { setCalendarView("week"); setCalendarOffset(0); }} className="px-3 py-1 transition-colors"
                     style={{ background: calendarView === "week" ? teal : "white", color: calendarView === "week" ? "white" : "#374151" }}>周</button>
-                  <button onClick={() => setCalendarView("month")} className="px-3 py-1 border-l border-gray-200 transition-colors"
+                  <button onClick={() => { setCalendarView("month"); setCalendarOffset(0); }} className="px-3 py-1 border-l border-gray-200 transition-colors"
                     style={{ background: calendarView === "month" ? teal : "white", color: calendarView === "month" ? "white" : "#374151" }}>月</button>
                 </div>
                 <ActionBar show={hvCalendar} actions={[{ Icon: Plus, tip: "添加" }, { Icon: RefreshCw, tip: "刷新" }, { Icon: Maximize2, tip: "放大" }]} />
               </div>
             </div>
-            <div className="grid grid-cols-7 border-b border-gray-100 text-center" style={{ background: "#f9fafb", fontSize: 15, color: "#9ca3af" }}>
-              {calendarDays.map(d => <div key={d} className="py-2">{d}</div>)}
-            </div>
-            <div className="grid grid-cols-7 flex-1" style={{ minHeight: 200 }}>
-              {calendarDays.map((d, i) => (
-                <div key={d} className={i < 6 ? "border-r border-gray-50" : ""} />
+
+            {/* 星期列头（周/月共用） */}
+            <div className="grid grid-cols-7 border-b border-gray-100 text-center shrink-0" style={{ background: "#f9fafb" }}>
+              {DAY_NAMES.map(n => (
+                <div key={n} className="py-2" style={{ fontSize: 12, color: "#9ca3af" }}>{n}</div>
               ))}
             </div>
+
+            {calendarView === "week" ? (
+              <>
+                {/* 周视图列头日期 */}
+                <div className="grid grid-cols-7 border-b border-gray-50 shrink-0">
+                  {weekDays.map((d, i) => {
+                    const dStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+                    const isToday = dStr === todayStr;
+                    return (
+                      <div key={i} className="flex justify-center py-1">
+                        <span className="w-6 h-6 flex items-center justify-center rounded-full text-sm font-medium"
+                          style={{ background: isToday ? teal : "transparent", color: isToday ? "white" : "#374151" }}>
+                          {d.getDate()}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* 周视图格子 */}
+                <div className="grid grid-cols-7 flex-1 overflow-y-auto" style={{ minHeight: 140 }}>
+                  {weekDays.map((d, i) => {
+                    const dStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+                    const events = eventsByDate.get(dStr) ?? [];
+                    return (
+                      <div key={i} className={`p-1.5 flex flex-col gap-1 ${i < 6 ? "border-r border-gray-50" : ""}`}>
+                        {events.slice(0, 3).map((ev, j) => (
+                          <button key={j} onClick={() => setSelectedRecord(ev)}
+                            className="w-full text-left px-1.5 py-1 rounded truncate hover:opacity-80 transition-opacity"
+                            style={{ background: "#eff6ff", color: "#3b82f6", fontSize: 11 }}
+                            title={ev.教研主题}
+                          >{ev.教研主题 || ev.教研学科 || "教研活动"}</button>
+                        ))}
+                        {events.length > 3 && (
+                          <span style={{ fontSize: 10, color: "#9ca3af", paddingLeft: 4 }}>+{events.length - 3} 项</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              /* 月视图 */
+              (() => {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth() + calendarOffset;
+                const viewDate = new Date(year, month, 1);
+                const viewYear = viewDate.getFullYear();
+                const viewMonth = viewDate.getMonth();
+                // 当月第一天是周几（周一=0）
+                const firstDow = viewDate.getDay() === 0 ? 6 : viewDate.getDay() - 1;
+                const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+                // 补齐前面空格
+                const cells: (number | null)[] = [
+                  ...Array(firstDow).fill(null),
+                  ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+                ];
+                // 补齐末尾使总数为7的倍数
+                while (cells.length % 7 !== 0) cells.push(null);
+                const rows = cells.length / 7;
+
+                return (
+                  <div className="flex-1 overflow-y-auto" style={{ minHeight: 140 }}>
+                    {Array.from({ length: rows }, (_, row) => (
+                      <div key={row} className="grid grid-cols-7 border-b border-gray-50 last:border-0" style={{ minHeight: 72 }}>
+                        {cells.slice(row * 7, row * 7 + 7).map((day, col) => {
+                          if (!day) return <div key={col} className={col < 6 ? "border-r border-gray-50" : ""} style={{ background: "#fafafa" }} />;
+                          const dStr = `${viewYear}-${String(viewMonth+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+                          const events = eventsByDate.get(dStr) ?? [];
+                          const isToday = dStr === todayStr;
+                          return (
+                            <div key={col} className={`p-1 flex flex-col gap-0.5 ${col < 6 ? "border-r border-gray-50" : ""}`}>
+                              <span className="w-5 h-5 flex items-center justify-center rounded-full self-end mb-0.5"
+                                style={{ fontSize: 11, fontWeight: isToday ? 700 : 400, background: isToday ? teal : "transparent", color: isToday ? "white" : "#374151" }}>
+                                {day}
+                              </span>
+                              {events.slice(0, 2).map((ev, j) => (
+                                <button key={j} onClick={() => setSelectedRecord(ev)}
+                                  className="w-full text-left px-1 py-0.5 rounded truncate hover:opacity-80 transition-opacity"
+                                  style={{ background: "#eff6ff", color: "#3b82f6", fontSize: 10 }}
+                                  title={ev.教研主题}
+                                >{ev.教研主题 || ev.教研学科 || "教研活动"}</button>
+                              ))}
+                              {events.length > 2 && (
+                                <span style={{ fontSize: 9, color: "#9ca3af", paddingLeft: 2 }}>+{events.length - 2}</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()
+            )}
           </div>
         </div>
 
         {/* 记录表 */}
-        <div className="glass rounded-[40px] overflow-hidden" onMouseEnter={() => setHvTable(true)} onMouseLeave={() => setHvTable(false)}>
-          <div className="flex items-center justify-between" style={{ padding: "10px 16px", borderBottom: "1px solid #f3f4f6" }}>
-            <h3 className="flex-1 min-w-0 truncate" title="教研活动记录表" style={{ fontSize: 15, fontWeight: 600, color: "#111827" }}>教研活动记录表</h3>
-            <ActionBar show={hvTable} actions={[{ Icon: Upload, tip: "导出" }, { Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]} />
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr style={{ background: "#eff6ff", fontSize: 15 }}>
-                  {["汇报人","学科部门","教研主题","教研时间","教研地点","教研学科","参与教师","教研记录","照片","附件","备注"].map((h, i) => (
-                    <th key={h} className="px-4 py-3 font-medium" style={{ color: i === 6 ? "#3b82f6" : "#374151", whiteSpace: "nowrap" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {tableRows.map(row => (
-                  <tr key={row.theme} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3" style={{ fontSize: 15, color: "#374151", whiteSpace: "nowrap" }}>{row.reporter}</td>
-                    <td className="px-4 py-3" style={{ fontSize: 15, color: "#374151", whiteSpace: "nowrap" }}>{row.dept}</td>
-                    <td className="px-4 py-3" style={{ color: "#1e40af", fontSize: 15, whiteSpace: "nowrap" }}>{row.theme}</td>
-                    <td className="px-4 py-3" style={{ fontSize: 15, color: "#374151", whiteSpace: "nowrap" }}>{row.time}</td>
-                    <td className="px-4 py-3" style={{ fontSize: 15, color: "#374151", whiteSpace: "nowrap" }}>{row.location}</td>
-                    <td className="px-4 py-3" style={{ fontSize: 15, color: "#374151", whiteSpace: "nowrap" }}>{row.subject}</td>
-                    <td className="px-4 py-3" style={{ fontSize: 15, color: "#3b82f6", whiteSpace: "nowrap" }}>{row.participants}</td>
-                    <td className="px-4 py-3 text-center">
-                      {row.hasRecord
-                        ? <span style={{ fontSize: 15, color: "#3b82f6", background: "#eff6ff", borderRadius: 4, padding: "2px 8px" }}>查看</span>
-                        : <span style={{ fontSize: 15, color: "#9ca3af" }}>—</span>}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {row.hasPhotos
-                        ? <span style={{ fontSize: 15, color: "#3b82f6", background: "#eff6ff", borderRadius: 4, padding: "2px 8px" }}>查看</span>
-                        : <span style={{ fontSize: 15, color: "#9ca3af" }}>—</span>}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {row.hasAttach
-                        ? <span style={{ fontSize: 15, color: "#3b82f6", background: "#eff6ff", borderRadius: 4, padding: "2px 8px" }}>下载</span>
-                        : <span style={{ fontSize: 15, color: "#9ca3af" }}>—</span>}
-                    </td>
-                    <td className="px-4 py-3" style={{ fontSize: 15, color: row.remark ? "#374151" : "#9ca3af", whiteSpace: "nowrap" }}>
-                      {row.remark || "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="flex flex-wrap justify-between items-center px-4 py-3 border-t border-gray-100" style={{ fontSize: 14, color: "#374151" }}>
-            <div className="flex items-center gap-3">
-              <button className="p-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">📋</button>
-              <div className="flex items-center gap-1">
-                <select className="border border-gray-200 rounded-lg px-2 py-1 text-xs outline-none" style={{ color: "#374151" }}>
-                  <option>20 条/页</option>
-                </select>
-                <span style={{ color: "#6b7280" }}>共 39 条</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-1">
-              <button className="px-2 py-1 border border-gray-200 rounded-lg text-gray-400 hover:bg-gray-50">‹</button>
-              <input type="text" defaultValue="1" className="w-8 border border-gray-200 rounded-lg text-center outline-none text-xs" style={{ color: "#374151" }} />
-              <span style={{ color: "#6b7280" }}>/ 2</span>
-              <button className="px-2 py-1 border border-gray-200 rounded-lg hover:bg-gray-50" style={{ color: "#374151" }}>›</button>
-            </div>
-          </div>
-        </div>
+        {(() => {
+          const cols: ColumnDef<typeof pageRows[0]>[] = [
+            { key: "主持人",   header: "主持人",   render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.主持人 || "—"}</span> },
+            { key: "学科部门", header: "学科部门", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.学科部门 || "—"}</span> },
+            { key: "教研主题", header: "教研主题", minWidth: 200, render: r => <span style={{ fontSize: 15, color: "#1e40af", maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }} title={r.教研主题}>{r.教研主题 || "—"}</span> },
+            { key: "教研时间", header: "教研时间", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{formatTime(r.时间)}</span> },
+            { key: "教研地点", header: "教研地点", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.地点 || "—"}</span> },
+            { key: "教研学科", header: "教研学科", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.教研学科 || "—"}</span> },
+            { key: "教研组",   header: "教研组",   render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.教研组 || "—"}</span> },
+            { key: "周次",     header: "周次",     render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.周次 || "—"}</span> },
+            { key: "学期",     header: "学期",     render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.学期 || "—"}</span> },
+            { key: "参与老师", header: "参与老师", minWidth: 160, render: r => <span style={{ fontSize: 15, color: "#374151", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }} title={r.参与人员}>{r.参与人员 || "—"}</span> },
+            { key: "照片",     header: "照片",     minWidth: 100, render: r => <PhotoList photos={r.照片} /> },
+            { key: "附件",     header: "附件",     minWidth: 100, render: r => <FileBadgeList files={r.附件} type="file" /> },
+            { key: "教研记录", header: "教研记录", render: r => <span style={{ fontSize: 15, color: r.内容记录 ? "#374151" : "#9ca3af", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }} title={r.内容记录 || undefined}>{r.内容记录 || "—"}</span> },
+            { key: "备注",     header: "备注",     render: r => <span style={{ fontSize: 15, color: r.备注 ? "#374151" : "#9ca3af", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }} title={r.备注 || undefined}>{r.备注 || "—"}</span> },
+          ];
+          return (
+            <DashboardTable
+              title="教研活动记录表"
+              columns={cols}
+              rows={pageRows}
+              isPending={isPending}
+              isError={isError}
+              sortAsc={tableSortAsc}
+              onSortToggle={() => { setTableSortAsc(v => !v); setTablePage(1); }}
+              page={tablePage}
+              pageSize={tablePageSize}
+              totalRows={totalRows}
+              onPageChange={setTablePage}
+              onPageSizeChange={n => { setTablePageSize(n); setTablePage(1); }}
+              onRowClick={setSelectedRecord}
+            />
+          );
+        })()}
 
       </div>
     </div>
