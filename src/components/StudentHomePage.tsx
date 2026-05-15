@@ -368,18 +368,22 @@ export function StudentHomePage({ onMenuOpen, onNavigate }: {
       if (month >= 9)       { start = new Date(year, 1, 1);     end = new Date(year, 7, 31, 23, 59, 59); }
       else if (month >= 2)  { start = new Date(year - 1, 8, 1); end = new Date(year, 0, 31, 23, 59, 59); }
       else                  { start = new Date(year - 1, 1, 1); end = new Date(year - 1, 7, 31, 23, 59, 59); }
+    } else if (timePeriod === "自定义") {
+      if (customDateRange.start) { start = new Date(customDateRange.start); start.setHours(0, 0, 0, 0); }
+      if (customDateRange.end)   { end   = new Date(customDateRange.end);   end.setHours(23, 59, 59, 999); }
+      if (!start && !end) return raw;
     }
 
-    if (!start) return raw;
+    if (!start && !end) return raw;
     return raw.filter(r => {
       if (!r.提交时间) return false;
       const d = new Date(r.提交时间);
       if (isNaN(d.getTime())) return false;
-      if (d < start!) return false;
+      if (start && d < start) return false;
       if (end && d > end) return false;
       return true;
     });
-  }, [raw, timePeriod]);
+  }, [raw, timePeriod, customDateRange.start, customDateRange.end]);
 
   const totalRows = timeFiltered.length;
   const sorted    = [...timeFiltered].sort((a, b) => sortAsc ? a._id.localeCompare(b._id) : b._id.localeCompare(a._id));
