@@ -1240,7 +1240,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
             </div>
 
             {/* Toolbar — hidden for tabs with their own per-table toolbars, and for tab 0 which uses DashboardTable's built-in toolbar */}
-            {activeTab !== 4 && activeTab !== 2 && activeTab !== 0 && activeTab !== 3 && activeTab !== 1 && (
+            {activeTab !== 4 && activeTab !== 2 && activeTab !== 0 && activeTab !== 3 && activeTab !== 1 && activeTab !== 5 && (
             <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100"
               style={{ background: "rgba(249,250,251,0.6)" }}
               onMouseEnter={() => setHvTable(true)} onMouseLeave={() => setHvTable(false)}>
