@@ -904,7 +904,8 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   }), [nameFilter, classFilter]);
   const { raw: studentRows, filterOptions: studentFilterOptions, isPending: studentPending, isError: studentError } = useStudentInfo(studentFilters, activeTab === 0);
   const totalStudents = studentRows.length;
-  const pagedStudents = studentRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const sortedStudents = [...studentRows].sort((a, b) => studentSortAsc ? a._id.localeCompare(b._id) : b._id.localeCompare(a._id));
+  const pagedStudents = sortedStudents.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   // ── 学生请假 filters & data ──
   const [leavePage, setLeavePage] = useState(1);
@@ -915,7 +916,11 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   }), []);
   const { raw: leaveRows, isPending: leavePending, isError: leaveError } = useStudentLeave(leaveFilters, activeTab === 3);
   const totalLeave = leaveRows.length;
-  const pagedLeave = leaveRows.slice((leavePage - 1) * leavePageSize, leavePage * leavePageSize);
+  const sortedLeave = [...leaveRows].sort((a, b) => {
+    const av = a.申请时间 ?? ""; const bv = b.申请时间 ?? "";
+    return leaveSortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+  });
+  const pagedLeave = sortedLeave.slice((leavePage - 1) * leavePageSize, leavePage * leavePageSize);
 
   // ── 学生晨午检 filters & data ──
   const [healthPage, setHealthPage] = useState(1);
@@ -926,7 +931,11 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   }), []);
   const { raw: healthRows, isPending: healthPending, isError: healthError } = useHealthCheck(healthFilters, activeTab === 1);
   const totalHealth = healthRows.length;
-  const pagedHealth = healthRows.slice((healthPage - 1) * healthPageSize, healthPage * healthPageSize);
+  const sortedHealth = [...healthRows].sort((a, b) => {
+    const av = a.填报日期_日期 ?? ""; const bv = b.填报日期_日期 ?? "";
+    return healthSortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+  });
+  const pagedHealth = sortedHealth.slice((healthPage - 1) * healthPageSize, healthPage * healthPageSize);
 
   // ── 学生返校情况 filters & data ──
   const [returnPage, setReturnPage] = useState(1);
@@ -937,7 +946,11 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   }), []);
   const { raw: returnRows, isPending: returnPending, isError: returnError } = useStudentReturnSchool(returnFilters, activeTab === 2);
   const totalReturn = returnRows.length;
-  const pagedReturn = returnRows.slice((returnPage - 1) * returnPageSize, returnPage * returnPageSize);
+  const sortedReturn = [...returnRows].sort((a, b) => {
+    const av = a.填报日期 ?? ""; const bv = b.填报日期 ?? "";
+    return returnSortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+  });
+  const pagedReturn = sortedReturn.slice((returnPage - 1) * returnPageSize, returnPage * returnPageSize);
 
   // ── 学生资助情况 filters & data ──
   const [supportPage, setSupportPage] = useState(1);
@@ -948,7 +961,8 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   }), []);
   const { raw: supportRows, isPending: supportPending, isError: supportError } = useStudentSupport(supportFilters, activeTab === 5);
   const totalSupport = supportRows.length;
-  const pagedSupport = supportRows.slice((supportPage - 1) * supportPageSize, supportPage * supportPageSize);
+  const sortedSupport = [...supportRows].sort((a, b) => supportSortAsc ? a._id.localeCompare(b._id) : b._id.localeCompare(a._id));
+  const pagedSupport = sortedSupport.slice((supportPage - 1) * supportPageSize, supportPage * supportPageSize);
 
   // ── 谈心谈话记录 filters & data ──
   const [talkPage, setTalkPage] = useState(1);
@@ -959,7 +973,11 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   }), []);
   const { raw: talkApiRows, isPending: talkPending, isError: talkError } = useHeartToHeartTalk(talkFilters, activeTab === 7);
   const totalTalk = talkApiRows.length;
-  const pagedTalk = talkApiRows.slice((talkPage - 1) * talkPageSize, talkPage * talkPageSize);
+  const sortedTalk = [...talkApiRows].sort((a, b) => {
+    const av = a.谈心谈话时间 ?? ""; const bv = b.谈心谈话时间 ?? "";
+    return talkSortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+  });
+  const pagedTalk = sortedTalk.slice((talkPage - 1) * talkPageSize, talkPage * talkPageSize);
 
   const leaveCols = useMemo((): ColumnDef<StudentLeaveRecord>[] => [
     { key: "请假学生姓名", header: "请假人", render: r => <span className="font-semibold whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.请假学生姓名 || "—"}</span> },
