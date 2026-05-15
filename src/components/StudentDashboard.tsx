@@ -3,10 +3,10 @@
 import { Users, PlusCircle, User, Bell, Menu, RefreshCw, ArrowUpDown, Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
-import { useStudentInfo, useStudentLeave, useHealthCheck, type StudentInfoFilters, type StudentLeaveFilters, type HealthCheckFilters } from "@/hooks/use-research-dashboard";
+import { useStudentInfo, useStudentLeave, useHealthCheck, useStudentReturnSchool, type StudentInfoFilters, type StudentLeaveFilters, type HealthCheckFilters, type StudentReturnSchoolFilters } from "@/hooks/use-research-dashboard";
 import { DashboardTable } from "@/components/ui/DashboardTable";
 import type { ColumnDef } from "@/components/ui/DashboardTable";
-import type { StudentInfoRecord, StudentLeaveRecord, HealthCheckRecord } from "@/hooks/use-research-dashboard";
+import type { StudentInfoRecord, StudentLeaveRecord, HealthCheckRecord, StudentReturnSchoolRecord } from "@/hooks/use-research-dashboard";
 
 // ── StudentInfoDrawer ────────────────────────────────────────────
 function StudentInfoDrawer({ record, onClose }: { record: StudentInfoRecord | null; onClose: () => void }) {
@@ -403,6 +403,116 @@ function HealthCheckDrawer({ record, onClose }: { record: HealthCheckRecord | nu
   );
 }
 
+// ── StudentReturnSchoolDrawer ─────────────────────────────────────
+function StudentReturnSchoolDrawer({ record, onClose }: { record: StudentReturnSchoolRecord | null; onClose: () => void }) {
+  useEffect(() => {
+    if (!record) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [record, onClose]);
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 transition-opacity duration-300"
+        style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
+        onClick={onClose} />
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+        style={{
+          width: 520, maxWidth: "100vw", background: "#fff",
+          transform: record ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)",
+        }}>
+        {record && (
+          <>
+            <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+              <div className="flex-1 min-w-0 pr-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-semibold text-blue-500">{record.学期 || "—"}</span>
+                  <span className="text-xs text-gray-300">·</span>
+                  <span className="text-xs font-semibold text-gray-500">{record.填报日期?.slice(0, 10) || "—"}</span>
+                </div>
+                <h2 className="text-base font-bold text-gray-900 leading-snug">{record.班级名称 || "—"}</h2>
+              </div>
+              <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">班级信息</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[
+                    { label: "年级",     value: record.年级 },
+                    { label: "级部",     value: record.级部 },
+                    { label: "班级名称", value: record.班级名称 },
+                    { label: "班主任",   value: record.班主任 },
+                    { label: "级部主任", value: record.级部主任 },
+                    { label: "填报日期", value: record.填报日期?.slice(0, 10) },
+                    { label: "学期",     value: record.学期 },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium text-gray-800">{value || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">出勤人数</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[
+                    { label: "应到学生人数",   value: String(record.应到学生人数 ?? 0),   color: "#374151" },
+                    { label: "返校学生人数",   value: String(record.返校学生人数 ?? 0),   color: "#059669" },
+                    { label: "未返校学生人数", value: String(record.未返校学生人数 ?? 0), color: record.未返校学生人数 > 0 ? "#d97706" : "#374151" },
+                    { label: "转入学生人数",   value: String(record.转入学生人数 ?? 0),   color: "#374151" },
+                  ].map(({ label, value, color }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium" style={{ color }}>{value}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              {[
+                { title: "病假",         count: record.病假学生人数,         names: record.病假学生姓名,         desc: record.病假具体情况说明,         color: "#dc2626" },
+                { title: "事假",         count: record.事假学生人数,         names: record.事假学生姓名,         desc: record.事假具体情况说明,         color: "#d97706" },
+                { title: "在外学习培训", count: record.在外学习培训学生人数, names: record.在外学习培训学生姓名, desc: record.在外学习培训具体情况说明, color: "#6366f1" },
+                { title: "休学",         count: record.休学学生人数,         names: record.休学学生姓名,         desc: record.休学具体情况说明,         color: "#f43f5e" },
+                { title: "流失",         count: record.流失学生人数,         names: record.流失学生姓名,         desc: record.流失学生具体情况说明,     color: "#f43f5e" },
+              ].filter(s => s.count > 0 || s.names || s.desc).map(({ title, count, names, desc, color }) => (
+                <section key={title}>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">{title}</p>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                    <div>
+                      <p className="text-sm text-gray-400 mb-0.5">人数</p>
+                      <p className="text-base font-medium" style={{ color: count > 0 ? color : "#374151" }}>{count}</p>
+                    </div>
+                    {names && (
+                      <div>
+                        <p className="text-sm text-gray-400 mb-0.5">学生姓名</p>
+                        <p className="text-base font-medium text-gray-800">{names}</p>
+                      </div>
+                    )}
+                    {desc && (
+                      <div className="col-span-2">
+                        <p className="text-sm text-gray-400 mb-0.5">情况说明</p>
+                        <p className="text-base text-gray-800 leading-relaxed whitespace-pre-wrap">{desc}</p>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
 const glass = {
   background: "rgba(255,255,255,0.7)",
   backdropFilter: "blur(20px)",
@@ -580,6 +690,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [selectedStudent, setSelectedStudent] = useState<StudentInfoRecord | null>(null);
   const [selectedLeave, setSelectedLeave] = useState<StudentLeaveRecord | null>(null);
   const [selectedHealthCheck, setSelectedHealthCheck] = useState<HealthCheckRecord | null>(null);
+  const [selectedReturnSchool, setSelectedReturnSchool] = useState<StudentReturnSchoolRecord | null>(null);
 
   // ── 学生基础信息 filters & data ──
   const [pendingName, setPendingName] = useState("");
@@ -615,6 +726,17 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const { raw: healthRows, isPending: healthPending, isError: healthError } = useHealthCheck(healthFilters);
   const totalHealth = healthRows.length;
   const pagedHealth = healthRows.slice((healthPage - 1) * healthPageSize, healthPage * healthPageSize);
+
+  // ── 学生返校情况 filters & data ──
+  const [returnPage, setReturnPage] = useState(1);
+  const [returnPageSize, setReturnPageSize] = useState(20);
+  const [returnSortAsc, setReturnSortAsc] = useState(false);
+  const returnFilters = useMemo<StudentReturnSchoolFilters>(() => ({
+    grade: "", className: "", semester: "",
+  }), []);
+  const { raw: returnRows, isPending: returnPending, isError: returnError } = useStudentReturnSchool(returnFilters);
+  const totalReturn = returnRows.length;
+  const pagedReturn = returnRows.slice((returnPage - 1) * returnPageSize, returnPage * returnPageSize);
 
   const leaveCols = useMemo((): ColumnDef<StudentLeaveRecord>[] => [
     { key: "请假学生姓名", header: "请假人", render: r => <span className="font-semibold whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.请假学生姓名 || "—"}</span> },
@@ -672,6 +794,32 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
     { key: "学期", header: "学期", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.学期 || "—"}</span> },
   ], []);
 
+  const returnSchoolCols = useMemo((): ColumnDef<StudentReturnSchoolRecord>[] => [
+    { key: "填报日期",     header: "填报日期",     render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.填报日期?.slice(0, 10) || "—"}</span> },
+    { key: "年级",         header: "年级",         render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.年级 || "—"}</span> },
+    { key: "班级名称",     header: "班级名称",     render: r => <span className="font-semibold whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.班级名称 || "—"}</span> },
+    { key: "班主任",       header: "班主任",       render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.班主任 || "—"}</span> },
+    { key: "应到学生人数", header: "应到人数",     render: r => <span className="text-center block font-medium" style={{ fontSize: 15, color: "#374151" }}>{r.应到学生人数 ?? "—"}</span> },
+    { key: "返校学生人数", header: "返校人数",     render: r => <span className="text-center block font-medium" style={{ fontSize: 15, color: "#059669" }}>{r.返校学生人数 ?? "—"}</span> },
+    { key: "未返校学生人数", header: "未返校人数", render: r => <span className="text-center block" style={{ fontSize: 15, color: r.未返校学生人数 > 0 ? "#d97706" : "#9ca3af", fontWeight: r.未返校学生人数 > 0 ? 600 : 400 }}>{r.未返校学生人数}</span> },
+    { key: "转入学生人数", header: "转入人数",     render: r => <span className="text-center block" style={{ fontSize: 15, color: "#374151" }}>{r.转入学生人数}</span> },
+    { key: "病假学生姓名", header: "病假学生姓名", minWidth: 120, render: r => <span className="block truncate" style={{ fontSize: 15, color: r.病假学生姓名 ? "#dc2626" : "#9ca3af", maxWidth: 120 }} title={r.病假学生姓名}>{r.病假学生姓名 || "—"}</span> },
+    { key: "病假学生人数", header: "病假人数",     render: r => <span className="text-center block" style={{ fontSize: 15, color: r.病假学生人数 > 0 ? "#dc2626" : "#9ca3af", fontWeight: r.病假学生人数 > 0 ? 600 : 400 }}>{r.病假学生人数}</span> },
+    { key: "病假具体情况说明", header: "病假说明", minWidth: 140, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 140 }} title={r.病假具体情况说明}>{r.病假具体情况说明 || "—"}</span> },
+    { key: "事假学生姓名", header: "事假学生姓名", minWidth: 120, render: r => <span className="block truncate" style={{ fontSize: 15, color: r.事假学生姓名 ? "#d97706" : "#9ca3af", maxWidth: 120 }} title={r.事假学生姓名}>{r.事假学生姓名 || "—"}</span> },
+    { key: "事假学生人数", header: "事假人数",     render: r => <span className="text-center block" style={{ fontSize: 15, color: r.事假学生人数 > 0 ? "#d97706" : "#9ca3af", fontWeight: r.事假学生人数 > 0 ? 600 : 400 }}>{r.事假学生人数}</span> },
+    { key: "事假具体情况说明", header: "事假说明", minWidth: 140, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 140 }} title={r.事假具体情况说明}>{r.事假具体情况说明 || "—"}</span> },
+    { key: "在外学习培训学生姓名", header: "在外培训学生", minWidth: 120, render: r => <span className="block truncate" style={{ fontSize: 15, color: r.在外学习培训学生姓名 ? "#6366f1" : "#9ca3af", maxWidth: 120 }} title={r.在外学习培训学生姓名}>{r.在外学习培训学生姓名 || "—"}</span> },
+    { key: "在外学习培训具体情况说明", header: "在外培训说明", minWidth: 140, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 140 }} title={r.在外学习培训具体情况说明}>{r.在外学习培训具体情况说明 || "—"}</span> },
+    { key: "休学学生姓名", header: "休学学生姓名", minWidth: 120, render: r => <span className="block truncate" style={{ fontSize: 15, color: r.休学学生姓名 ? "#f43f5e" : "#9ca3af", maxWidth: 120 }} title={r.休学学生姓名}>{r.休学学生姓名 || "—"}</span> },
+    { key: "休学学生人数", header: "休学人数",     render: r => <span className="text-center block" style={{ fontSize: 15, color: r.休学学生人数 > 0 ? "#f43f5e" : "#9ca3af", fontWeight: r.休学学生人数 > 0 ? 600 : 400 }}>{r.休学学生人数}</span> },
+    { key: "休学具体情况说明", header: "休学说明", minWidth: 140, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 140 }} title={r.休学具体情况说明}>{r.休学具体情况说明 || "—"}</span> },
+    { key: "流失学生姓名", header: "流失学生姓名", minWidth: 120, render: r => <span className="block truncate" style={{ fontSize: 15, color: r.流失学生姓名 ? "#f43f5e" : "#9ca3af", maxWidth: 120 }} title={r.流失学生姓名}>{r.流失学生姓名 || "—"}</span> },
+    { key: "流失学生人数", header: "流失人数",     render: r => <span className="text-center block" style={{ fontSize: 15, color: r.流失学生人数 > 0 ? "#f43f5e" : "#9ca3af", fontWeight: r.流失学生人数 > 0 ? 600 : 400 }}>{r.流失学生人数}</span> },
+    { key: "流失学生具体情况说明", header: "流失说明", minWidth: 140, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 140 }} title={r.流失学生具体情况说明}>{r.流失学生具体情况说明 || "—"}</span> },
+    { key: "学期", header: "学期", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.学期 || "—"}</span> },
+  ], []);
+
   const studentCols = useMemo((): ColumnDef<StudentInfoRecord>[] => [
     { key: "学籍状态", header: "学籍状态", render: r => (
       <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
@@ -717,7 +865,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
     { key: "备注", header: "备注", minWidth: 80, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 80 }}>{r.备注 || "—"}</span> },
     { key: "宿舍入住状态", header: "宿舍入住状态", render: r => (
       <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-        style={{ background: r.宿舍入住状态==="已入住"?"rgba(16,185,129,0.08)":"rgba(107,114,128,0.07)", color: r.宿舍入住状态==="已入住"?"#059669":"#6b7280" }}>
+        style={{ background: r.宿舍入住状态==="寄宿"?"rgba(16,185,129,0.08)":"rgba(107,114,128,0.07)", color: r.宿舍入住状态==="寄宿"?"#059669":"#6b7280" }}>
         {r.宿舍入住状态 || "—"}
       </span>
     )},
@@ -726,7 +874,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
     { key: "选科科目", header: "选科科目", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.选科科目 || "—"}</span> },
     { key: "选科方向", header: "选科方向", render: r => r.选科方向 ? (
       <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-        style={{ background: r.选科方向==="理科"?"rgba(59,130,246,0.08)":"rgba(168,85,247,0.08)", color: r.选科方向==="理科"?"#2563eb":"#9333ea" }}>
+        style={{ background: r.选科方向==="物理"?"rgba(59,130,246,0.08)":"rgba(168,85,247,0.08)", color: r.选科方向==="物理"?"#2563eb":"#9333ea" }}>
         {r.选科方向}
       </span>
     ) : <span className="text-gray-300">—</span> },
@@ -1089,94 +1237,21 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
               ) : activeTab === 2 ? (
                 /* ── 学生返校情况 ── */
                 <div>
-                  {/* 各班级填报明细 */}
-                  <div onMouseEnter={() => setHvReturn(true)} onMouseLeave={() => setHvReturn(false)}>
-                    <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100" style={{ background: "rgba(249,250,251,0.6)" }}>
-                      <span className="text-sm font-semibold text-gray-700">各班级填报明细</span>
-                      <div className="flex items-center gap-0.5" style={{ minHeight: 28 }}>
-                        {hvReturn && fullActions.map(({ Icon, tip }) => (
-                          <div key={tip} className="relative group/tip">
-                            <button className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-black/[0.06] transition-colors"><Icon size={14} /></button>
-                            <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 z-50">
-                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-800/90" />
-                              <div className="px-2 py-1 bg-gray-800/90 text-white text-xs font-medium rounded-md whitespace-nowrap">{tip}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left">
-                        <thead style={{ background: "#eff6ff" }}>
-                          <tr>{RETURN_COLS.map(col => <th key={col} className="px-4 py-3 font-medium whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{col}</th>)}</tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                          {returnRows.map((row, i) => (
-                            <tr key={i} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
-                              <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{row.date}</td>
-                              <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{row.grade}</td>
-                              <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{row.cls}</td>
-                              <td className="px-4 py-3 text-center" style={{ fontSize: 15, color: "#374151" }}>{row.total}</td>
-                              <td className="px-4 py-3 text-center" style={{ fontSize: 15, color: "#059669", fontWeight: 600 }}>{row.returned}</td>
-                              <td className="px-4 py-3 text-center" style={{ fontSize: 15, color: row.absent > 0 ? "#d97706" : "#374151", fontWeight: row.absent > 0 ? 600 : 400 }}>{row.absent}</td>
-                              <td className="px-4 py-3 text-center" style={{ fontSize: 15, color: "#374151" }}>{row.transfer}</td>
-                              <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: row.sickNames ? "#dc2626" : "#9ca3af" }}>{row.sickNames || "—"}</td>
-                              <td className="px-4 py-3 text-center" style={{ fontSize: 15, color: row.sickCount > 0 ? "#dc2626" : "#374151" }}>{row.sickCount}</td>
-                              <td className="px-4 py-3" style={{ fontSize: 15, color: "#374151", maxWidth: 160 }} title={row.sickDesc}><span className="block truncate">{row.sickDesc || "—"}</span></td>
-                              <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: row.leaveNames ? "#d97706" : "#9ca3af" }}>{row.leaveNames || "—"}</td>
-                              <td className="px-4 py-3 text-center" style={{ fontSize: 15, color: row.leaveCount > 0 ? "#d97706" : "#374151" }}>{row.leaveCount}</td>
-                              <td className="px-4 py-3" style={{ fontSize: 15, color: "#374151", maxWidth: 160 }} title={row.leaveDesc}><span className="block truncate">{row.leaveDesc || "—"}</span></td>
-                              <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: row.trainNames ? "#6366f1" : "#9ca3af" }}>{row.trainNames || "—"}</td>
-                              <td className="px-4 py-3" style={{ fontSize: 15, color: "#374151", maxWidth: 160 }} title={row.trainDesc}><span className="block truncate">{row.trainDesc || "—"}</span></td>
-                              <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: row.suspendNames ? "#f43f5e" : "#9ca3af" }}>{row.suspendNames || "—"}</td>
-                              <td className="px-4 py-3 text-center" style={{ fontSize: 15, color: row.suspendCount > 0 ? "#f43f5e" : "#374151" }}>{row.suspendCount}</td>
-                              <td className="px-4 py-3" style={{ fontSize: 15, color: "#374151", maxWidth: 160 }} title={row.suspendDesc}><span className="block truncate">{row.suspendDesc || "—"}</span></td>
-                              <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: row.lostNames ? "#f43f5e" : "#9ca3af" }}>{row.lostNames || "—"}</td>
-                              <td className="px-4 py-3 text-center" style={{ fontSize: 15, color: row.lostCount > 0 ? "#f43f5e" : "#374151" }}>{row.lostCount}</td>
-                              <td className="px-4 py-3" style={{ fontSize: 15, color: "#374151", maxWidth: 160 }} title={row.lostDesc}><span className="block truncate">{row.lostDesc || "—"}</span></td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-
-                  {/* 未填报班级明细 */}
-                  <div onMouseEnter={() => setHvUnreport(true)} onMouseLeave={() => setHvUnreport(false)} className="border-t-4 border-gray-100">
-                    <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100" style={{ background: "rgba(249,250,251,0.6)" }}>
-                      <span className="text-sm font-semibold text-gray-700">未填报班级明细</span>
-                      <div className="flex items-center gap-0.5" style={{ minHeight: 28 }}>
-                        {hvUnreport && [{ Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }].map(({ Icon, tip }) => (
-                          <div key={tip} className="relative group/tip">
-                            <button className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-black/[0.06] transition-colors"><Icon size={14} /></button>
-                            <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 z-50">
-                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-800/90" />
-                              <div className="px-2 py-1 bg-gray-800/90 text-white text-xs font-medium rounded-md whitespace-nowrap">{tip}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left">
-                        <thead style={{ background: "#eff6ff" }}>
-                          <tr>{UNREPORT_COLS.map(col => <th key={col} className="px-4 py-3 font-medium whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{col}</th>)}</tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                          {unreportRows.map((row, i) => (
-                            <tr key={i} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
-                              <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{row.cls}</td>
-                              <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{row.wechat}</td>
-                              <td className="px-4 py-3">
-                                <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap" style={{ background: "rgba(239,68,68,0.08)", color: "#dc2626" }}>{row.status}</span>
-                              </td>
-                              <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{row.date}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+                  <DashboardTable
+                    title="各班级填报明细"
+                    columns={returnSchoolCols}
+                    rows={pagedReturn}
+                    isPending={returnPending}
+                    isError={returnError}
+                    sortAsc={returnSortAsc}
+                    onSortToggle={() => { setReturnSortAsc(v => !v); setReturnPage(1); }}
+                    page={returnPage}
+                    pageSize={returnPageSize}
+                    totalRows={totalReturn}
+                    onPageChange={setReturnPage}
+                    onPageSizeChange={n => { setReturnPageSize(n); setReturnPage(1); }}
+                    onRowClick={setSelectedReturnSchool}
+                  />
                 </div>
               ) : activeTab === 1 ? (
                 /* ── 学生晨午检 ── */
@@ -1323,6 +1398,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
       <StudentInfoDrawer record={selectedStudent} onClose={() => setSelectedStudent(null)} />
       <StudentLeaveDrawer record={selectedLeave} onClose={() => setSelectedLeave(null)} />
       <HealthCheckDrawer record={selectedHealthCheck} onClose={() => setSelectedHealthCheck(null)} />
+      <StudentReturnSchoolDrawer record={selectedReturnSchool} onClose={() => setSelectedReturnSchool(null)} />
     </div>
   );
 }

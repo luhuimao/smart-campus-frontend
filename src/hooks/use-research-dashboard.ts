@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { JDY_CONFIG, WIDGET_IDS, BEIKE_WIDGET_IDS, SCIENTCE_FEST_WIDGET_IDS, CLASS_RANK_WIDGET_IDS, DORM_ATTENDANCE_WIDGET_IDS, STUDENT_INFO_WIDGET_IDS, STUDENT_LEAVE_WIDGET_IDS, HEALTH_CHECK_WIDGET_IDS, jdyListAll, type JdyRecord } from "@/lib/jdy-api";
+import { JDY_CONFIG, WIDGET_IDS, BEIKE_WIDGET_IDS, SCIENTCE_FEST_WIDGET_IDS, CLASS_RANK_WIDGET_IDS, DORM_ATTENDANCE_WIDGET_IDS, STUDENT_INFO_WIDGET_IDS, STUDENT_LEAVE_WIDGET_IDS, HEALTH_CHECK_WIDGET_IDS, STUDENT_RETURN_SCHOOL_WIDGET_IDS, jdyListAll, type JdyRecord } from "@/lib/jdy-api";
 
 export interface ResearchRecord {
   _id: string;
@@ -953,6 +953,120 @@ export function useHealthCheck(filters?: HealthCheckFilters) {
       return true;
     });
   }, [allRecords, filters?.grade, filters?.className, filters?.session]);
+
+  return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch };
+}
+
+// ── 学生返校登记 ──────────────────────────────────────────────────
+
+export interface StudentReturnSchoolRecord {
+  _id: string;
+  填报日期: string;
+  学期: string;
+  是否当前学期: string;
+  班级名称: string;
+  年级: string;
+  级部: string;
+  年级别名: string;
+  年级总人数: number;
+  应到学生人数: number;
+  返校学生人数: number;
+  未返校学生人数: number;
+  转入学生人数: number;
+  班主任: string;
+  级部主任: string;
+  病假学生姓名: string;
+  病假学生人数: number;
+  病假具体情况说明: string;
+  事假学生姓名: string;
+  事假学生人数: number;
+  事假具体情况说明: string;
+  在外学习培训学生姓名: string;
+  在外学习培训学生人数: number;
+  在外学习培训具体情况说明: string;
+  休学学生姓名: string;
+  休学学生人数: number;
+  休学具体情况说明: string;
+  流失学生姓名: string;
+  流失学生人数: number;
+  流失学生具体情况说明: string;
+}
+
+export interface StudentReturnSchoolFilters {
+  grade: string;
+  className: string;
+  semester: string;
+}
+
+function normalizeStudentReturnSchoolRecord(r: JdyRecord): StudentReturnSchoolRecord {
+  return {
+    _id:                      r._id,
+    填报日期:                 pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.填报日期),
+    学期:                     pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.学期),
+    是否当前学期:             pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.是否当前学期),
+    班级名称:                 pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.班级名称),
+    年级:                     pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.年级),
+    级部:                     pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.级部),
+    年级别名:                 pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.年级别名),
+    年级总人数:               pickNum(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.年级总人数),
+    应到学生人数:             pickNum(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.应到学生人数),
+    返校学生人数:             pickNum(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.返校学生人数),
+    未返校学生人数:           pickNum(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.未返校学生人数),
+    转入学生人数:             pickNum(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.转入学生人数),
+    班主任:                   pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.班主任),
+    级部主任:                 pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.级部主任),
+    病假学生姓名:             pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.病假学生姓名),
+    病假学生人数:             pickNum(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.病假学生人数),
+    病假具体情况说明:         pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.病假具体情况说明),
+    事假学生姓名:             pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.事假学生姓名),
+    事假学生人数:             pickNum(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.事假学生人数),
+    事假具体情况说明:         pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.事假具体情况说明),
+    在外学习培训学生姓名:     pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.在外学习培训学生姓名),
+    在外学习培训学生人数:     pickNum(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.在外学习培训学生人数),
+    在外学习培训具体情况说明: pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.在外学习培训具体情况说明),
+    休学学生姓名:             pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.休学学生姓名),
+    休学学生人数:             pickNum(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.休学学生人数),
+    休学具体情况说明:         pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.休学具体情况说明),
+    流失学生姓名:             pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.流失学生姓名),
+    流失学生人数:             pickNum(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.流失学生人数),
+    流失学生具体情况说明:     pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.流失学生具体情况说明),
+  };
+}
+
+export function useStudentReturnSchool(filters?: StudentReturnSchoolFilters) {
+  const { data: allRecords, isPending, isError, error, refetch } = useQuery({
+    queryKey: ["student-return-school", "list"],
+    queryFn: async () => {
+      const records = await jdyListAll({
+        app_id: JDY_CONFIG.STUDENT_RETURN_SCHOOL.app_id,
+        entry_id: JDY_CONFIG.STUDENT_RETURN_SCHOOL.entry_id,
+        pageSize: 100,
+        maxPages: 50,
+      });
+      return records.map(normalizeStudentReturnSchoolRecord);
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 60_000,
+  });
+
+  const filterOptions = useMemo(() => {
+    if (!allRecords) return { grades: [] as string[], classNames: [] as string[], semesters: [] as string[] };
+    return {
+      grades:     unique(allRecords.map(r => r.年级).filter(Boolean)),
+      classNames: unique(allRecords.map(r => r.班级名称).filter(Boolean)),
+      semesters:  unique(allRecords.map(r => r.学期).filter(Boolean)),
+    };
+  }, [allRecords]);
+
+  const raw = useMemo((): StudentReturnSchoolRecord[] => {
+    if (!allRecords) return [];
+    return allRecords.filter(r => {
+      if (filters?.grade     && r.年级 !== filters.grade)         return false;
+      if (filters?.className && r.班级名称 !== filters.className) return false;
+      if (filters?.semester  && r.学期 !== filters.semester)      return false;
+      return true;
+    });
+  }, [allRecords, filters?.grade, filters?.className, filters?.semester]);
 
   return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch };
 }
