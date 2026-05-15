@@ -29,6 +29,18 @@ export const JDY_CONFIG = {
     app_id: "6788d444d1eefa169cf74ddc",
     entry_id: "6a05ddad85572d6705a80365",
   },
+    STUDENT_CHEN_WU_WAN_JIAN: {//一生一案-学生晨午晚检表 app ID，entry ID
+    app_id: "6788d444d1eefa169cf74ddc",
+    entry_id: "68d4c6d8e3ca6fff0a617ef4",
+  },
+  STUDENT_RETURN_SCHOOL: {//一生一案-学生返校登记表 app ID，entry ID
+    app_id: "6788d444d1eefa169cf74ddc",
+    entry_id: "6875fe315fb45f180a16f256",
+  },
+  STUDENT_LEAVE_APPLICATION: {//一生一案-学生请假表 app ID，entry ID
+    app_id: "6788d444d1eefa169cf74ddc",
+    entry_id: "6875fe5bb54b9736c2987d4c",
+  },
 } as const;
 
 export const WIDGET_IDS = {

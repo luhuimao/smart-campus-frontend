@@ -1,12 +1,193 @@
 "use client";
 
 import { Users, PlusCircle, User, Bell, Menu, RefreshCw, ArrowUpDown, Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
 import { useStudentInfo, type StudentInfoFilters } from "@/hooks/use-research-dashboard";
 import { DashboardTable } from "@/components/ui/DashboardTable";
 import type { ColumnDef } from "@/components/ui/DashboardTable";
 import type { StudentInfoRecord } from "@/hooks/use-research-dashboard";
+
+// ── StudentInfoDrawer ────────────────────────────────────────────
+function StudentInfoDrawer({ record, onClose }: { record: StudentInfoRecord | null; onClose: () => void }) {
+  useEffect(() => {
+    if (!record) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [record, onClose]);
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 transition-opacity duration-300"
+        style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
+        onClick={onClose} />
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+        style={{
+          width: 520, maxWidth: "100vw", background: "#fff",
+          transform: record ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)",
+        }}>
+        {record && (
+          <>
+            {/* header */}
+            <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+              <div className="flex-1 min-w-0 pr-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-semibold text-blue-500">{record.年级名称 || "—"}</span>
+                  <span className="text-xs text-gray-300">·</span>
+                  <span className="text-xs font-semibold text-gray-500">{record.班级名称 || "—"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-bold text-gray-900 leading-snug">{record.姓名 || "—"}</h2>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold"
+                    style={{ background: record.学籍状态==="在读"?"rgba(16,185,129,0.08)":record.学籍状态==="休学"?"rgba(245,158,11,0.1)":"rgba(239,68,68,0.08)", color: record.学籍状态==="在读"?"#059669":record.学籍状态==="休学"?"#d97706":"#dc2626" }}>
+                    {record.学籍状态 || "—"}
+                  </span>
+                  {record.学生类型 && record.学生类型 !== "普通学生" && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold"
+                      style={{ background: record.学生类型==="低保学生"?"rgba(245,158,11,0.1)":"rgba(239,68,68,0.08)", color: record.学生类型==="低保学生"?"#d97706":"#dc2626" }}>
+                      {record.学生类型}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            {/* body */}
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">基本信息</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[
+                    { label: "姓名",     value: record.姓名 },
+                    { label: "性别",     value: record.性别 },
+                    { label: "民族",     value: record.民族 },
+                    { label: "出生日期", value: record.出生日期 ? record.出生日期.slice(0, 10) : "" },
+                    { label: "年龄",     value: record.年龄 ? String(record.年龄) : "" },
+                    { label: "政治面貌", value: record.政治面貌 },
+                    { label: "学生电话", value: record.学生本人电话 },
+                    { label: "既往病史", value: record.既往病史 || "无" },
+                    { label: "是否残疾", value: record.是否残疾 || "否" },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium text-gray-800">{value || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">学籍信息</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[
+                    { label: "年级",     value: record.年级名称 },
+                    { label: "班级",     value: record.班级名称 },
+                    { label: "班主任",   value: record.班主任 },
+                    { label: "级部",     value: record.级部 },
+                    { label: "毕业学校", value: record.毕业学校 },
+                    { label: "选科方向", value: record.选科方向 },
+                    { label: "选科科目", value: record.选科科目 },
+                    { label: "选科1",    value: record.选科1 },
+                    { label: "选科2",    value: record.选科2 },
+                    { label: "外语选科", value: record.外语选科 },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium text-gray-800">{value || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">宿舍信息</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[
+                    { label: "入住状态", value: record.宿舍入住状态 },
+                    { label: "宿舍楼栋", value: record.宿舍楼栋 },
+                    { label: "宿舍号",   value: record.宿舍号 },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium text-gray-800">{value || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">监护人信息</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[
+                    { label: "监护人1姓名",   value: record.监护人1姓名 },
+                    { label: "监护人1联系",   value: record.监护人1联系 },
+                    { label: "监护人1关系",   value: record.监护人1角色 },
+                    { label: "监护人1工作单位", value: record.监护人1工作单位 },
+                    { label: "监护人2姓名",   value: record.监护人2姓名 },
+                    { label: "监护人2联系",   value: record.监护人2联系 },
+                    { label: "监护人2关系",   value: record.监护人2角色 },
+                    { label: "监护人2工作单位", value: record.监护人2工作单位 },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium text-gray-800">{value || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">资助与特殊情况</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[
+                    { label: "寄宿生补助（元）",       value: record.享受寄宿生生活补助金额 },
+                    { label: "营养改善计划补助（元）", value: record.享受营养改善计划补助金额 },
+                    { label: "建档立卡贫困户",         value: record.是建档立卡贫困户 || "否" },
+                    { label: "建档立卡脱贫户子女",     value: record.建档立卡脱贫户子女 || "否" },
+                    { label: "随迁子女",               value: record.随迁子女入 || "否" },
+                    { label: "农村留守儿童",           value: record.在校农村留守儿童 || "否" },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium text-gray-800">{value || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              {(record.户籍地址 || record.现居地址) && (
+                <section>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">地址信息</p>
+                  <div className="space-y-4">
+                    {record.户籍地址 && (
+                      <div>
+                        <p className="text-sm text-gray-400 mb-0.5">户籍地址</p>
+                        <p className="text-base font-medium text-gray-800">{record.户籍地址}</p>
+                      </div>
+                    )}
+                    {record.现居地址 && (
+                      <div>
+                        <p className="text-sm text-gray-400 mb-0.5">现居地址</p>
+                        <p className="text-base font-medium text-gray-800">{record.现居地址}</p>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
+              {record.备注 && (
+                <section>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">备注</p>
+                  <p className="text-base text-gray-800 leading-relaxed whitespace-pre-wrap">{record.备注}</p>
+                </section>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
 
 const glass = {
   background: "rgba(255,255,255,0.7)",
@@ -182,6 +363,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [hvAccess, setHvAccess] = useState(false);
   const [hvReturn, setHvReturn] = useState(false);
   const [hvUnreport, setHvUnreport] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<StudentInfoRecord | null>(null);
 
   // ── 学生基础信息 filters & data ──
   const [pendingName, setPendingName] = useState("");
@@ -862,6 +1044,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     totalRows={totalStudents}
                     onPageChange={setCurrentPage}
                     onPageSizeChange={n => { setPageSize(n); setCurrentPage(1); }}
+                    onRowClick={setSelectedStudent}
                   />
                 </div>
               )}
@@ -875,6 +1058,8 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
 
         </main>
       </div>
+
+      <StudentInfoDrawer record={selectedStudent} onClose={() => setSelectedStudent(null)} />
     </div>
   );
 }
