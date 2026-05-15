@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { JDY_CONFIG, WIDGET_IDS, BEIKE_WIDGET_IDS, SCIENTCE_FEST_WIDGET_IDS, CLASS_RANK_WIDGET_IDS, DORM_ATTENDANCE_WIDGET_IDS, STUDENT_INFO_WIDGET_IDS, STUDENT_LEAVE_WIDGET_IDS, HEALTH_CHECK_WIDGET_IDS, STUDENT_RETURN_SCHOOL_WIDGET_IDS, jdyListAll, type JdyRecord } from "@/lib/jdy-api";
+import { JDY_CONFIG, WIDGET_IDS, BEIKE_WIDGET_IDS, SCIENTCE_FEST_WIDGET_IDS, CLASS_RANK_WIDGET_IDS, DORM_ATTENDANCE_WIDGET_IDS, STUDENT_INFO_WIDGET_IDS, STUDENT_LEAVE_WIDGET_IDS, HEALTH_CHECK_WIDGET_IDS, STUDENT_RETURN_SCHOOL_WIDGET_IDS, STUDENT_SUPPORT_STATUS_WIDGET_IDS, jdyListAll, type JdyRecord } from "@/lib/jdy-api";
 
 export interface ResearchRecord {
   _id: string;
@@ -1068,6 +1068,89 @@ export function useStudentReturnSchool(filters?: StudentReturnSchoolFilters, ena
       if (filters?.grade     && r.年级 !== filters.grade)         return false;
       if (filters?.className && r.班级名称 !== filters.className) return false;
       if (filters?.semester  && r.学期 !== filters.semester)      return false;
+      return true;
+    });
+  }, [allRecords, filters?.grade, filters?.className, filters?.semester]);
+
+  return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch };
+}
+
+// ── 学生资助情况 ──────────────────────────────────────────────────
+
+export interface StudentSupportRecord {
+  _id: string;
+  年级: string;
+  班级名称: string;
+  学生姓名: string;
+  学生学号: string;
+  性别: string;
+  家长姓名: string;
+  手机号码: string;
+  当前学期: string;
+  发放学期: string;
+  资助项目名称: string;
+  资助单位: string;
+  资助金额: string;
+  备注: string;
+}
+
+export interface StudentSupportFilters {
+  grade: string;
+  className: string;
+  semester: string;
+}
+
+function normalizeStudentSupportRecord(r: JdyRecord): StudentSupportRecord {
+  return {
+    _id:          r._id,
+    年级:         pickStr(r, STUDENT_SUPPORT_STATUS_WIDGET_IDS.年级),
+    班级名称:     pickStr(r, STUDENT_SUPPORT_STATUS_WIDGET_IDS.班级名称),
+    学生姓名:     pickStr(r, STUDENT_SUPPORT_STATUS_WIDGET_IDS.学生姓名),
+    学生学号:     pickStr(r, STUDENT_SUPPORT_STATUS_WIDGET_IDS.学生学号),
+    性别:         pickStr(r, STUDENT_SUPPORT_STATUS_WIDGET_IDS.性别),
+    家长姓名:     pickStr(r, STUDENT_SUPPORT_STATUS_WIDGET_IDS.家长姓名),
+    手机号码:     pickStr(r, STUDENT_SUPPORT_STATUS_WIDGET_IDS.手机号码),
+    当前学期:     pickStr(r, STUDENT_SUPPORT_STATUS_WIDGET_IDS.当前学期),
+    发放学期:     pickStr(r, STUDENT_SUPPORT_STATUS_WIDGET_IDS.发放学期),
+    资助项目名称: pickStr(r, STUDENT_SUPPORT_STATUS_WIDGET_IDS.资助项目名称),
+    资助单位:     pickStr(r, STUDENT_SUPPORT_STATUS_WIDGET_IDS.资助单位),
+    资助金额:     pickStr(r, STUDENT_SUPPORT_STATUS_WIDGET_IDS.资助金额),
+    备注:         pickStr(r, STUDENT_SUPPORT_STATUS_WIDGET_IDS.备注),
+  };
+}
+
+export function useStudentSupport(filters?: StudentSupportFilters, enabled = true) {
+  const { data: allRecords, isPending, isError, error, refetch } = useQuery({
+    queryKey: ["student-support", "list"],
+    queryFn: async () => {
+      const records = await jdyListAll({
+        app_id: JDY_CONFIG.STUDENT_SUPPORT_STATUS.app_id,
+        entry_id: JDY_CONFIG.STUDENT_SUPPORT_STATUS.entry_id,
+        pageSize: 100,
+        maxPages: 50,
+      });
+      return records.map(normalizeStudentSupportRecord);
+    },
+    staleTime: 10 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    enabled,
+  });
+
+  const filterOptions = useMemo(() => {
+    if (!allRecords) return { grades: [] as string[], classNames: [] as string[], semesters: [] as string[] };
+    return {
+      grades:     unique(allRecords.map(r => r.年级).filter(Boolean)),
+      classNames: unique(allRecords.map(r => r.班级名称).filter(Boolean)),
+      semesters:  unique(allRecords.map(r => r.发放学期).filter(Boolean)),
+    };
+  }, [allRecords]);
+
+  const raw = useMemo((): StudentSupportRecord[] => {
+    if (!allRecords) return [];
+    return allRecords.filter(r => {
+      if (filters?.grade     && r.年级 !== filters.grade)         return false;
+      if (filters?.className && r.班级名称 !== filters.className) return false;
+      if (filters?.semester  && r.发放学期 !== filters.semester)  return false;
       return true;
     });
   }, [allRecords, filters?.grade, filters?.className, filters?.semester]);

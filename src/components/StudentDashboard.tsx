@@ -3,10 +3,10 @@
 import { Users, PlusCircle, User, Bell, Menu, RefreshCw, ArrowUpDown, Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
-import { useStudentInfo, useStudentLeave, useHealthCheck, useStudentReturnSchool, type StudentInfoFilters, type StudentLeaveFilters, type HealthCheckFilters, type StudentReturnSchoolFilters } from "@/hooks/use-research-dashboard";
+import { useStudentInfo, useStudentLeave, useHealthCheck, useStudentReturnSchool, useStudentSupport, type StudentInfoFilters, type StudentLeaveFilters, type HealthCheckFilters, type StudentReturnSchoolFilters, type StudentSupportFilters } from "@/hooks/use-research-dashboard";
 import { DashboardTable } from "@/components/ui/DashboardTable";
 import type { ColumnDef } from "@/components/ui/DashboardTable";
-import type { StudentInfoRecord, StudentLeaveRecord, HealthCheckRecord, StudentReturnSchoolRecord } from "@/hooks/use-research-dashboard";
+import type { StudentInfoRecord, StudentLeaveRecord, HealthCheckRecord, StudentReturnSchoolRecord, StudentSupportRecord } from "@/hooks/use-research-dashboard";
 
 // ── StudentInfoDrawer ────────────────────────────────────────────
 function StudentInfoDrawer({ record, onClose }: { record: StudentInfoRecord | null; onClose: () => void }) {
@@ -513,6 +513,102 @@ function StudentReturnSchoolDrawer({ record, onClose }: { record: StudentReturnS
   );
 }
 
+// ── StudentSupportDrawer ──────────────────────────────────────────
+function StudentSupportDrawer({ record, onClose }: { record: StudentSupportRecord | null; onClose: () => void }) {
+  useEffect(() => {
+    if (!record) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [record, onClose]);
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 transition-opacity duration-300"
+        style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
+        onClick={onClose} />
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+        style={{
+          width: 480, maxWidth: "100vw", background: "#fff",
+          transform: record ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)",
+        }}>
+        {record && (
+          <>
+            <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+              <div className="flex-1 min-w-0 pr-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-semibold text-blue-500">{record.年级 || "—"}</span>
+                  <span className="text-xs text-gray-300">·</span>
+                  <span className="text-xs font-semibold text-gray-500">{record.班级名称 || "—"}</span>
+                </div>
+                <h2 className="text-base font-bold text-gray-900 leading-snug">{record.学生姓名 || "—"}</h2>
+              </div>
+              <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">学生信息</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[
+                    { label: "姓名",   value: record.学生姓名 },
+                    { label: "性别",   value: record.性别 },
+                    { label: "学号",   value: record.学生学号 },
+                    { label: "年级",   value: record.年级 },
+                    { label: "班级",   value: record.班级名称 },
+                    { label: "家长姓名", value: record.家长姓名 },
+                    { label: "手机号码", value: record.手机号码 },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium text-gray-800">{value || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">资助信息</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  <div>
+                    <p className="text-sm text-gray-400 mb-0.5">资助项目名称</p>
+                    <p className="text-base font-medium text-gray-800">{record.资助项目名称 || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400 mb-0.5">资助单位</p>
+                    <p className="text-base font-medium text-gray-800">{record.资助单位 || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400 mb-0.5">资助金额</p>
+                    <p className="text-base font-bold" style={{ color: "#059669" }}>{record.资助金额 ? `¥${record.资助金额}` : "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400 mb-0.5">发放学期</p>
+                    <p className="text-base font-medium text-gray-800">{record.发放学期 || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400 mb-0.5">当前学期</p>
+                    <p className="text-base font-medium text-gray-800">{record.当前学期 || "—"}</p>
+                  </div>
+                  {record.备注 && (
+                    <div className="col-span-2">
+                      <p className="text-sm text-gray-400 mb-0.5">备注</p>
+                      <p className="text-base text-gray-800 leading-relaxed whitespace-pre-wrap">{record.备注}</p>
+                    </div>
+                  )}
+                </div>
+              </section>
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
 const glass = {
   background: "rgba(255,255,255,0.7)",
   backdropFilter: "blur(20px)",
@@ -691,6 +787,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [selectedLeave, setSelectedLeave] = useState<StudentLeaveRecord | null>(null);
   const [selectedHealthCheck, setSelectedHealthCheck] = useState<HealthCheckRecord | null>(null);
   const [selectedReturnSchool, setSelectedReturnSchool] = useState<StudentReturnSchoolRecord | null>(null);
+  const [selectedSupport, setSelectedSupport] = useState<StudentSupportRecord | null>(null);
 
   // ── 学生基础信息 filters & data ──
   const [pendingName, setPendingName] = useState("");
@@ -737,6 +834,17 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const { raw: returnRows, isPending: returnPending, isError: returnError } = useStudentReturnSchool(returnFilters, activeTab === 2);
   const totalReturn = returnRows.length;
   const pagedReturn = returnRows.slice((returnPage - 1) * returnPageSize, returnPage * returnPageSize);
+
+  // ── 学生资助情况 filters & data ──
+  const [supportPage, setSupportPage] = useState(1);
+  const [supportPageSize, setSupportPageSize] = useState(20);
+  const [supportSortAsc, setSupportSortAsc] = useState(false);
+  const supportFilters = useMemo<StudentSupportFilters>(() => ({
+    grade: "", className: "", semester: "",
+  }), []);
+  const { raw: supportRows, isPending: supportPending, isError: supportError } = useStudentSupport(supportFilters, activeTab === 5);
+  const totalSupport = supportRows.length;
+  const pagedSupport = supportRows.slice((supportPage - 1) * supportPageSize, supportPage * supportPageSize);
 
   const leaveCols = useMemo((): ColumnDef<StudentLeaveRecord>[] => [
     { key: "请假学生姓名", header: "请假人", render: r => <span className="font-semibold whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.请假学生姓名 || "—"}</span> },
@@ -818,6 +926,21 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
     { key: "流失学生人数", header: "流失人数",     render: r => <span className="text-center block" style={{ fontSize: 15, color: r.流失学生人数 > 0 ? "#f43f5e" : "#9ca3af", fontWeight: r.流失学生人数 > 0 ? 600 : 400 }}>{r.流失学生人数}</span> },
     { key: "流失学生具体情况说明", header: "流失说明", minWidth: 140, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 140 }} title={r.流失学生具体情况说明}>{r.流失学生具体情况说明 || "—"}</span> },
     { key: "学期", header: "学期", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.学期 || "—"}</span> },
+  ], []);
+
+  const supportCols = useMemo((): ColumnDef<StudentSupportRecord>[] => [
+    { key: "学生姓名",   header: "学生姓名",   render: r => <span className="font-semibold whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.学生姓名 || "—"}</span> },
+    { key: "年级",       header: "年级",       render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.年级 || "—"}</span> },
+    { key: "班级名称",   header: "班级名称",   render: r => <span className="font-semibold whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.班级名称 || "—"}</span> },
+    { key: "资助项目名称", header: "资助项目名称", minWidth: 140, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 140 }} title={r.资助项目名称}>{r.资助项目名称 || "—"}</span> },
+    { key: "资助单位",   header: "资助单位",   minWidth: 120, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 120 }} title={r.资助单位}>{r.资助单位 || "—"}</span> },
+    { key: "资助金额",   header: "资助金额",   render: r => <span className="font-bold whitespace-nowrap" style={{ fontSize: 15, color: "#059669" }}>{r.资助金额 ? `¥${r.资助金额}` : "—"}</span> },
+    { key: "发放学期",   header: "发放学期",   render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.发放学期 || "—"}</span> },
+    { key: "学生学号",   header: "学号",       render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#9ca3af" }}>{r.学生学号 || "—"}</span> },
+    { key: "性别",       header: "性别",       render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.性别 || "—"}</span> },
+    { key: "家长姓名",   header: "家长姓名",   render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.家长姓名 || "—"}</span> },
+    { key: "手机号码",   header: "手机号码",   render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.手机号码 || "—"}</span> },
+    { key: "备注",       header: "备注",       minWidth: 120, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#9ca3af", maxWidth: 120 }} title={r.备注}>{r.备注 || "—"}</span> },
   ], []);
 
   const studentCols = useMemo((): ColumnDef<StudentInfoRecord>[] => [
@@ -1293,37 +1416,23 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                 </div>
               ) : activeTab === 5 ? (
                 /* ── 学生资助情况 ── */
-                <table className="w-full text-left">
-                  <thead style={{ background: "#eff6ff" }}>
-                    <tr>
-                      {AID_COLS.map(col => (
-                        <th key={col} className="px-4 py-3 font-medium whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{col}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="text-sm divide-y divide-gray-50">
-                    {aidRows.map((row, i) => (
-                      <tr key={i} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-semibold text-gray-800 whitespace-nowrap">{row.name}</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{row.project}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.unit}</td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className="font-bold text-emerald-600">¥{row.amount.toLocaleString()}</span>
-                        </td>
-                        <td className="px-4 py-3 text-gray-400">{row.stuId}</td>
-                        <td className="px-4 py-3 text-gray-500">{row.gender}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.grade}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{row.cls}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{row.parent}</td>
-                        <td className="px-4 py-3 text-gray-400">{row.phone}</td>
-                        <td className="px-4 py-3 text-gray-400 max-w-[100px] truncate" title={row.remark}>{row.remark || "—"}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.submitter}</td>
-                        <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{row.time}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.term}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="-mx-0">
+                  <DashboardTable
+                    title="学生资助情况"
+                    columns={supportCols}
+                    rows={pagedSupport}
+                    isPending={supportPending}
+                    isError={supportError}
+                    sortAsc={supportSortAsc}
+                    onSortToggle={() => { setSupportSortAsc(v => !v); setSupportPage(1); }}
+                    page={supportPage}
+                    pageSize={supportPageSize}
+                    totalRows={totalSupport}
+                    onPageChange={setSupportPage}
+                    onPageSizeChange={n => { setSupportPageSize(n); setSupportPage(1); }}
+                    onRowClick={setSelectedSupport}
+                  />
+                </div>
               ) : activeTab === 7 ? (
                 /* ── 一生一案谈心谈话记录表 ── */
                 <table className="w-full text-left">
@@ -1399,6 +1508,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
       <StudentLeaveDrawer record={selectedLeave} onClose={() => setSelectedLeave(null)} />
       <HealthCheckDrawer record={selectedHealthCheck} onClose={() => setSelectedHealthCheck(null)} />
       <StudentReturnSchoolDrawer record={selectedReturnSchool} onClose={() => setSelectedReturnSchool(null)} />
+      <StudentSupportDrawer record={selectedSupport} onClose={() => setSelectedSupport(null)} />
     </div>
   );
 }
