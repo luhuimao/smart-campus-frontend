@@ -491,8 +491,8 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
               </button>
             </div>
 
-            {/* Toolbar — hidden for tabs with their own per-table toolbars */}
-            {activeTab !== 4 && activeTab !== 2 && (
+            {/* Toolbar — hidden for tabs with their own per-table toolbars, and for tab 0 which uses DashboardTable's built-in toolbar */}
+            {activeTab !== 4 && activeTab !== 2 && activeTab !== 0 && (
             <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100"
               style={{ background: "rgba(249,250,251,0.6)" }}
               onMouseEnter={() => setHvTable(true)} onMouseLeave={() => setHvTable(false)}>
@@ -866,29 +866,6 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
               )}
             </div>
 
-            {/* Pagination */}
-            <div className="flex flex-wrap justify-between items-center px-4 py-3 border-t border-gray-100" style={{ fontSize: 14, color: "#374151" }}>
-              <div className="flex items-center gap-3">
-                <button className="p-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">📋</button>
-                <div className="flex items-center gap-1">
-                  <select
-                    value={pageSize}
-                    onChange={e => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
-                    className="border border-gray-200 rounded-lg px-2 py-1 text-xs outline-none"
-                    style={{ color: "#374151" }}
-                  >
-                    {[10, 20, 50, 100].map(n => <option key={n} value={n}>{n} 条/页</option>)}
-                  </select>
-                  <span style={{ color: "#6b7280" }}>共 3,587 条</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <button className="px-2 py-1 border border-gray-200 rounded-lg text-gray-400 hover:bg-gray-50" onClick={() => setCurrentPage(p => Math.max(1, p - 1))}>‹</button>
-                <input type="text" value={currentPage} readOnly className="w-8 border border-gray-200 rounded-lg text-center outline-none text-xs" style={{ color: "#374151" }} />
-                <span style={{ color: "#6b7280" }}>/ 3</span>
-                <button className="px-2 py-1 border border-gray-200 rounded-lg hover:bg-gray-50" style={{ color: "#374151" }} onClick={() => setCurrentPage(p => Math.min(3, p + 1))}>›</button>
-              </div>
-            </div>
           </section>
 
           {/* <footer className="text-center pb-6">
