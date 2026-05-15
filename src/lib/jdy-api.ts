@@ -42,7 +42,7 @@ export const JDY_CONFIG = {
     entry_id: "6875fe5bb54b9736c2987d4c",
   },
 } as const;
-
+//教研活动记录
 export const WIDGET_IDS = {
   学期: "_widget_1732691646451",
   教研主题: "_widget_1732691646452",
@@ -64,7 +64,7 @@ export const WIDGET_IDS = {
   学科部门: "_widget_1732691646464",
   教研参加次数: "_widget_1732691646465",
 } as const;
-
+//备课活动记录
 export const BEIKE_WIDGET_IDS = {
   学期: "_widget_1732696211408",
   主题: "_widget_1732696211409",
@@ -86,7 +86,7 @@ export const BEIKE_WIDGET_IDS = {
   学科部门: "_widget_1732696211426",
   备课参加次数: "_widget_1732696211427",
 } as const;
-
+//科技节活动记录
 export const SCIENTCE_FEST_WIDGET_IDS = {
   活动名称: "_widget_1773731753579",
   教研组: "_widget_1773652937032",
@@ -101,7 +101,7 @@ export const SCIENTCE_FEST_WIDGET_IDS = {
   更多图片: "_widget_1778718276085",
   备注: "_widget_1773800483911",
 } as const;
-
+//教师所带班级排名
 export const CLASS_RANK_WIDGET_IDS = {
   学期: "_widget_1767778829291",
   考试名称: "_widget_1767778829292",
@@ -111,7 +111,7 @@ export const CLASS_RANK_WIDGET_IDS = {
   学科: "_widget_1767778829296",
   班级排名: "_widget_1767778829297",
 } as const;
-
+//宿舍考勤记录
 export const DORM_ATTENDANCE_WIDGET_IDS = {
   学期: "_widget_1770018643740",
   宿舍号: "dorm",
@@ -135,6 +135,7 @@ export const DORM_ATTENDANCE_WIDGET_IDS = {
   提交时间: "createTime",
 } as const;
 
+//学生请假表
 export const STUDENT_LEAVE_WIDGET_IDS = {
   工作流id: "id",
   学期: "term",
@@ -155,7 +156,7 @@ export const STUDENT_LEAVE_WIDGET_IDS = {
   状态: "status",
   申请时间: "created_at",
 } as const;
-
+//学生成绩表
 export const STUDENT_SCORE_WIDGET_IDS = {
   学期: "_widget_1776782095344",
   考试名称: "_widget_1776782095351",
@@ -174,7 +175,7 @@ export const STUDENT_SCORE_WIDGET_IDS = {
   地理成绩: "_widget_1778769330347",
   日语成绩: "_widget_1778769330348",
 } as const;
-
+//学生晨午晚检表
 export const HEALTH_CHECK_WIDGET_IDS = {
   学期: "_widget_1660617096884",
   班主任: "_widget_1653982759289",
@@ -214,7 +215,41 @@ export const HEALTH_CHECK_WIDGET_IDS = {
   其他症状学生数: "_widget_1764229745738",
   其他症状情况说明: "_widget_1764229745739",
 } as const;
-
+//学生返校登记表
+export const STUDENT_RETURN_SCHOOL_WIDGET_IDS = {
+  填报日期:                 "_widget_1736929837045",
+  学期:                     "_widget_1752654559799",
+  是否当前学期:             "_widget_1752654559800",
+  提交人:                   "_widget_1736930971161",
+  班主任编号:               "_widget_1752654559786",
+  班级名称:                 "_widget_1736927246680",
+  年级:                     "_widget_1752654559814",
+  级部:                     "_widget_1767086981553",
+  年级别名:                 "_widget_1767086981554",
+  年级总人数:               "_widget_1752656478041",
+  应到学生人数:             "_widget_1736929837049",
+  返校学生人数:             "_widget_1736929837089",
+  未返校学生人数:           "_widget_1736929837051",
+  转入学生人数:             "_widget_1736929837090",
+  班主任:                   "_widget_1767086981552",
+  级部主任:                 "_widget_1767086981560",
+  病假学生姓名:             "_widget_1736929837055",
+  病假学生人数:             "_widget_1736929837061",
+  病假具体情况说明:         "_widget_1736929837068",
+  事假学生姓名:             "_widget_1736929837065",
+  事假学生人数:             "_widget_1736929837067",
+  事假具体情况说明:         "_widget_1736929837069",
+  在外学习培训学生姓名:     "_widget_1736929837074",
+  在外学习培训学生人数:     "_widget_1736929837076",
+  在外学习培训具体情况说明: "_widget_1736929837077",
+  休学学生姓名:             "_widget_1736929837079",
+  休学学生人数:             "_widget_1736929837081",
+  休学具体情况说明:         "_widget_1736929837082",
+  流失学生姓名:             "_widget_1736929837084",
+  流失学生人数:             "_widget_1736929837086",
+  流失学生具体情况说明:     "_widget_1736929837087",
+} as const;
+//学生花名册
 export const STUDENT_INFO_WIDGET_IDS = {
   学籍状态_教务: "student_status",
   学籍状态_运营: "student_status_two",
