@@ -300,6 +300,8 @@ export const STUDENT_LEARNING_ANALYSIS_WIDGET_IDS = {
   掌握较好的知识点: "_widget_1775117349249",
   掌握不足的知识点: "_widget_1775117349250",
   教师指导措施:   "_widget_1775117349251",
+  提交人: "creator",
+  提交时间:"createTime",
 } as const;
 //学生花名册
 export const STUDENT_INFO_WIDGET_IDS = {
