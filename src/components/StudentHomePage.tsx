@@ -187,11 +187,12 @@ function DormAttendanceDrawer({ record, onClose }: { record: DormAttendanceRecor
     return () => document.removeEventListener("keydown", onKey);
   }, [record, onClose]);
 
+  const score = record ? Math.abs(record.扣分) : 0;
   const scoreColor = record
-    ? record.扣分 >= 3 ? "#dc2626" : record.扣分 >= 1 ? "#d97706" : "#6b7280"
+    ? score >= 5 ? "#dc2626" : score >= 3 ? "#d97706" : "#6b7280"
     : "#6b7280";
   const scoreBg = record
-    ? record.扣分 >= 3 ? "rgba(239,68,68,0.08)" : record.扣分 >= 1 ? "rgba(245,158,11,0.08)" : "rgba(107,114,128,0.06)"
+    ? score >= 5 ? "rgba(239,68,68,0.08)" : score >= 3 ? "rgba(245,158,11,0.08)" : "rgba(107,114,128,0.06)"
     : "rgba(107,114,128,0.06)";
 
   return (
@@ -219,7 +220,7 @@ function DormAttendanceDrawer({ record, onClose }: { record: DormAttendanceRecor
                   <h2 className="text-base font-bold text-gray-900 leading-snug">{record.学生姓名 || "—"}</h2>
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold"
                     style={{ background: scoreBg, color: scoreColor }}>
-                    {record.扣分 ? `-${record.扣分}分` : "—"}
+                    {record.扣分 ? `${record.扣分}分` : "—"}
                   </span>
                 </div>
               </div>
@@ -420,19 +421,12 @@ export function StudentHomePage({ onMenuOpen, onNavigate }: {
       if (!score) return <span style={{ fontSize: 15, color: "#9ca3af" }}>—</span>;
       const high = score >= 5, mid = score >= 3;
       return (
-        <span className="inline-flex items-center gap-1 whitespace-nowrap">
-          <span className="inline-flex items-center justify-center rounded-md font-black tabular-nums"
-            style={{
-              minWidth: 36, height: 24, fontSize: 13, paddingInline: 6,
-              background: high ? "#fef2f2" : mid ? "#fffbeb" : "#f9fafb",
-              color:      high ? "#dc2626" : mid ? "#d97706" : "#6b7280",
-              border:     `1.5px solid ${high ? "rgba(220,38,38,0.25)" : mid ? "rgba(217,119,6,0.25)" : "rgba(107,114,128,0.15)"}`,
-              boxShadow:  high ? "0 1px 4px rgba(220,38,38,0.12)" : mid ? "0 1px 4px rgba(217,119,6,0.10)" : "none",
-            }}>
-            -{score}
-          </span>
-          {high && <span style={{ fontSize: 10, fontWeight: 700, color: "#dc2626", letterSpacing: "0.02em" }}>严重</span>}
-          {mid && !high && <span style={{ fontSize: 10, fontWeight: 700, color: "#d97706", letterSpacing: "0.02em" }}>警告</span>}
+        <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
+          style={{
+            background: high ? "rgba(239,68,68,0.08)" : mid ? "rgba(245,158,11,0.1)" : "rgba(107,114,128,0.07)",
+            color:      high ? "#dc2626"               : mid ? "#d97706"              : "#6b7280",
+          }}>
+          -{score}分
         </span>
       );
     }},

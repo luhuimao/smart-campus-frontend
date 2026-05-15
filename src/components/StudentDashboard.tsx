@@ -1,9 +1,12 @@
 "use client";
 
-import { Users, PlusCircle, User, Bell, Menu, Upload, Printer, RefreshCw, ArrowUpDown, Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, PlusCircle, User, Bell, Menu, RefreshCw, ArrowUpDown, Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useRef, useMemo } from "react";
 import React from "react";
 import { useStudentInfo, type StudentInfoFilters } from "@/hooks/use-research-dashboard";
+import { DashboardTable } from "@/components/ui/DashboardTable";
+import type { ColumnDef } from "@/components/ui/DashboardTable";
+import type { StudentInfoRecord } from "@/hooks/use-research-dashboard";
 
 const glass = {
   background: "rgba(255,255,255,0.7)",
@@ -185,18 +188,79 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [pendingClass, setPendingClass] = useState("");
   const [nameFilter, setNameFilter] = useState("");
   const [classFilter, setClassFilter] = useState("");
+  const [studentSortAsc, setStudentSortAsc] = useState(false);
   const studentFilters = useMemo<StudentInfoFilters>(() => ({
     name: nameFilter, className: classFilter, grade: "", status: "",
   }), [nameFilter, classFilter]);
   const { raw: studentRows, filterOptions: studentFilterOptions, isPending: studentPending, isError: studentError } = useStudentInfo(studentFilters);
   const totalStudents = studentRows.length;
-  const pagedStudents = studentRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  const totalStudentPages = Math.max(1, Math.ceil(totalStudents / pageSize));
+
+  const studentCols = useMemo((): ColumnDef<StudentInfoRecord>[] => [
+    { key: "学籍状态", header: "学籍状态", render: r => (
+      <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
+        style={{ background: r.学籍状态==="在读"?"rgba(16,185,129,0.08)":r.学籍状态==="休学"?"rgba(245,158,11,0.1)":"rgba(239,68,68,0.08)", color: r.学籍状态==="在读"?"#059669":r.学籍状态==="休学"?"#d97706":"#dc2626" }}>
+        {r.学籍状态 || "—"}
+      </span>
+    )},
+    { key: "姓名",     header: "姓名",     render: r => <span className="font-semibold whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.姓名}</span> },
+    { key: "民族",     header: "民族",     render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.民族 || "—"}</span> },
+    { key: "性别",     header: "性别",     render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.性别 || "—"}</span> },
+    { key: "出生日期", header: "出生日期", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.出生日期 ? r.出生日期.slice(0, 10) : "—"}</span> },
+    { key: "年龄",     header: "年龄",     render: r => <span className="font-medium" style={{ fontSize: 15, color: "#374151" }}>{r.年龄 || "—"}</span> },
+    { key: "政治面貌", header: "政治面貌", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.政治面貌 || "—"}</span> },
+    { key: "学生本人电话", header: "学生本人电话", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.学生本人电话 || "—"}</span> },
+    { key: "户籍地址", header: "户籍地址", minWidth: 140, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 140 }} title={r.户籍地址}>{r.户籍地址 || "—"}</span> },
+    { key: "现居地址", header: "现居地址", minWidth: 140, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 140 }} title={r.现居地址}>{r.现居地址 || "—"}</span> },
+    { key: "监护人1姓名", header: "监护人1姓名", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.监护人1姓名 || "—"}</span> },
+    { key: "监护人1联系", header: "监护人1联系方式", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.监护人1联系 || "—"}</span> },
+    { key: "监护人1角色", header: "监护人1关系", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.监护人1角色 || "—"}</span> },
+    { key: "监护人1工作单位", header: "监护人1工作单位", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.监护人1工作单位 || "—"}</span> },
+    { key: "监护人2姓名", header: "监护人2姓名", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.监护人2姓名 || "—"}</span> },
+    { key: "监护人2联系", header: "监护人2联系方式", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.监护人2联系 || "—"}</span> },
+    { key: "监护人2角色", header: "监护人2关系", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.监护人2角色 || "—"}</span> },
+    { key: "监护人2工作单位", header: "监护人2工作单位", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.监护人2工作单位 || "—"}</span> },
+    { key: "年级名称", header: "年级", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.年级名称 || "—"}</span> },
+    { key: "年级别名", header: "年级别名", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.年级别名 || "—"}</span> },
+    { key: "班主任",   header: "班主任", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.班主任 || "—"}</span> },
+    { key: "学生类型", header: "学生类型", render: r => (
+      <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
+        style={{ background: !r.学生类型||r.学生类型==="普通学生"?"rgba(107,114,128,0.07)":r.学生类型==="低保学生"?"rgba(245,158,11,0.1)":"rgba(239,68,68,0.08)", color: !r.学生类型||r.学生类型==="普通学生"?"#6b7280":r.学生类型==="低保学生"?"#d97706":"#dc2626" }}>
+        {r.学生类型 || "普通学生"}
+      </span>
+    )},
+    { key: "毕业学校", header: "毕业院校", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.毕业学校 || "—"}</span> },
+    { key: "既往病史", header: "既往病史", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.既往病史 || "无"}</span> },
+    { key: "是否残疾", header: "是否残疾", render: r => <span className="font-semibold" style={{ color: r.是否残疾==="是"?"#dc2626":"#9ca3af" }}>{r.是否残疾 || "否"}</span> },
+    { key: "享受寄宿生生活补助金额", header: "享受寄宿生生活补助金额（元）", render: r => <span className="text-right block" style={{ fontSize: 15, color: "#374151" }}>{r.享受寄宿生生活补助金额 || "—"}</span> },
+    { key: "享受营养改善计划补助金额", header: "享受营养改善计划补助金额（元）", render: r => <span className="text-right block" style={{ fontSize: 15, color: "#374151" }}>{r.享受营养改善计划补助金额 || "—"}</span> },
+    { key: "是建档立卡贫困户", header: "是建档立卡贫苦户", render: r => <span className="font-semibold" style={{ color: r.是建档立卡贫困户==="是"?"#d97706":"#9ca3af" }}>{r.是建档立卡贫困户 || "否"}</span> },
+    { key: "建档立卡脱贫户子女", header: "建档立卡贫困户子女", render: r => <span className="font-semibold" style={{ color: r.建档立卡脱贫户子女==="是"?"#d97706":"#9ca3af" }}>{r.建档立卡脱贫户子女 || "否"}</span> },
+    { key: "随迁子女入", header: "随迁子女入", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.随迁子女入 || "否"}</span> },
+    { key: "在校农村留守儿童", header: "在校（园）农村留守儿童", render: r => <span className="font-semibold" style={{ color: r.在校农村留守儿童==="是"?"#6366f1":"#9ca3af" }}>{r.在校农村留守儿童 || "否"}</span> },
+    { key: "备注", header: "备注", minWidth: 80, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 80 }}>{r.备注 || "—"}</span> },
+    { key: "宿舍入住状态", header: "宿舍入住状态", render: r => (
+      <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
+        style={{ background: r.宿舍入住状态==="已入住"?"rgba(16,185,129,0.08)":"rgba(107,114,128,0.07)", color: r.宿舍入住状态==="已入住"?"#059669":"#6b7280" }}>
+        {r.宿舍入住状态 || "—"}
+      </span>
+    )},
+    { key: "宿舍楼栋", header: "宿舍楼栋", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.宿舍楼栋 || "—"}</span> },
+    { key: "宿舍号",   header: "宿舍号",   render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.宿舍号 || "—"}</span> },
+    { key: "选科科目", header: "选科科目", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.选科科目 || "—"}</span> },
+    { key: "选科方向", header: "选科方向", render: r => r.选科方向 ? (
+      <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
+        style={{ background: r.选科方向==="理科"?"rgba(59,130,246,0.08)":"rgba(168,85,247,0.08)", color: r.选科方向==="理科"?"#2563eb":"#9333ea" }}>
+        {r.选科方向}
+      </span>
+    ) : <span className="text-gray-300">—</span> },
+    { key: "选科1",    header: "选科1",    render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.选科1 || "—"}</span> },
+    { key: "选科2",    header: "选科2",    render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.选科2 || "—"}</span> },
+    { key: "外语选科", header: "外语选科", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.外语选科 || "—"}</span> },
+  ], []);
+
   type ActionItem = { Icon: React.ElementType; tip: string };
-  const fullActions: ActionItem[] = [{ Icon: Upload, tip: "导出" }, { Icon: Printer, tip: "打印表格" }, { Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }];
-  const tableActions: ActionItem[] = activeTab === 3
-    ? [{ Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }]
-    : fullActions;  // tab 5 & 7 also use fullActions
+  const fullActions: ActionItem[] = [];
+  const tableActions: ActionItem[] = [];
 
   return (
     <div
@@ -783,91 +847,22 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                 </table>
               ) : (
                 /* ── 学生基础信息 ── */
-                studentPending ? (
-                  <div className="flex items-center justify-center py-20 text-gray-400 text-sm">加载中…</div>
-                ) : studentError ? (
-                  <div className="flex items-center justify-center py-20 text-red-400 text-sm">数据加载失败，请刷新重试</div>
-                ) : (
-                <table className="w-full text-left">
-                  <thead style={{ background: "#eff6ff" }}>
-                    <tr>
-                      {BASE_COLS.map(col => (
-                        <th key={col} className="px-4 py-3 font-medium whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{col}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="text-sm divide-y divide-gray-50">
-                    {pagedStudents.map((row, i) => (
-                      <tr key={row._id || i} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3">
-                          <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-                            style={{ background: row.学籍状态==="在读"?"rgba(16,185,129,0.08)":row.学籍状态==="休学"?"rgba(245,158,11,0.1)":"rgba(239,68,68,0.08)", color: row.学籍状态==="在读"?"#059669":row.学籍状态==="休学"?"#d97706":"#dc2626" }}>
-                            {row.学籍状态 || "—"}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 font-semibold text-gray-800 whitespace-nowrap">{row.姓名}</td>
-                        <td className="px-4 py-3 text-gray-500">{row.民族 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-500">{row.性别 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.出生日期 ? row.出生日期.slice(0, 10) : "—"}</td>
-                        <td className="px-4 py-3 text-gray-700 font-medium">{row.年龄 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.政治面貌 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-400">{row.学生本人电话 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-500 max-w-[140px] truncate" title={row.户籍地址}>{row.户籍地址 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-500 max-w-[140px] truncate" title={row.现居地址}>{row.现居地址 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{row.监护人1姓名 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-400">{row.监护人1联系 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-500">{row.监护人1角色 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.监护人1工作单位 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{row.监护人2姓名 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-400">{row.监护人2联系 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-500">{row.监护人2角色 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.监护人2工作单位 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{row.年级名称 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-500">{row.年级别名 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{row.班主任 || "—"}</td>
-                        <td className="px-4 py-3">
-                          <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-                            style={{ background: !row.学生类型||row.学生类型==="普通学生"?"rgba(107,114,128,0.07)":row.学生类型==="低保学生"?"rgba(245,158,11,0.1)":"rgba(239,68,68,0.08)", color: !row.学生类型||row.学生类型==="普通学生"?"#6b7280":row.学生类型==="低保学生"?"#d97706":"#dc2626" }}>
-                            {row.学生类型 || "普通学生"}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.毕业学校 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-400">{row.既往病史 || "无"}</td>
-                        <td className="px-4 py-3 text-center">
-                          <span style={{ color: row.是否残疾==="是"?"#dc2626":"#9ca3af" }} className="font-semibold">{row.是否残疾 || "否"}</span>
-                        </td>
-                        <td className="px-4 py-3 text-gray-700 text-right">{row.享受寄宿生生活补助金额 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-700 text-right">{row.享受营养改善计划补助金额 || "—"}</td>
-                        <td className="px-4 py-3 text-center"><span style={{ color: row.是建档立卡贫困户==="是"?"#d97706":"#9ca3af" }} className="font-semibold">{row.是建档立卡贫困户 || "否"}</span></td>
-                        <td className="px-4 py-3 text-center"><span style={{ color: row.建档立卡脱贫户子女==="是"?"#d97706":"#9ca3af" }} className="font-semibold">{row.建档立卡脱贫户子女 || "否"}</span></td>
-                        <td className="px-4 py-3 text-center text-gray-400">{row.随迁子女入 || "否"}</td>
-                        <td className="px-4 py-3 text-center"><span style={{ color: row.在校农村留守儿童==="是"?"#6366f1":"#9ca3af" }} className="font-semibold">{row.在校农村留守儿童 || "否"}</span></td>
-                        <td className="px-4 py-3 text-gray-400 max-w-[80px] truncate">{row.备注 || "—"}</td>
-                        <td className="px-4 py-3">
-                          <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-                            style={{ background: row.宿舍入住状态==="已入住"?"rgba(16,185,129,0.08)":"rgba(107,114,128,0.07)", color: row.宿舍入住状态==="已入住"?"#059669":"#6b7280" }}>
-                            {row.宿舍入住状态 || "—"}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{row.宿舍楼栋 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-600">{row.宿舍号 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.选科科目 || "—"}</td>
-                        <td className="px-4 py-3">
-                          {row.选科方向 ? (
-                            <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-                              style={{ background: row.选科方向==="理科"?"rgba(59,130,246,0.08)":"rgba(168,85,247,0.08)", color: row.选科方向==="理科"?"#2563eb":"#9333ea" }}>
-                              {row.选科方向}
-                            </span>
-                          ) : <span className="text-gray-300">—</span>}
-                        </td>
-                        <td className="px-4 py-3 text-gray-500">{row.选科1 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-500">{row.选科2 || "—"}</td>
-                        <td className="px-4 py-3 text-gray-500">{row.外语选科 || "—"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                )
+                <div className="-mx-0">
+                  <DashboardTable
+                    title="学生基础信息"
+                    columns={studentCols}
+                    rows={studentRows}
+                    isPending={studentPending}
+                    isError={studentError}
+                    sortAsc={studentSortAsc}
+                    onSortToggle={() => { setStudentSortAsc(v => !v); setCurrentPage(1); }}
+                    page={currentPage}
+                    pageSize={pageSize}
+                    totalRows={totalStudents}
+                    onPageChange={setCurrentPage}
+                    onPageSizeChange={n => { setPageSize(n); setCurrentPage(1); }}
+                  />
+                </div>
               )}
             </div>
 
