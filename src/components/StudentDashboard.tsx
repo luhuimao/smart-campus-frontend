@@ -701,8 +701,8 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
     { key: "班主任",   header: "班主任", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.班主任 || "—"}</span> },
     { key: "学生类型", header: "学生类型", render: r => (
       <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-        style={{ background: !r.学生类型||r.学生类型==="普通学生"?"rgba(107,114,128,0.07)":r.学生类型==="低保学生"?"rgba(245,158,11,0.1)":"rgba(239,68,68,0.08)", color: !r.学生类型||r.学生类型==="普通学生"?"#6b7280":r.学生类型==="低保学生"?"#d97706":"#dc2626" }}>
-        {r.学生类型 || "普通学生"}
+        style={{ background: !r.学生类型||r.学生类型==="文化生"?"rgba(107,114,128,0.07)":r.学生类型==="低保学生"?"rgba(245,158,11,0.1)":"rgba(239,68,68,0.08)", color: !r.学生类型||r.学生类型==="文化生"?"#6b7280":r.学生类型==="低保学生"?"#d97706":"#dc2626" }}>
+        {r.学生类型 || "文化生"}
       </span>
     )},
     { key: "毕业学校", header: "毕业院校", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.毕业学校 || "—"}</span> },
