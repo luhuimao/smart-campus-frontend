@@ -194,6 +194,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   }), [nameFilter, classFilter]);
   const { raw: studentRows, filterOptions: studentFilterOptions, isPending: studentPending, isError: studentError } = useStudentInfo(studentFilters);
   const totalStudents = studentRows.length;
+  const pagedStudents = studentRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const studentCols = useMemo((): ColumnDef<StudentInfoRecord>[] => [
     { key: "学籍状态", header: "学籍状态", render: r => (
@@ -851,7 +852,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                   <DashboardTable
                     title="学生基础信息"
                     columns={studentCols}
-                    rows={studentRows}
+                    rows={pagedStudents}
                     isPending={studentPending}
                     isError={studentError}
                     sortAsc={studentSortAsc}

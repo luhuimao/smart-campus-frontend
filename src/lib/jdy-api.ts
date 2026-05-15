@@ -25,6 +25,10 @@ export const JDY_CONFIG = {
     app_id: "6788d444d1eefa169cf74ddc",
     entry_id: "67fd24ce564e9ac9ae9f783b",
   },
+  STUDENT_SCORE: {//一生一案-学生成绩表 app ID，entry ID
+    app_id: "6788d444d1eefa169cf74ddc",
+    entry_id: "6a05ddad85572d6705a80365",
+  },
 } as const;
 
 export const WIDGET_IDS = {
