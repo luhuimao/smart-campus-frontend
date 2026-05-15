@@ -3,10 +3,10 @@
 import { Users, PlusCircle, User, Bell, Menu, RefreshCw, ArrowUpDown, Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
-import { useStudentInfo, useStudentLeave, useHealthCheck, useStudentReturnSchool, useStudentSupport, type StudentInfoFilters, type StudentLeaveFilters, type HealthCheckFilters, type StudentReturnSchoolFilters, type StudentSupportFilters } from "@/hooks/use-research-dashboard";
+import { useStudentInfo, useStudentLeave, useHealthCheck, useStudentReturnSchool, useStudentSupport, useHeartToHeartTalk, type StudentInfoFilters, type StudentLeaveFilters, type HealthCheckFilters, type StudentReturnSchoolFilters, type StudentSupportFilters, type HeartToHeartTalkFilters } from "@/hooks/use-research-dashboard";
 import { DashboardTable } from "@/components/ui/DashboardTable";
 import type { ColumnDef } from "@/components/ui/DashboardTable";
-import type { StudentInfoRecord, StudentLeaveRecord, HealthCheckRecord, StudentReturnSchoolRecord, StudentSupportRecord } from "@/hooks/use-research-dashboard";
+import type { StudentInfoRecord, StudentLeaveRecord, HealthCheckRecord, StudentReturnSchoolRecord, StudentSupportRecord, HeartToHeartTalkRecord } from "@/hooks/use-research-dashboard";
 
 // ── StudentInfoDrawer ────────────────────────────────────────────
 function StudentInfoDrawer({ record, onClose }: { record: StudentInfoRecord | null; onClose: () => void }) {
@@ -609,6 +609,109 @@ function StudentSupportDrawer({ record, onClose }: { record: StudentSupportRecor
   );
 }
 
+// ── HeartToHeartTalkDrawer ────────────────────────────────────────
+function HeartToHeartTalkDrawer({ record, onClose }: { record: HeartToHeartTalkRecord | null; onClose: () => void }) {
+  useEffect(() => {
+    if (!record) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [record, onClose]);
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 transition-opacity duration-300"
+        style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
+        onClick={onClose} />
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+        style={{
+          width: 520, maxWidth: "100vw", background: "#fff",
+          transform: record ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)",
+        }}>
+        {record && (
+          <>
+            <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+              <div className="flex-1 min-w-0 pr-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-semibold text-blue-500">{record.班级名称 || "—"}</span>
+                  {record.谈话内容 && (
+                    <>
+                      <span className="text-xs text-gray-300">·</span>
+                      <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold"
+                        style={{ background: "rgba(99,102,241,0.08)", color: "#4f46e5" }}>
+                        {record.谈话内容}
+                      </span>
+                    </>
+                  )}
+                </div>
+                <h2 className="text-base font-bold text-gray-900 leading-snug">{record.学生姓名 || "—"}</h2>
+              </div>
+              <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">学生信息</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[
+                    { label: "学生姓名", value: record.学生姓名 },
+                    { label: "班级名称", value: record.班级名称 },
+                    { label: "学生学号", value: record.学生学号 },
+                    { label: "学生身份证", value: record.学生身份证 },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium text-gray-800">{value || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">谈话信息</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[
+                    { label: "谈心教师",   value: record.谈心教师 },
+                    { label: "谈心教师学科", value: record.谈心教师学科 },
+                    { label: "谈心谈话时间", value: record.谈心谈话时间 ? record.谈心谈话时间.slice(0, 16) : "" },
+                    { label: "谈话内容",   value: record.谈话内容 },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium text-gray-800">{value || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              {record.谈心谈话内容记录 && (
+                <section>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">谈心谈话内容记录</p>
+                  <p className="text-base text-gray-800 leading-relaxed whitespace-pre-wrap">{record.谈心谈话内容记录}</p>
+                </section>
+              )}
+              {record.教师指导建议 && (
+                <section>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">教师指导建议</p>
+                  <p className="text-base text-gray-800 leading-relaxed whitespace-pre-wrap">{record.教师指导建议}</p>
+                </section>
+              )}
+              {record.沟通照片 && (
+                <section>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">沟通照片</p>
+                  <p className="text-base font-medium text-gray-800">{record.沟通照片}</p>
+                </section>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
 const glass = {
   background: "rgba(255,255,255,0.7)",
   backdropFilter: "blur(20px)",
@@ -788,6 +891,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [selectedHealthCheck, setSelectedHealthCheck] = useState<HealthCheckRecord | null>(null);
   const [selectedReturnSchool, setSelectedReturnSchool] = useState<StudentReturnSchoolRecord | null>(null);
   const [selectedSupport, setSelectedSupport] = useState<StudentSupportRecord | null>(null);
+  const [selectedTalk, setSelectedTalk] = useState<HeartToHeartTalkRecord | null>(null);
 
   // ── 学生基础信息 filters & data ──
   const [pendingName, setPendingName] = useState("");
@@ -845,6 +949,17 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const { raw: supportRows, isPending: supportPending, isError: supportError } = useStudentSupport(supportFilters, activeTab === 5);
   const totalSupport = supportRows.length;
   const pagedSupport = supportRows.slice((supportPage - 1) * supportPageSize, supportPage * supportPageSize);
+
+  // ── 谈心谈话记录 filters & data ──
+  const [talkPage, setTalkPage] = useState(1);
+  const [talkPageSize, setTalkPageSize] = useState(20);
+  const [talkSortAsc, setTalkSortAsc] = useState(false);
+  const talkFilters = useMemo<HeartToHeartTalkFilters>(() => ({
+    className: "", teacher: "",
+  }), []);
+  const { raw: talkApiRows, isPending: talkPending, isError: talkError } = useHeartToHeartTalk(talkFilters, activeTab === 7);
+  const totalTalk = talkApiRows.length;
+  const pagedTalk = talkApiRows.slice((talkPage - 1) * talkPageSize, talkPage * talkPageSize);
 
   const leaveCols = useMemo((): ColumnDef<StudentLeaveRecord>[] => [
     { key: "请假学生姓名", header: "请假人", render: r => <span className="font-semibold whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.请假学生姓名 || "—"}</span> },
@@ -941,6 +1056,28 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
     { key: "家长姓名",   header: "家长姓名",   render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.家长姓名 || "—"}</span> },
     { key: "手机号码",   header: "手机号码",   render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.手机号码 || "—"}</span> },
     { key: "备注",       header: "备注",       minWidth: 120, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#9ca3af", maxWidth: 120 }} title={r.备注}>{r.备注 || "—"}</span> },
+  ], []);
+
+  const talkCols = useMemo((): ColumnDef<HeartToHeartTalkRecord>[] => [
+    { key: "谈心教师",   header: "谈心教师",   render: r => <span className="font-semibold whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.谈心教师 || "—"}</span> },
+    { key: "班级名称",   header: "班级名称",   render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.班级名称 || "—"}</span> },
+    { key: "学生姓名",   header: "学生姓名",   render: r => <span className="font-medium whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.学生姓名 || "—"}</span> },
+    { key: "学生身份证", header: "学生身份证", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#9ca3af" }}>{r.学生身份证 || "—"}</span> },
+    { key: "学生学号",   header: "学生学号",   render: r => <span style={{ fontSize: 15, color: "#9ca3af" }}>{r.学生学号 || "—"}</span> },
+    { key: "谈心教师学科", header: "谈心教师学科", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.谈心教师学科 || "—"}</span> },
+    { key: "谈心谈话时间", header: "谈心谈话时间", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.谈心谈话时间 ? r.谈心谈话时间.slice(0, 16) : "—"}</span> },
+    { key: "谈话内容",   header: "谈话内容",   render: r => r.谈话内容 ? (
+      <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
+        style={{ background: "rgba(99,102,241,0.08)", color: "#4f46e5" }}>{r.谈话内容}</span>
+    ) : <span className="text-gray-300">—</span> },
+    { key: "谈心谈话内容记录", header: "谈心谈话内容记录", minWidth: 180, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 180 }} title={r.谈心谈话内容记录}>{r.谈心谈话内容记录 || "—"}</span> },
+    { key: "教师指导建议", header: "教师指导建议", minWidth: 160, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 160 }} title={r.教师指导建议}>{r.教师指导建议 || "—"}</span> },
+    { key: "沟通照片",   header: "沟通照片",   render: r => (
+      <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold"
+        style={{ background: r.沟通照片 ? "rgba(16,185,129,0.08)" : "rgba(0,0,0,0.04)", color: r.沟通照片 ? "#059669" : "#9ca3af" }}>
+        {r.沟通照片 || "无"}
+      </span>
+    ) },
   ], []);
 
   const studentCols = useMemo((): ColumnDef<StudentInfoRecord>[] => [
@@ -1240,7 +1377,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
             </div>
 
             {/* Toolbar — hidden for tabs with their own per-table toolbars, and for tab 0 which uses DashboardTable's built-in toolbar */}
-            {activeTab !== 4 && activeTab !== 2 && activeTab !== 0 && activeTab !== 3 && activeTab !== 1 && activeTab !== 5 && (
+            {activeTab !== 4 && activeTab !== 2 && activeTab !== 0 && activeTab !== 3 && activeTab !== 1 && activeTab !== 5 && activeTab !== 7 && (
             <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100"
               style={{ background: "rgba(249,250,251,0.6)" }}
               onMouseEnter={() => setHvTable(true)} onMouseLeave={() => setHvTable(false)}>
@@ -1443,44 +1580,24 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                   <p className="text-sm mt-1">Coming soon</p>
                 </div>
               ) : activeTab === 7 ? (
-                <table className="w-full text-left">
-                  <thead style={{ background: "#eff6ff" }}>
-                    <tr>
-                      {TALK_COLS.map(col => (
-                        <th key={col} className="px-4 py-3 font-medium whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{col}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="text-sm divide-y divide-gray-50">
-                    {talkRows.map((row, i) => (
-                      <tr key={i} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-semibold text-gray-800 whitespace-nowrap">{row.teacher}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{row.cls}</td>
-                        <td className="px-4 py-3 font-medium text-gray-700 whitespace-nowrap">{row.stuName}</td>
-                        <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{row.idCard}</td>
-                        <td className="px-4 py-3 text-gray-400">{row.stuId}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.subject}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.talkTime}</td>
-                        <td className="px-4 py-3">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-                            style={{ background: "rgba(99,102,241,0.08)", color: "#4f46e5" }}>
-                            {row.topic}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-gray-500 max-w-[180px] truncate" title={row.record}>{row.record}</td>
-                        <td className="px-4 py-3 text-gray-500 max-w-[160px] truncate" title={row.advice}>{row.advice}</td>
-                        <td className="px-4 py-3 text-center">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold"
-                            style={{ background: row.photo === "有" ? "rgba(16,185,129,0.08)" : "rgba(0,0,0,0.04)", color: row.photo === "有" ? "#059669" : "#9ca3af" }}>
-                            {row.photo}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.submitter}</td>
-                        <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{row.submitTime}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                /* ── 一生一案谈心谈话记录表 ── */
+                <div className="-mx-0">
+                  <DashboardTable
+                    title="一生一案谈心谈话记录表"
+                    columns={talkCols}
+                    rows={pagedTalk}
+                    isPending={talkPending}
+                    isError={talkError}
+                    sortAsc={talkSortAsc}
+                    onSortToggle={() => { setTalkSortAsc(v => !v); setTalkPage(1); }}
+                    page={talkPage}
+                    pageSize={talkPageSize}
+                    totalRows={totalTalk}
+                    onPageChange={setTalkPage}
+                    onPageSizeChange={n => { setTalkPageSize(n); setTalkPage(1); }}
+                    onRowClick={setSelectedTalk}
+                  />
+                </div>
               ) : (
                 /* ── 学生基础信息 ── */
                 <div className="-mx-0">
@@ -1517,6 +1634,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
       <HealthCheckDrawer record={selectedHealthCheck} onClose={() => setSelectedHealthCheck(null)} />
       <StudentReturnSchoolDrawer record={selectedReturnSchool} onClose={() => setSelectedReturnSchool(null)} />
       <StudentSupportDrawer record={selectedSupport} onClose={() => setSelectedSupport(null)} />
+      <HeartToHeartTalkDrawer record={selectedTalk} onClose={() => setSelectedTalk(null)} />
     </div>
   );
 }

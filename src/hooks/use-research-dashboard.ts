@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { JDY_CONFIG, WIDGET_IDS, BEIKE_WIDGET_IDS, SCIENTCE_FEST_WIDGET_IDS, CLASS_RANK_WIDGET_IDS, DORM_ATTENDANCE_WIDGET_IDS, STUDENT_INFO_WIDGET_IDS, STUDENT_LEAVE_WIDGET_IDS, HEALTH_CHECK_WIDGET_IDS, STUDENT_RETURN_SCHOOL_WIDGET_IDS, STUDENT_SUPPORT_STATUS_WIDGET_IDS, jdyListAll, type JdyRecord } from "@/lib/jdy-api";
+import { JDY_CONFIG, WIDGET_IDS, BEIKE_WIDGET_IDS, SCIENTCE_FEST_WIDGET_IDS, CLASS_RANK_WIDGET_IDS, DORM_ATTENDANCE_WIDGET_IDS, STUDENT_INFO_WIDGET_IDS, STUDENT_LEAVE_WIDGET_IDS, HEALTH_CHECK_WIDGET_IDS, STUDENT_RETURN_SCHOOL_WIDGET_IDS, STUDENT_SUPPORT_STATUS_WIDGET_IDS, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS, jdyListAll, type JdyRecord } from "@/lib/jdy-api";
 
 export interface ResearchRecord {
   _id: string;
@@ -1154,6 +1154,89 @@ export function useStudentSupport(filters?: StudentSupportFilters, enabled = tru
       return true;
     });
   }, [allRecords, filters?.grade, filters?.className, filters?.semester]);
+
+  return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch };
+}
+
+// ── 谈心谈话记录 ──────────────────────────────────────────────────
+
+export interface HeartToHeartTalkRecord {
+  _id: string;
+  谈心教师: string;
+  班级名称: string;
+  学生姓名: string;
+  学生身份证: string;
+  学生学号: string;
+  谈心教师学科: string;
+  谈心谈话时间: string;
+  谈话内容: string;
+  谈心谈话内容记录: string;
+  教师指导建议: string;
+  沟通照片: string;
+}
+
+export interface HeartToHeartTalkFilters {
+  className: string;
+  teacher: string;
+}
+
+function normalizeHeartToHeartTalkRecord(r: JdyRecord): HeartToHeartTalkRecord {
+  function pickUser(rec: JdyRecord, id: string): string {
+    const v = rec[id];
+    if (!v) return "";
+    if (Array.isArray(v)) return v.map((u: Record<string, unknown>) => u?.name ?? "").filter(Boolean).join("、");
+    if (typeof v === "object" && v !== null) return (v as Record<string, unknown>).name as string ?? "";
+    return String(v);
+  }
+  return {
+    _id:              r._id,
+    谈心教师:         pickUser(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.谈心教师),
+    班级名称:         pickStr(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.班级名称),
+    学生姓名:         pickStr(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.学生姓名),
+    学生身份证:       pickStr(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.学生身份证),
+    学生学号:         pickStr(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.学生学号),
+    谈心教师学科:     pickStr(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.谈心教师学科),
+    谈心谈话时间:     pickStr(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.谈心谈话时间),
+    谈话内容:         pickStr(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.谈话内容),
+    谈心谈话内容记录: pickStr(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.谈心谈话内容记录),
+    教师指导建议:     pickStr(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.教师指导建议),
+    沟通照片:         pickStr(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.沟通照片),
+  };
+}
+
+export function useHeartToHeartTalk(filters?: HeartToHeartTalkFilters, enabled = true) {
+  const { data: allRecords, isPending, isError, error, refetch } = useQuery({
+    queryKey: ["heart-to-heart-talk", "list"],
+    queryFn: async () => {
+      const records = await jdyListAll({
+        app_id: JDY_CONFIG.STUDENT_HEART_TO_HEART_TALK.app_id,
+        entry_id: JDY_CONFIG.STUDENT_HEART_TO_HEART_TALK.entry_id,
+        pageSize: 100,
+        maxPages: 50,
+      });
+      return records.map(normalizeHeartToHeartTalkRecord);
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 60_000,
+    enabled,
+  });
+
+  const filterOptions = useMemo(() => {
+    if (!allRecords) return { classNames: [] as string[], teachers: [] as string[] };
+    return {
+      classNames: unique(allRecords.map(r => r.班级名称).filter(Boolean)),
+      teachers:   unique(allRecords.map(r => r.谈心教师).filter(Boolean)),
+    };
+  }, [allRecords]);
+
+  const raw = useMemo((): HeartToHeartTalkRecord[] => {
+    if (!allRecords) return [];
+    return allRecords.filter(r => {
+      if (filters?.className && r.班级名称 !== filters.className) return false;
+      if (filters?.teacher   && r.谈心教师 !== filters.teacher)   return false;
+      return true;
+    });
+  }, [allRecords, filters?.className, filters?.teacher]);
 
   return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch };
 }
