@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { JDY_CONFIG, WIDGET_IDS, BEIKE_WIDGET_IDS, SCIENTCE_FEST_WIDGET_IDS, CLASS_RANK_WIDGET_IDS, DORM_ATTENDANCE_WIDGET_IDS, STUDENT_INFO_WIDGET_IDS, STUDENT_LEAVE_WIDGET_IDS, HEALTH_CHECK_WIDGET_IDS, STUDENT_RETURN_SCHOOL_WIDGET_IDS, STUDENT_SUPPORT_STATUS_WIDGET_IDS, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS, jdyListAll, type JdyRecord } from "@/lib/jdy-api";
+import { JDY_CONFIG, WIDGET_IDS, BEIKE_WIDGET_IDS, SCIENTCE_FEST_WIDGET_IDS, CLASS_RANK_WIDGET_IDS, DORM_ATTENDANCE_WIDGET_IDS, STUDENT_INFO_WIDGET_IDS, STUDENT_LEAVE_WIDGET_IDS, HEALTH_CHECK_WIDGET_IDS, STUDENT_RETURN_SCHOOL_WIDGET_IDS, STUDENT_SUPPORT_STATUS_WIDGET_IDS, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS, jdyListAll, type JdyRecord } from "@/lib/jdy-api";
 
 export interface ResearchRecord {
   _id: string;
@@ -1237,6 +1237,80 @@ export function useHeartToHeartTalk(filters?: HeartToHeartTalkFilters, enabled =
       return true;
     });
   }, [allRecords, filters?.className, filters?.teacher]);
+
+  return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch };
+}
+
+// ── 学情分析记录 ──────────────────────────────────────────────────
+
+export interface LearningAnalysisRecord {
+  _id: string;
+  班级: string;
+  学生姓名: string;
+  学科: string;
+  学情分析开始时间: string;
+  学情分析结束时间: string;
+  掌握较好的知识点: { name: string; url: string }[];
+  掌握不足的知识点: { name: string; url: string }[];
+  教师指导措施: string;
+  提交人: string;
+  提交时间: string;
+}
+
+export interface LearningAnalysisFilters {
+  className: string;
+  subject: string;
+}
+
+function normalizeLearningAnalysisRecord(r: JdyRecord): LearningAnalysisRecord {
+  return {
+    _id:              r._id,
+    班级:             pickStr(r, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS.班级),
+    学生姓名:         pickStr(r, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS.学生姓名),
+    学科:             pickStr(r, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS.学科),
+    学情分析开始时间: pickStr(r, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS.学情分析开始时间),
+    学情分析结束时间: pickStr(r, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS.学情分析结束时间),
+    掌握较好的知识点: pickFiles(r, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS.掌握较好的知识点),
+    掌握不足的知识点: pickFiles(r, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS.掌握不足的知识点),
+    教师指导措施:     pickStr(r, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS.教师指导措施),
+    提交人:           pickStr(r, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS.提交人),
+    提交时间:         pickStr(r, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS.提交时间),
+  };
+}
+
+export function useLearningAnalysis(filters?: LearningAnalysisFilters, enabled = true) {
+  const { data: allRecords, isPending, isError, error, refetch } = useQuery({
+    queryKey: ["learning-analysis", "list"],
+    queryFn: async () => {
+      const records = await jdyListAll({
+        app_id: JDY_CONFIG.STUDENT_LEARNING_ANALYSIS.app_id,
+        entry_id: JDY_CONFIG.STUDENT_LEARNING_ANALYSIS.entry_id,
+        pageSize: 100,
+        maxPages: 50,
+      });
+      return records.map(normalizeLearningAnalysisRecord);
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 60_000,
+    enabled,
+  });
+
+  const filterOptions = useMemo(() => {
+    if (!allRecords) return { classNames: [] as string[], subjects: [] as string[] };
+    return {
+      classNames: unique(allRecords.map(r => r.班级).filter(Boolean)),
+      subjects:   unique(allRecords.map(r => r.学科).filter(Boolean)),
+    };
+  }, [allRecords]);
+
+  const raw = useMemo((): LearningAnalysisRecord[] => {
+    if (!allRecords) return [];
+    return allRecords.filter(r => {
+      if (filters?.className && r.班级 !== filters.className) return false;
+      if (filters?.subject   && r.学科 !== filters.subject)   return false;
+      return true;
+    });
+  }, [allRecords, filters?.className, filters?.subject]);
 
   return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch };
 }
