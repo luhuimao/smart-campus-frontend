@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { JDY_CONFIG, WIDGET_IDS, BEIKE_WIDGET_IDS, SCIENTCE_FEST_WIDGET_IDS, CLASS_RANK_WIDGET_IDS, DORM_ATTENDANCE_WIDGET_IDS, STUDENT_INFO_WIDGET_IDS, STUDENT_LEAVE_WIDGET_IDS, jdyListAll, type JdyRecord } from "@/lib/jdy-api";
+import { JDY_CONFIG, WIDGET_IDS, BEIKE_WIDGET_IDS, SCIENTCE_FEST_WIDGET_IDS, CLASS_RANK_WIDGET_IDS, DORM_ATTENDANCE_WIDGET_IDS, STUDENT_INFO_WIDGET_IDS, STUDENT_LEAVE_WIDGET_IDS, HEALTH_CHECK_WIDGET_IDS, jdyListAll, type JdyRecord } from "@/lib/jdy-api";
 
 export interface ResearchRecord {
   _id: string;
@@ -827,6 +827,132 @@ export function useStudentLeave(filters?: StudentLeaveFilters) {
       return true;
     });
   }, [allRecords, filters?.name, filters?.type, filters?.status, filters?.grade]);
+
+  return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch };
+}
+
+// ── 学生晨午晚检 ──────────────────────────────────────────────────
+
+export interface HealthCheckRecord {
+  _id: string;
+  学期: string;
+  班主任: string;
+  填报日期_日期: string;
+  填报日期_文本: string;
+  上报类型: string;
+  检查情况: string;
+  班级: string;
+  级部: string;
+  年级: string;
+  年级别名: string;
+  班级名称: string;
+  应到学生人数: number;
+  实到学生人数: number;
+  因病缺课学生人数: number;
+  发热姓名: string;
+  发热学生人数: number;
+  发热具体情况说明: string;
+  流感确诊学生姓名: string;
+  流感确诊学生人数: number;
+  流感确诊具体情况说明: string;
+  是否有咽痛流涕咳嗽学生姓名: string;
+  是否有咽痛流涕咳嗽学生数: number;
+  是否有咽痛流涕咳嗽情况说明: string;
+  乏力学生姓名: string;
+  乏力学生数: number;
+  乏力情况说明: string;
+  腹泻学生姓名: string;
+  腹泻学生数: number;
+  腹泻情况说明: string;
+  呼吸困难学生姓名: string;
+  呼吸困难学生数: number;
+  呼吸困难情况说明: string;
+  其他症状学生姓名: string;
+  其他症状学生数: number;
+  其他症状情况说明: string;
+}
+
+export interface HealthCheckFilters {
+  grade: string;
+  className: string;
+  session: string;
+}
+
+function normalizeHealthCheckRecord(r: JdyRecord): HealthCheckRecord {
+  return {
+    _id:                        r._id,
+    学期:                       pickStr(r, HEALTH_CHECK_WIDGET_IDS.学期),
+    班主任:                     pickStr(r, HEALTH_CHECK_WIDGET_IDS.班主任),
+    填报日期_日期:              pickStr(r, HEALTH_CHECK_WIDGET_IDS.填报日期_日期),
+    填报日期_文本:              pickStr(r, HEALTH_CHECK_WIDGET_IDS.填报日期_文本),
+    上报类型:                   pickStr(r, HEALTH_CHECK_WIDGET_IDS.上报类型),
+    检查情况:                   pickStr(r, HEALTH_CHECK_WIDGET_IDS.检查情况),
+    班级:                       pickStr(r, HEALTH_CHECK_WIDGET_IDS.班级),
+    级部:                       pickStr(r, HEALTH_CHECK_WIDGET_IDS.级部),
+    年级:                       pickStr(r, HEALTH_CHECK_WIDGET_IDS.年级),
+    年级别名:                   pickStr(r, HEALTH_CHECK_WIDGET_IDS.年级别名),
+    班级名称:                   pickStr(r, HEALTH_CHECK_WIDGET_IDS.班级名称),
+    应到学生人数:               pickNum(r, HEALTH_CHECK_WIDGET_IDS.应到学生人数),
+    实到学生人数:               pickNum(r, HEALTH_CHECK_WIDGET_IDS.实到学生人数),
+    因病缺课学生人数:           pickNum(r, HEALTH_CHECK_WIDGET_IDS.因病缺课学生人数),
+    发热姓名:                   pickStr(r, HEALTH_CHECK_WIDGET_IDS.发热姓名),
+    发热学生人数:               pickNum(r, HEALTH_CHECK_WIDGET_IDS.发热学生人数),
+    发热具体情况说明:           pickStr(r, HEALTH_CHECK_WIDGET_IDS.发热具体情况说明),
+    流感确诊学生姓名:           pickStr(r, HEALTH_CHECK_WIDGET_IDS.流感确诊学生姓名),
+    流感确诊学生人数:           pickNum(r, HEALTH_CHECK_WIDGET_IDS.流感确诊学生人数),
+    流感确诊具体情况说明:       pickStr(r, HEALTH_CHECK_WIDGET_IDS.流感确诊具体情况说明),
+    是否有咽痛流涕咳嗽学生姓名: pickStr(r, HEALTH_CHECK_WIDGET_IDS.是否有咽痛流涕咳嗽学生姓名),
+    是否有咽痛流涕咳嗽学生数:   pickNum(r, HEALTH_CHECK_WIDGET_IDS.是否有咽痛流涕咳嗽学生数),
+    是否有咽痛流涕咳嗽情况说明: pickStr(r, HEALTH_CHECK_WIDGET_IDS.是否有咽痛流涕咳嗽情况说明),
+    乏力学生姓名:               pickStr(r, HEALTH_CHECK_WIDGET_IDS.乏力学生姓名),
+    乏力学生数:                 pickNum(r, HEALTH_CHECK_WIDGET_IDS.乏力学生数),
+    乏力情况说明:               pickStr(r, HEALTH_CHECK_WIDGET_IDS.乏力情况说明),
+    腹泻学生姓名:               pickStr(r, HEALTH_CHECK_WIDGET_IDS.腹泻学生姓名),
+    腹泻学生数:                 pickNum(r, HEALTH_CHECK_WIDGET_IDS.腹泻学生数),
+    腹泻情况说明:               pickStr(r, HEALTH_CHECK_WIDGET_IDS.腹泻情况说明),
+    呼吸困难学生姓名:           pickStr(r, HEALTH_CHECK_WIDGET_IDS.呼吸困难学生姓名),
+    呼吸困难学生数:             pickNum(r, HEALTH_CHECK_WIDGET_IDS.呼吸困难学生数),
+    呼吸困难情况说明:           pickStr(r, HEALTH_CHECK_WIDGET_IDS.呼吸困难情况说明),
+    其他症状学生姓名:           pickStr(r, HEALTH_CHECK_WIDGET_IDS.其他症状学生姓名),
+    其他症状学生数:             pickNum(r, HEALTH_CHECK_WIDGET_IDS.其他症状学生数),
+    其他症状情况说明:           pickStr(r, HEALTH_CHECK_WIDGET_IDS.其他症状情况说明),
+  };
+}
+
+export function useHealthCheck(filters?: HealthCheckFilters) {
+  const { data: allRecords, isPending, isError, error, refetch } = useQuery({
+    queryKey: ["health-check", "list"],
+    queryFn: async () => {
+      const records = await jdyListAll({
+        app_id: JDY_CONFIG.STUDENT_CHEN_WU_WAN_JIAN.app_id,
+        entry_id: JDY_CONFIG.STUDENT_CHEN_WU_WAN_JIAN.entry_id,
+        pageSize: 100,
+        maxPages: 50,
+      });
+      return records.map(normalizeHealthCheckRecord);
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 60_000,
+  });
+
+  const filterOptions = useMemo(() => {
+    if (!allRecords) return { grades: [] as string[], classNames: [] as string[], sessions: [] as string[] };
+    return {
+      grades:     unique(allRecords.map(r => r.年级).filter(Boolean)),
+      classNames: unique(allRecords.map(r => r.班级名称).filter(Boolean)),
+      sessions:   unique(allRecords.map(r => r.检查情况).filter(Boolean)),
+    };
+  }, [allRecords]);
+
+  const raw = useMemo((): HealthCheckRecord[] => {
+    if (!allRecords) return [];
+    return allRecords.filter(r => {
+      if (filters?.grade     && r.年级 !== filters.grade)         return false;
+      if (filters?.className && r.班级名称 !== filters.className) return false;
+      if (filters?.session   && r.检查情况 !== filters.session)   return false;
+      return true;
+    });
+  }, [allRecords, filters?.grade, filters?.className, filters?.session]);
 
   return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch };
 }

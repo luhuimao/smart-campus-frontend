@@ -3,10 +3,10 @@
 import { Users, PlusCircle, User, Bell, Menu, RefreshCw, ArrowUpDown, Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
-import { useStudentInfo, useStudentLeave, type StudentInfoFilters, type StudentLeaveFilters } from "@/hooks/use-research-dashboard";
+import { useStudentInfo, useStudentLeave, useHealthCheck, type StudentInfoFilters, type StudentLeaveFilters, type HealthCheckFilters } from "@/hooks/use-research-dashboard";
 import { DashboardTable } from "@/components/ui/DashboardTable";
 import type { ColumnDef } from "@/components/ui/DashboardTable";
-import type { StudentInfoRecord, StudentLeaveRecord } from "@/hooks/use-research-dashboard";
+import type { StudentInfoRecord, StudentLeaveRecord, HealthCheckRecord } from "@/hooks/use-research-dashboard";
 
 // ── StudentInfoDrawer ────────────────────────────────────────────
 function StudentInfoDrawer({ record, onClose }: { record: StudentInfoRecord | null; onClose: () => void }) {
@@ -284,6 +284,125 @@ function StudentLeaveDrawer({ record, onClose }: { record: StudentLeaveRecord | 
   );
 }
 
+// ── HealthCheckDrawer ────────────────────────────────────────────
+function HealthCheckDrawer({ record, onClose }: { record: HealthCheckRecord | null; onClose: () => void }) {
+  useEffect(() => {
+    if (!record) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [record, onClose]);
+
+  function numCell(v: number) { return v > 0 ? String(v) : "0"; }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 transition-opacity duration-300"
+        style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
+        onClick={onClose} />
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+        style={{
+          width: 520, maxWidth: "100vw", background: "#fff",
+          transform: record ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)",
+        }}>
+        {record && (
+          <>
+            <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+              <div className="flex-1 min-w-0 pr-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-semibold text-blue-500">{record.学期 || "—"}</span>
+                  {record.检查情况 && (
+                    <>
+                      <span className="text-xs text-gray-300">·</span>
+                      <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold"
+                        style={{ background: record.检查情况==="晨检"?"rgba(59,130,246,0.1)":record.检查情况==="午检"?"rgba(245,158,11,0.1)":"rgba(139,92,246,0.1)", color: record.检查情况==="晨检"?"#2563eb":record.检查情况==="午检"?"#d97706":"#7c3aed" }}>
+                        {record.检查情况}
+                      </span>
+                    </>
+                  )}
+                </div>
+                <h2 className="text-base font-bold text-gray-900 leading-snug">{record.班级名称 || record.班级 || "—"}</h2>
+              </div>
+              <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">班级信息</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[
+                    { label: "年级",     value: record.年级 },
+                    { label: "级部",     value: record.级部 },
+                    { label: "班级名称", value: record.班级名称 },
+                    { label: "班主任",   value: record.班主任 },
+                    { label: "填报日期", value: record.填报日期_文本 || record.填报日期_日期?.slice(0, 10) },
+                    { label: "上报类型", value: record.上报类型 },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium text-gray-800">{value || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">出勤情况</p>
+                <div className="grid grid-cols-3 gap-x-6 gap-y-4">
+                  {[
+                    { label: "应到人数",     value: String(record.应到学生人数 ?? 0) },
+                    { label: "实到人数",     value: String(record.实到学生人数 ?? 0) },
+                    { label: "因病缺课人数", value: numCell(record.因病缺课学生人数) },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium text-gray-800">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              {[
+                { title: "发热",         count: record.发热学生人数,               names: record.发热姓名,                   desc: record.发热具体情况说明 },
+                { title: "流感确诊",     count: record.流感确诊学生人数,           names: record.流感确诊学生姓名,           desc: record.流感确诊具体情况说明 },
+                { title: "咽痛流涕咳嗽", count: record.是否有咽痛流涕咳嗽学生数,   names: record.是否有咽痛流涕咳嗽学生姓名, desc: record.是否有咽痛流涕咳嗽情况说明 },
+                { title: "乏力",         count: record.乏力学生数,                 names: record.乏力学生姓名,               desc: record.乏力情况说明 },
+                { title: "腹泻",         count: record.腹泻学生数,                 names: record.腹泻学生姓名,               desc: record.腹泻情况说明 },
+                { title: "呼吸困难",     count: record.呼吸困难学生数,             names: record.呼吸困难学生姓名,           desc: record.呼吸困难情况说明 },
+                { title: "其他症状",     count: record.其他症状学生数,             names: record.其他症状学生姓名,           desc: record.其他症状情况说明 },
+              ].filter(s => s.count > 0 || s.names || s.desc).map(({ title, count, names, desc }) => (
+                <section key={title}>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">{title}</p>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                    <div>
+                      <p className="text-sm text-gray-400 mb-0.5">人数</p>
+                      <p className="text-base font-medium" style={{ color: count > 0 ? "#dc2626" : "#374151" }}>{count}</p>
+                    </div>
+                    {names && (
+                      <div>
+                        <p className="text-sm text-gray-400 mb-0.5">学生姓名</p>
+                        <p className="text-base font-medium text-gray-800">{names}</p>
+                      </div>
+                    )}
+                    {desc && (
+                      <div className="col-span-2">
+                        <p className="text-sm text-gray-400 mb-0.5">情况说明</p>
+                        <p className="text-base text-gray-800 leading-relaxed whitespace-pre-wrap">{desc}</p>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
 const glass = {
   background: "rgba(255,255,255,0.7)",
   backdropFilter: "blur(20px)",
@@ -460,6 +579,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [hvUnreport, setHvUnreport] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<StudentInfoRecord | null>(null);
   const [selectedLeave, setSelectedLeave] = useState<StudentLeaveRecord | null>(null);
+  const [selectedHealthCheck, setSelectedHealthCheck] = useState<HealthCheckRecord | null>(null);
 
   // ── 学生基础信息 filters & data ──
   const [pendingName, setPendingName] = useState("");
@@ -485,6 +605,17 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const totalLeave = leaveRows.length;
   const pagedLeave = leaveRows.slice((leavePage - 1) * leavePageSize, leavePage * leavePageSize);
 
+  // ── 学生晨午检 filters & data ──
+  const [healthPage, setHealthPage] = useState(1);
+  const [healthPageSize, setHealthPageSize] = useState(20);
+  const [healthSortAsc, setHealthSortAsc] = useState(false);
+  const healthFilters = useMemo<HealthCheckFilters>(() => ({
+    grade: "", className: "", session: "",
+  }), []);
+  const { raw: healthRows, isPending: healthPending, isError: healthError } = useHealthCheck(healthFilters);
+  const totalHealth = healthRows.length;
+  const pagedHealth = healthRows.slice((healthPage - 1) * healthPageSize, healthPage * healthPageSize);
+
   const leaveCols = useMemo((): ColumnDef<StudentLeaveRecord>[] => [
     { key: "请假学生姓名", header: "请假人", render: r => <span className="font-semibold whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.请假学生姓名 || "—"}</span> },
     { key: "请假类型", header: "请假类型", render: r => r.请假类型 ? (
@@ -507,6 +638,31 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
     { key: "请假学生年级", header: "年级", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.请假学生年级 || "—"}</span> },
     { key: "请假学生班级", header: "班级", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.请假学生班级 || "—"}</span> },
     { key: "班主任", header: "班主任", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.班主任 || "—"}</span> },
+    { key: "学期", header: "学期", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.学期 || "—"}</span> },
+  ], []);
+
+  const healthCheckCols = useMemo((): ColumnDef<HealthCheckRecord>[] => [
+    { key: "班级名称", header: "班级名称", render: r => <span className="font-semibold whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.班级名称 || r.班级 || "—"}</span> },
+    { key: "年级", header: "年级", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.年级 || "—"}</span> },
+    { key: "级部", header: "级部", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.级部 || "—"}</span> },
+    { key: "班主任", header: "班主任", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.班主任 || "—"}</span> },
+    { key: "检查情况", header: "晨午晚检", render: r => r.检查情况 ? (
+      <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
+        style={{ background: r.检查情况==="晨检"?"rgba(59,130,246,0.1)":r.检查情况==="午检"?"rgba(245,158,11,0.1)":"rgba(139,92,246,0.1)", color: r.检查情况==="晨检"?"#2563eb":r.检查情况==="午检"?"#d97706":"#7c3aed" }}>
+        {r.检查情况}
+      </span>
+    ) : <span className="text-gray-300">—</span> },
+    { key: "填报日期_文本", header: "填报日期", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.填报日期_文本 || r.填报日期_日期?.slice(0, 10) || "—"}</span> },
+    { key: "应到学生人数", header: "应到人数", render: r => <span className="text-center block font-medium" style={{ fontSize: 15, color: "#374151" }}>{r.应到学生人数 ?? "—"}</span> },
+    { key: "实到学生人数", header: "实到人数", render: r => <span className="text-center block font-medium" style={{ fontSize: 15, color: "#059669" }}>{r.实到学生人数 ?? "—"}</span> },
+    { key: "因病缺课学生人数", header: "因病缺课", render: r => <span className="text-center block" style={{ fontSize: 15, color: r.因病缺课学生人数 > 0 ? "#d97706" : "#9ca3af", fontWeight: r.因病缺课学生人数 > 0 ? 600 : 400 }}>{r.因病缺课学生人数}</span> },
+    { key: "发热学生人数", header: "发热", render: r => <span className="text-center block" style={{ fontSize: 15, color: r.发热学生人数 > 0 ? "#dc2626" : "#9ca3af", fontWeight: r.发热学生人数 > 0 ? 700 : 400 }}>{r.发热学生人数}</span> },
+    { key: "流感确诊学生人数", header: "流感确诊", render: r => <span className="text-center block" style={{ fontSize: 15, color: r.流感确诊学生人数 > 0 ? "#dc2626" : "#9ca3af", fontWeight: r.流感确诊学生人数 > 0 ? 700 : 400 }}>{r.流感确诊学生人数}</span> },
+    { key: "是否有咽痛流涕咳嗽学生数", header: "咽痛流涕咳嗽", render: r => <span className="text-center block" style={{ fontSize: 15, color: r.是否有咽痛流涕咳嗽学生数 > 0 ? "#d97706" : "#9ca3af", fontWeight: r.是否有咽痛流涕咳嗽学生数 > 0 ? 600 : 400 }}>{r.是否有咽痛流涕咳嗽学生数}</span> },
+    { key: "乏力学生数", header: "乏力", render: r => <span className="text-center block" style={{ fontSize: 15, color: r.乏力学生数 > 0 ? "#d97706" : "#9ca3af", fontWeight: r.乏力学生数 > 0 ? 600 : 400 }}>{r.乏力学生数}</span> },
+    { key: "腹泻学生数", header: "腹泻", render: r => <span className="text-center block" style={{ fontSize: 15, color: r.腹泻学生数 > 0 ? "#f97316" : "#9ca3af", fontWeight: r.腹泻学生数 > 0 ? 600 : 400 }}>{r.腹泻学生数}</span> },
+    { key: "呼吸困难学生数", header: "呼吸困难", render: r => <span className="text-center block" style={{ fontSize: 15, color: r.呼吸困难学生数 > 0 ? "#dc2626" : "#9ca3af", fontWeight: r.呼吸困难学生数 > 0 ? 700 : 400 }}>{r.呼吸困难学生数}</span> },
+    { key: "其他症状学生数", header: "其他症状", render: r => <span className="text-center block" style={{ fontSize: 15, color: r.其他症状学生数 > 0 ? "#6b7280" : "#9ca3af", fontWeight: r.其他症状学生数 > 0 ? 600 : 400 }}>{r.其他症状学生数}</span> },
     { key: "学期", header: "学期", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.学期 || "—"}</span> },
   ], []);
 
@@ -807,7 +963,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
             </div>
 
             {/* Toolbar — hidden for tabs with their own per-table toolbars, and for tab 0 which uses DashboardTable's built-in toolbar */}
-            {activeTab !== 4 && activeTab !== 2 && activeTab !== 0 && activeTab !== 3 && (
+            {activeTab !== 4 && activeTab !== 2 && activeTab !== 0 && activeTab !== 3 && activeTab !== 1 && (
             <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100"
               style={{ background: "rgba(249,250,251,0.6)" }}
               onMouseEnter={() => setHvTable(true)} onMouseLeave={() => setHvTable(false)}>
@@ -1018,40 +1174,23 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                 </div>
               ) : activeTab === 1 ? (
                 /* ── 学生晨午检 ── */
-                <table className="w-full text-left">
-                  <thead style={{ background: "#eff6ff" }}>
-                    <tr>
-                      {HEALTH_COLS.map(col => (
-                        <th key={col} className="px-4 py-3 font-medium whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{col}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="text-sm divide-y divide-gray-50">
-                    {healthCheckRows.map((row, i) => (
-                      <tr key={i} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{row.grade}</td>
-                        <td className="px-4 py-3 font-semibold text-gray-800 whitespace-nowrap">{row.cls}</td>
-                        <td className="px-4 py-3 text-gray-500">{row.wechat}</td>
-                        <td className="px-4 py-3">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-                            style={{ background: row.session === "晨检" ? "rgba(59,130,246,0.1)" : row.session === "午检" ? "rgba(245,158,11,0.1)" : "rgba(139,92,246,0.1)", color: row.session === "晨检" ? "#2563eb" : row.session === "午检" ? "#d97706" : "#7c3aed" }}>
-                            {row.session}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-center font-medium text-gray-700">{row.total}</td>
-                        <td className="px-4 py-3 text-center font-medium text-gray-700">{row.arrived}</td>
-                        <td className="px-4 py-3 text-center">{row.sick > 0 ? <span className="text-orange-500 font-bold">{row.sick}</span> : <span className="text-gray-300">0</span>}</td>
-                        <td className="px-4 py-3 text-center">{row.fever > 0 ? <span className="text-red-500 font-bold">{row.fever}</span> : <span className="text-gray-300">0</span>}</td>
-                        <td className="px-4 py-3 text-center">{row.flu > 0 ? <span className="text-red-500 font-bold">{row.flu}</span> : <span className="text-gray-300">0</span>}</td>
-                        <td className="px-4 py-3 text-center">{row.throat > 0 ? <span className="text-amber-500 font-bold">{row.throat}</span> : <span className="text-gray-300">0</span>}</td>
-                        <td className="px-4 py-3 text-center">{row.fatigue > 0 ? <span className="text-amber-500 font-bold">{row.fatigue}</span> : <span className="text-gray-300">0</span>}</td>
-                        <td className="px-4 py-3 text-center">{row.diarrhea > 0 ? <span className="text-orange-500 font-bold">{row.diarrhea}</span> : <span className="text-gray-300">0</span>}</td>
-                        <td className="px-4 py-3 text-center">{row.breath > 0 ? <span className="text-red-500 font-bold">{row.breath}</span> : <span className="text-gray-300">0</span>}</td>
-                        <td className="px-4 py-3 text-center">{row.other > 0 ? <span className="text-gray-500 font-bold">{row.other}</span> : <span className="text-gray-300">0</span>}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="-mx-0">
+                  <DashboardTable
+                    title="学生晨午检"
+                    columns={healthCheckCols}
+                    rows={pagedHealth}
+                    isPending={healthPending}
+                    isError={healthError}
+                    sortAsc={healthSortAsc}
+                    onSortToggle={() => { setHealthSortAsc(v => !v); setHealthPage(1); }}
+                    page={healthPage}
+                    pageSize={healthPageSize}
+                    totalRows={totalHealth}
+                    onPageChange={setHealthPage}
+                    onPageSizeChange={n => { setHealthPageSize(n); setHealthPage(1); }}
+                    onRowClick={setSelectedHealthCheck}
+                  />
+                </div>
               ) : activeTab === 3 ? (
                 /* ── 学生请假数据 ── */
                 <div className="-mx-0">
@@ -1177,6 +1316,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
 
       <StudentInfoDrawer record={selectedStudent} onClose={() => setSelectedStudent(null)} />
       <StudentLeaveDrawer record={selectedLeave} onClose={() => setSelectedLeave(null)} />
+      <HealthCheckDrawer record={selectedHealthCheck} onClose={() => setSelectedHealthCheck(null)} />
     </div>
   );
 }
