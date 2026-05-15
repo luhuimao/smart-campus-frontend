@@ -156,6 +156,25 @@ export const STUDENT_LEAVE_WIDGET_IDS = {
   申请时间:       "created_at",
 } as const;
 
+export const STUDENT_SCORE_WIDGET_IDS = {
+  学期:     "_widget_1776782095344",
+  考试名称: "_widget_1776782095351",
+  班级:     "_widget_1776782095362",
+  学生姓名: "_widget_1776782095356",
+  总分:     "_widget_1778769330337",
+  总分排名: "_widget_1778769330338",
+  语文成绩: "_widget_1778769330339",
+  数学成绩: "_widget_1778769330340",
+  英语成绩: "_widget_1778769330341",
+  物理成绩: "_widget_1778769330342",
+  历史成绩: "_widget_1778769330343",
+  化学成绩: "_widget_1778769330344",
+  生物成绩: "_widget_1778769330345",
+  政治成绩: "_widget_1778769330346",
+  地理成绩: "_widget_1778769330347",
+  日语成绩: "_widget_1778769330348",
+} as const;
+
 export const STUDENT_INFO_WIDGET_IDS = {
   学籍状态_教务: "student_status",
   学籍状态_运营: "student_status_two",

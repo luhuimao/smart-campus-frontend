@@ -1,112 +1,100 @@
 {
   "widgets": [
     {
-      "name": "id",
-      "widgetName": "_widget_1736497732438",
-      "label": "工作流id",
-      "type": "text"
-    },
-    {
-      "name": "term",
-      "widgetName": "_widget_1764752696000",
+      "name": "_widget_1776782095344",
+      "widgetName": "_widget_1776782095344",
       "label": "学期",
+      "type": "combo"
+    },
+    {
+      "name": "_widget_1776782095351",
+      "widgetName": "_widget_1776782095351",
+      "label": "考试名称",
       "type": "text"
     },
     {
-      "name": "name",
-      "widgetName": "_widget_1736497732446",
-      "label": "请假学生姓名",
-      "type": "text"
+      "name": "_widget_1776782095362",
+      "widgetName": "_widget_1776782095362",
+      "label": "班级",
+      "type": "combo"
     },
     {
-      "name": "code",
-      "widgetName": "_widget_1752826962795",
-      "label": "宏德学号",
-      "type": "text"
+      "name": "_widget_1776782095356",
+      "widgetName": "_widget_1776782095356",
+      "label": "学生姓名",
+      "type": "combo"
     },
     {
-      "name": "type",
-      "widgetName": "_widget_1736497732447",
-      "label": "请假类型",
-      "type": "text"
-    },
-    {
-      "name": "reason",
-      "widgetName": "_widget_1736497732452",
-      "label": "请假原因说明",
-      "type": "text"
-    },
-    {
-      "name": "start_time",
-      "widgetName": "_widget_1736497732449",
-      "label": "请假开始时间",
-      "type": "datetime"
-    },
-    {
-      "name": "end_time",
-      "widgetName": "_widget_1736497732450",
-      "label": "请假结束时间",
-      "type": "datetime"
-    },
-    {
-      "name": "days",
-      "widgetName": "_widget_1736497732451",
-      "label": "请假时长（天数）",
-      "type": "text"
-    },
-    {
-      "name": "days_num",
-      "widgetName": "_widget_1769586037872",
-      "label": "请假时长（天数）-数字",
+      "name": "_widget_1778769330337",
+      "widgetName": "_widget_1778769330337",
+      "label": "总分",
       "type": "number"
     },
     {
-      "name": "grade_name",
-      "widgetName": "_widget_1752826962793",
-      "label": "请假学生年级",
-      "type": "text"
+      "name": "_widget_1778769330338",
+      "widgetName": "_widget_1778769330338",
+      "label": "总分排名",
+      "type": "number"
     },
     {
-      "name": "grade_level",
-      "widgetName": "_widget_1769585817039",
-      "label": "请假学生级部",
-      "type": "text"
+      "name": "_widget_1778769330339",
+      "widgetName": "_widget_1778769330339",
+      "label": "语文成绩",
+      "type": "number"
     },
     {
-      "name": "class_name",
-      "widgetName": "_widget_1752826962794",
-      "label": "请假学生班级",
-      "type": "text"
+      "name": "_widget_1778769330340",
+      "widgetName": "_widget_1778769330340",
+      "label": "数学成绩",
+      "type": "number"
     },
     {
-      "name": "class_teacher",
-      "widgetName": "_widget_1752829824897",
-      "label": "班主任",
-      "type": "text"
+      "name": "_widget_1778769330341",
+      "widgetName": "_widget_1778769330341",
+      "label": "英语成绩",
+      "type": "number"
     },
     {
-      "name": "class_teacher_info",
-      "widgetName": "_widget_1769585817038",
-      "label": "班主任（企微）",
-      "type": "user"
+      "name": "_widget_1778769330342",
+      "widgetName": "_widget_1778769330342",
+      "label": "物理成绩",
+      "type": "number"
     },
     {
-      "name": "grade_level_director_info",
-      "widgetName": "_widget_1769585817040",
-      "label": "级部主任（企微）",
-      "type": "user"
+      "name": "_widget_1778769330343",
+      "widgetName": "_widget_1778769330343",
+      "label": "历史成绩",
+      "type": "number"
     },
     {
-      "name": "status",
-      "widgetName": "_widget_1736497732441",
-      "label": "状态",
-      "type": "text"
+      "name": "_widget_1778769330344",
+      "widgetName": "_widget_1778769330344",
+      "label": "化学成绩",
+      "type": "number"
     },
     {
-      "name": "created_at",
-      "widgetName": "_widget_1752568842867",
-      "label": "申请时间",
-      "type": "datetime"
+      "name": "_widget_1778769330345",
+      "widgetName": "_widget_1778769330345",
+      "label": "生物成绩",
+      "type": "number"
+    },
+    {
+      "name": "_widget_1778769330346",
+      "widgetName": "_widget_1778769330346",
+      "label": "政治成绩",
+      "type": "number"
+    },
+    {
+      "name": "_widget_1778769330347",
+      "widgetName": "_widget_1778769330347",
+      "label": "地理成绩",
+      "type": "number"
+    },
+    {
+      "name": "_widget_1778769330348",
+      "widgetName": "_widget_1778769330348",
+      "label": "日语成绩",
+      "type": "number"
     }
   ],
   "sysWidgets": [
@@ -129,5 +117,5 @@
       "name": "deleteTime"
     }
   ],
-  "dataModifyTime": "2026-05-15T08:31:13.451Z"
+  "dataModifyTime": "2026-05-12T07:26:02.720Z"
 }
