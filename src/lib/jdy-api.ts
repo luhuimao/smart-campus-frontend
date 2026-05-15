@@ -256,6 +256,22 @@ export const STUDENT_RETURN_SCHOOL_WIDGET_IDS = {
   流失学生人数:             "_widget_1736929837086",
   流失学生具体情况说明:     "_widget_1736929837087",
 } as const;
+//学生资助情况表
+export const STUDENT_SUPPORT_STATUS_WIDGET_IDS = {
+  年级:         "_widget_1752721677360",
+  班级名称:     "_widget_1752721677363",
+  学生姓名:     "_widget_1752723308848",
+  学生学号:     "_widget_1554887983375",
+  性别:         "_widget_1752721677362",
+  家长姓名:     "_widget_1554887983507",
+  手机号码:     "_widget_1554887983554",
+  当前学期:     "_widget_1554887983250",
+  发放学期:     "_widget_1554887983265",
+  资助项目名称: "_widget_1752721677359",
+  资助单位:     "_widget_1554887983826",
+  资助金额:     "_widget_1554887983871",
+  备注:         "_widget_1554887983992",
+} as const;
 //学生花名册
 export const STUDENT_INFO_WIDGET_IDS = {
   学籍状态_教务: "student_status",
