@@ -189,6 +189,101 @@ function StudentInfoDrawer({ record, onClose }: { record: StudentInfoRecord | nu
   );
 }
 
+// ── StudentLeaveDrawer ───────────────────────────────────────────
+function StudentLeaveDrawer({ record, onClose }: { record: StudentLeaveRecord | null; onClose: () => void }) {
+  useEffect(() => {
+    if (!record) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [record, onClose]);
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 transition-opacity duration-300"
+        style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
+        onClick={onClose} />
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+        style={{
+          width: 480, maxWidth: "100vw", background: "#fff",
+          transform: record ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)",
+        }}>
+        {record && (
+          <>
+            <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+              <div className="flex-1 min-w-0 pr-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-semibold text-blue-500">{record.学期 || "—"}</span>
+                  {record.请假类型 && (
+                    <>
+                      <span className="text-xs text-gray-300">·</span>
+                      <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold"
+                        style={{ background: record.请假类型==="病假"?"rgba(239,68,68,0.1)":record.请假类型==="事假"?"rgba(245,158,11,0.1)":"rgba(99,102,241,0.1)", color: record.请假类型==="病假"?"#dc2626":record.请假类型==="事假"?"#d97706":"#4f46e5" }}>
+                        {record.请假类型}
+                      </span>
+                    </>
+                  )}
+                </div>
+                <h2 className="text-base font-bold text-gray-900 leading-snug">{record.请假学生姓名 || "—"}</h2>
+              </div>
+              <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">学生信息</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[
+                    { label: "姓名",     value: record.请假学生姓名 },
+                    { label: "宏德学号", value: record.宏德学号 },
+                    { label: "年级",     value: record.请假学生年级 },
+                    { label: "级部",     value: record.请假学生级部 },
+                    { label: "班级",     value: record.请假学生班级 },
+                    { label: "班主任",   value: record.班主任 },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium text-gray-800">{value || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">请假信息</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[
+                    { label: "请假类型",     value: record.请假类型 },
+                    { label: "请假时长（天）", value: record.请假时长_数字 ? String(record.请假时长_数字) : record.请假时长_文本 },
+                    { label: "开始时间",     value: record.请假开始时间 ? record.请假开始时间.slice(0, 16) : "" },
+                    { label: "结束时间",     value: record.请假结束时间 ? record.请假结束时间.slice(0, 16) : "" },
+                    { label: "申请时间",     value: record.申请时间 ? record.申请时间.slice(0, 16) : "" },
+                    { label: "状态",         value: record.状态 },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium text-gray-800">{value || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              {record.请假原因说明 && (
+                <section>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">请假原因说明</p>
+                  <p className="text-base text-gray-800 leading-relaxed whitespace-pre-wrap">{record.请假原因说明}</p>
+                </section>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
 const glass = {
   background: "rgba(255,255,255,0.7)",
   backdropFilter: "blur(20px)",
@@ -364,6 +459,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [hvReturn, setHvReturn] = useState(false);
   const [hvUnreport, setHvUnreport] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<StudentInfoRecord | null>(null);
+  const [selectedLeave, setSelectedLeave] = useState<StudentLeaveRecord | null>(null);
 
   // ── 学生基础信息 filters & data ──
   const [pendingName, setPendingName] = useState("");
@@ -972,6 +1068,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     totalRows={totalLeave}
                     onPageChange={setLeavePage}
                     onPageSizeChange={n => { setLeavePageSize(n); setLeavePage(1); }}
+                    onRowClick={setSelectedLeave}
                   />
                 </div>
               ) : activeTab === 5 ? (
@@ -1079,6 +1176,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
       </div>
 
       <StudentInfoDrawer record={selectedStudent} onClose={() => setSelectedStudent(null)} />
+      <StudentLeaveDrawer record={selectedLeave} onClose={() => setSelectedLeave(null)} />
     </div>
   );
 }
