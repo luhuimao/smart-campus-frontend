@@ -2,46 +2,47 @@
 
 import {
   Users, Building2, FileText, TrendingUp, Plus,
-  RefreshCw, ArrowUpDown, Maximize2, Upload, Printer, PieChart,
+  RefreshCw, Maximize2, Upload, PieChart,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { PageHeader } from "./PageHeader";
 import type { PageKey } from "@/app/page";
+import { useDormAttendance } from "@/hooks/use-research-dashboard";
+import type { DormAttendanceFilters, DormAttendanceRecord } from "@/hooks/use-research-dashboard";
+import { DashboardTable, PhotoList, ImageLightbox } from "./ui/DashboardTable";
+import type { ColumnDef } from "./ui/DashboardTable";
 
 // ── mock data ───────────────────────────────────────────────────
-const FILTER_DEFS = [
-  { label: "宿舍区",  options: ["全部", "佳慧楼", "自强楼", "自立楼"] },
-  { label: "检查项",  options: ["全部", "卫生检查", "纪律检查", "安全检查"] },
-  { label: "宿舍号",  options: ["全部", "101", "102", "201", "202", "301"] },
-  { label: "扣分项",  options: ["全部", "地面不洁", "被褥不整", "私接电源", "违规物品"] },
-  { label: "检查人",  options: ["全部", "李老师", "王老师", "张老师"] },
-  { label: "扣分分值", options: ["全部", "1分", "2分", "3分", "5分"] },
-];
-
-const TIME_OPTIONS = ["本周", "本月", "本学期", "上学期", "自定义"];
-
 const BUILDING_STATS = [
   { label: "佳慧楼总扣分", value: 23, color: "#8b5cf6" },
   { label: "自强楼总扣分", value: 17, color: "#6366f1" },
   { label: "自立楼总扣分", value: 31, color: "#7c3aed" },
 ];
 
-const mockDeductions = [
-  { id: 1,  dorm: "A101", building: "佳慧楼", scene: "宿舍", stuId: "20240101", stuName: "张伟",   checkItem: "卫生检查", reason: "地面不洁",   score: 2, desc: "地面有明显污渍，未及时清扫",         photo: "有", phone: "13800001001", time: "2026-04-25 09:10" },
-  { id: 2,  dorm: "B202", building: "自强楼", scene: "宿舍", stuId: "20240215", stuName: "李晓明",  checkItem: "纪律检查", reason: "违规物品",   score: 5, desc: "宿舍内发现违禁电器，已没收",         photo: "有", phone: "13800001002", time: "2026-04-25 10:30" },
-  { id: 3,  dorm: "C301", building: "自立楼", scene: "宿舍", stuId: "20240322", stuName: "王芳",    checkItem: "卫生检查", reason: "被褥不整",   score: 1, desc: "被褥未叠放整齐",                   photo: "无", phone: "13800001003", time: "2026-04-24 14:00" },
-  { id: 4,  dorm: "A102", building: "佳慧楼", scene: "宿舍", stuId: "20240408", stuName: "陈志远",  checkItem: "安全检查", reason: "私接电源",   score: 3, desc: "私自拉接插线板，存在安全隐患",       photo: "有", phone: "13800001004", time: "2026-04-24 15:20" },
-  { id: 5,  dorm: "B201", building: "自强楼", scene: "宿舍", stuId: "20240533", stuName: "刘静",    checkItem: "卫生检查", reason: "地面不洁",   score: 2, desc: "垃圾未及时清理，气味较重",           photo: "有", phone: "13800001005", time: "2026-04-23 09:00" },
-  { id: 6,  dorm: "C303", building: "自立楼", scene: "宿舍", stuId: "20240619", stuName: "赵磊",    checkItem: "纪律检查", reason: "违规物品",   score: 5, desc: "发现烟草制品，已上报处理",           photo: "有", phone: "13800001006", time: "2026-04-23 11:15" },
-  { id: 7,  dorm: "A103", building: "佳慧楼", scene: "宿舍", stuId: "20240724", stuName: "孙丽",    checkItem: "卫生检查", reason: "被褥不整",   score: 1, desc: "枕头凌乱，床单有褶皱",              photo: "无", phone: "13800001007", time: "2026-04-22 08:40" },
-  { id: 8,  dorm: "B203", building: "自强楼", scene: "宿舍", stuId: "20240831", stuName: "周建国",  checkItem: "安全检查", reason: "私接电源",   score: 3, desc: "使用大功率充电宝，违反用电规定",     photo: "有", phone: "13800001008", time: "2026-04-22 16:00" },
-  { id: 9,  dorm: "C302", building: "自立楼", scene: "走廊", stuId: "20240912", stuName: "吴雪",    checkItem: "纪律检查", reason: "大声喧哗",   score: 2, desc: "夜间熄灯后走廊嬉闹，影响他人休息",   photo: "无", phone: "13800001009", time: "2026-04-21 22:15" },
-  { id: 10, dorm: "A104", building: "佳慧楼", scene: "宿舍", stuId: "20241005", stuName: "郑浩然",  checkItem: "卫生检查", reason: "窗台积灰",   score: 1, desc: "窗台及桌面积灰严重，未定期擦拭",     photo: "无", phone: "13800001010", time: "2026-04-21 10:00" },
-  { id: 11, dorm: "B204", building: "自强楼", scene: "宿舍", stuId: "20241118", stuName: "何婷",    checkItem: "安全检查", reason: "门窗未锁",   score: 2, desc: "外出时宿舍门未上锁，存在财物安全隐患", photo: "有", phone: "13800001011", time: "2026-04-20 17:30" },
-  { id: 12, dorm: "C304", building: "自立楼", scene: "宿舍", stuId: "20241223", stuName: "林俊杰",  checkItem: "卫生检查", reason: "垃圾溢桶",   score: 2, desc: "垃圾桶已满未及时清倒",              photo: "有", phone: "13800001012", time: "2026-04-20 09:45" },
-];
+const TIME_OPTIONS = ["本周", "本月", "本学期", "上学期", "自定义"];
 
-const TABLE_COLS = ["序号", "宿舍号", "宿舍楼栋", "场景", "学生编号", "学生姓名", "检查项", "扣分项", "扣分", "违纪情况说明", "违纪图片", "提交人手机号", "提交时间"];
+function formatSubmitTime(raw: string): string {
+  if (!raw) return "—";
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return raw;
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffHour = Math.floor(diffMs / 3600000);
+  const diffDay = Math.floor(diffMs / 86400000);
+  const hhmm = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  const isSameDay = d.toDateString() === now.toDateString();
+  const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
+  const isYesterday = d.toDateString() === yesterday.toDateString();
+  if (diffMin < 1) return "刚刚";
+  if (diffMin < 60) return `${diffMin}分钟前`;
+  if (diffHour < 24 && isSameDay) return `今天 ${hhmm}`;
+  if (isYesterday) return `昨天 ${hhmm}`;
+  if (diffDay < 7) return `${diffDay}天前`;
+  const sameYear = d.getFullYear() === now.getFullYear();
+  if (sameYear) return `${d.getMonth() + 1}月${d.getDate()}日 ${hhmm}`;
+  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+}
 
 // ── shared filter operator dropdown style ───────────────────────
 const opStyle: React.CSSProperties = {
@@ -58,25 +59,44 @@ const valueSelectStyle: React.CSSProperties = {
   paddingRight: "1.6rem", appearance: "none" as const,
 };
 
-// ── inline FilterCard ───────────────────────────────────────────
-function FilterCard({ label, options }: { label: string; options: string[] }) {
-  const [op, setOp] = useState("等于");
-  const hideValue = op === "为空" || op === "不为空";
+// ── inline filter bar ──────────────────────────────────────────
+const filterBarSelectStyle: React.CSSProperties = {
+  backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")",
+  backgroundRepeat: "no-repeat", backgroundPosition: "right 0.5rem center", backgroundSize: "0.75rem",
+  paddingRight: "1.6rem", appearance: "none" as const,
+};
+
+function FilterBar({ defs, values, onChange, onClear }: {
+  defs: { key: string; label: string; options: string[] }[];
+  values: Record<string, string>;
+  onChange: (key: string, v: string) => void;
+  onClear: () => void;
+}) {
+  const hasAny = defs.some(d => values[d.key]);
   return (
-    <div className="glass px-4 pt-3 pb-4 rounded-[20px] flex flex-col gap-2.5">
-      <div className="flex items-center gap-1.5 min-w-0">
-        <p className="text-sm font-semibold text-gray-800 flex-1 min-w-0 truncate">{label}</p>
-        <select value={op} onChange={e => setOp(e.target.value)} style={opStyle}
-          className="shrink-0 text-xs font-semibold text-gray-500 bg-black/[0.04] hover:bg-black/[0.07] transition-colors">
-          {["等于","不等于","包含","不包含","为空","不为空"].map(o => <option key={o}>{o}</option>)}
-        </select>
-      </div>
-      <div className="overflow-hidden transition-all duration-200" style={{ maxHeight: hideValue ? 0 : 60, opacity: hideValue ? 0 : 1 }}>
-        <select className="w-full appearance-none bg-white/40 border-none rounded-xl px-3 py-2 text-sm font-semibold text-gray-700 outline-none cursor-pointer"
-          style={valueSelectStyle}>
-          {options.map(o => <option key={o}>{o}</option>)}
-        </select>
-      </div>
+    <div className="glass rounded-[20px] px-4 py-3 flex items-center gap-3 flex-wrap">
+      {defs.map(({ key, label, options }) => (
+        <div key={key} className="flex items-center gap-1.5 min-w-0">
+          <span className="text-xs font-semibold text-gray-400 shrink-0">{label}</span>
+          <select
+            value={values[key] ?? ""}
+            onChange={e => onChange(key, e.target.value)}
+            className="appearance-none bg-white/60 border border-gray-200/60 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-gray-700 outline-none cursor-pointer hover:bg-white/80 transition-colors"
+            style={filterBarSelectStyle}
+          >
+            <option value="">全部</option>
+            {options.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </div>
+      ))}
+      {hasAny && (
+        <button
+          onClick={onClear}
+          className="ml-auto text-xs font-semibold text-gray-400 hover:text-gray-600 transition-colors px-2 py-1 rounded-lg hover:bg-black/[0.04]"
+        >
+          清除全部
+        </button>
+      )}
     </div>
   );
 }
@@ -156,16 +176,267 @@ function TiltCard({ title, children, actions, className = "" }: {
   );
 }
 
+// ── DormAttendanceDrawer ────────────────────────────────────────
+function DormAttendanceDrawer({ record, onClose }: { record: DormAttendanceRecord | null; onClose: () => void }) {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!record) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [record, onClose]);
+
+  const scoreColor = record
+    ? record.扣分 >= 3 ? "#dc2626" : record.扣分 >= 1 ? "#d97706" : "#6b7280"
+    : "#6b7280";
+  const scoreBg = record
+    ? record.扣分 >= 3 ? "rgba(239,68,68,0.08)" : record.扣分 >= 1 ? "rgba(245,158,11,0.08)" : "rgba(107,114,128,0.06)"
+    : "rgba(107,114,128,0.06)";
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 transition-opacity duration-300"
+        style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
+        onClick={onClose} />
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+        style={{
+          width: 480, maxWidth: "100vw", background: "#fff",
+          transform: record ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)",
+        }}>
+        {record && (
+          <>
+            {/* header */}
+            <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+              <div className="flex-1 min-w-0 pr-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-semibold text-indigo-500">{record.宿舍楼栋 || "—"}</span>
+                  <span className="text-xs text-gray-300">·</span>
+                  <span className="text-xs font-semibold text-gray-500">{record.宿舍号 || "—"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-bold text-gray-900 leading-snug">{record.学生姓名 || "—"}</h2>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold"
+                    style={{ background: scoreBg, color: scoreColor }}>
+                    {record.扣分 ? `-${record.扣分}分` : "—"}
+                  </span>
+                </div>
+              </div>
+              <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            {/* body */}
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">学生信息</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[
+                    { label: "学生编号", value: record.学生编号 },
+                    { label: "年级",     value: record.年级 },
+                    { label: "级部",     value: record.级部 },
+                    { label: "班级",     value: record.班级名称 },
+                    { label: "班主任",   value: record.班主任 },
+                    { label: "级部主任", value: record.级部主任 },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium text-gray-800">{value || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">宿舍信息</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[
+                    { label: "宿舍楼栋", value: record.宿舍楼栋 },
+                    { label: "宿舍号",   value: record.宿舍号 },
+                    { label: "场景",     value: record.场景 },
+                    { label: "学期",     value: record.学期 },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium text-gray-800">{value || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">扣分详情</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[
+                    { label: "检查项",       value: record.检查项 },
+                    { label: "扣分项",       value: record.扣分项 },
+                    { label: "扣分",         value: record.扣分 ? `${Math.abs(record.扣分)}分` : "" },
+                    { label: "提交人手机号", value: record.提交人手机号 },
+                    { label: "提交时间",     value: formatSubmitTime(record.提交时间), title: record.提交时间 || undefined },
+                    { label: "学期",         value: record.学期 },
+                  ].map(({ label, value, title }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium text-gray-800" title={title}>{value || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              {record.违纪情况说明 && (
+                <section>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">违纪情况说明</p>
+                  <p className="text-base text-gray-800 leading-relaxed whitespace-pre-wrap">{record.违纪情况说明}</p>
+                </section>
+              )}
+              {record.违纪图片.length > 0 && (
+                <section>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">违纪图片（{record.违纪图片.length} 张）</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {record.违纪图片.map((f, i) => (
+                      <button key={i} onClick={() => setLightboxIndex(i)}
+                        className="block rounded-lg overflow-hidden aspect-square bg-gray-100 hover:opacity-80 transition-opacity cursor-zoom-in">
+                        <img src={f.url} alt={f.name} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+      {lightboxIndex !== null && record && (
+        <ImageLightbox images={record.违纪图片} index={lightboxIndex} onClose={() => setLightboxIndex(null)} />
+      )}
+    </>
+  );
+}
+
 // ── main component ──────────────────────────────────────────────
 export function StudentHomePage({ onMenuOpen, onNavigate }: {
   onMenuOpen?: () => void;
   onNavigate?: (page: PageKey) => void;
 }) {
   const [timePeriod, setTimePeriod] = useState("本周");
+  const [customDateRange, setCustomDateRange] = useState({ start: "", end: "" });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-  const [hvTable, setHvTable] = useState(false);
-  const totalPages = Math.ceil(mockDeductions.length / pageSize);
+  const [sortAsc, setSortAsc] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<DormAttendanceRecord | null>(null);
+  const [activeFilters, setActiveFilters] = useState<DormAttendanceFilters>({
+    semester: "", building: "", checkItem: "", dormNo: "", deductItem: "",
+  });
+
+  const { raw, allRecords, filterOptions, isPending, isError } = useDormAttendance(activeFilters);
+
+  // 级联筛选选项 — 每个筛选器的选项由其他筛选器的当前值决定
+  const cascadingOptions = useMemo(() => {
+    const f = activeFilters;
+    const matchBuilding   = (r: DormAttendanceRecord) => !f.building   || r.宿舍楼栋 === f.building;
+    const matchCheckItem  = (r: DormAttendanceRecord) => !f.checkItem  || r.检查项   === f.checkItem;
+    const matchDormNo     = (r: DormAttendanceRecord) => !f.dormNo     || r.宿舍号   === f.dormNo;
+    const matchDeductItem = (r: DormAttendanceRecord) => !f.deductItem || r.扣分项   === f.deductItem;
+    const uniq = <T,>(arr: T[]) => [...new Set(arr)].filter(Boolean) as NonNullable<T>[];
+    return {
+      buildings:   uniq(allRecords.filter(r => matchCheckItem(r) && matchDormNo(r) && matchDeductItem(r)).map(r => r.宿舍楼栋)),
+      checkItems:  uniq(allRecords.filter(r => matchBuilding(r)  && matchDormNo(r) && matchDeductItem(r)).map(r => r.检查项)),
+      dormNos:     uniq(allRecords.filter(r => matchBuilding(r)  && matchCheckItem(r) && matchDeductItem(r)).map(r => r.宿舍号)),
+      deductItems: uniq(allRecords.filter(r => matchBuilding(r)  && matchCheckItem(r) && matchDormNo(r)).map(r => r.扣分项)),
+    };
+  }, [allRecords, activeFilters.building, activeFilters.checkItem, activeFilters.dormNo, activeFilters.deductItem]);
+
+  // 时间段过滤
+  const timeFiltered = useMemo(() => {
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year  = now.getFullYear();
+
+    let start: Date | null = null;
+    let end:   Date | null = null;
+
+    if (timePeriod === "本周") {
+      const day = now.getDay() === 0 ? 6 : now.getDay() - 1; // Mon=0
+      start = new Date(now); start.setDate(now.getDate() - day); start.setHours(0, 0, 0, 0);
+    } else if (timePeriod === "本月") {
+      start = new Date(year, now.getMonth(), 1);
+    } else if (timePeriod === "本学期") {
+      if (month >= 9)       { start = new Date(year, 8, 1); }
+      else if (month >= 2)  { start = new Date(year, 1, 1); }
+      else                  { start = new Date(year - 1, 8, 1); }
+    } else if (timePeriod === "上学期") {
+      if (month >= 9)       { start = new Date(year, 1, 1);     end = new Date(year, 7, 31, 23, 59, 59); }
+      else if (month >= 2)  { start = new Date(year - 1, 8, 1); end = new Date(year, 0, 31, 23, 59, 59); }
+      else                  { start = new Date(year - 1, 1, 1); end = new Date(year - 1, 7, 31, 23, 59, 59); }
+    }
+
+    if (!start) return raw;
+    return raw.filter(r => {
+      if (!r.提交时间) return false;
+      const d = new Date(r.提交时间);
+      if (isNaN(d.getTime())) return false;
+      if (d < start!) return false;
+      if (end && d > end) return false;
+      return true;
+    });
+  }, [raw, timePeriod]);
+
+  const totalRows = timeFiltered.length;
+  const sorted    = [...timeFiltered].sort((a, b) => sortAsc ? a._id.localeCompare(b._id) : b._id.localeCompare(a._id));
+  const sliced    = sorted.slice((page - 1) * pageSize, page * pageSize);
+
+  // stat cards — derived from time-filtered records
+  const totalDeductions = timeFiltered.reduce((sum, r) => sum + Math.abs(r.扣分), 0);
+  const buildingTotals  = filterOptions.buildings.map(b => ({
+    label: `${b}总扣分`,
+    value: timeFiltered.filter(r => r.宿舍楼栋 === b).reduce((s, r) => s + Math.abs(r.扣分), 0),
+    color: "#8b5cf6",
+  }));
+  const BUILDING_COLORS = ["#8b5cf6", "#6366f1", "#7c3aed", "#a78bfa", "#4f46e5"];
+  const buildingStats = buildingTotals.slice(0, 3).map((b, i) => ({ ...b, color: BUILDING_COLORS[i] }));
+
+  // 扣分类型分布 — group by 扣分项, sort desc, top 6
+  const deductItemDist = (() => {
+    const map: Record<string, number> = {};
+    for (const r of timeFiltered) { if (r.扣分项) map[r.扣分项] = (map[r.扣分项] ?? 0) + 1; }
+    return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  })();
+  const deductItemMax = deductItemDist[0]?.[1] ?? 1;
+
+  const cols: ColumnDef<DormAttendanceRecord>[] = [
+    { key: "宿舍号",     header: "宿舍号",     render: r => <span className="whitespace-nowrap font-semibold" style={{ fontSize: 15, color: "#374151" }}>{r.宿舍号 || "—"}</span> },
+    { key: "宿舍楼栋",   header: "宿舍楼栋",   render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.宿舍楼栋 || "—"}</span> },
+    { key: "场景",       header: "场景",       render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.场景 || "—"}</span> },
+    { key: "学生编号",   header: "学生编号",   render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.学生编号 || "—"}</span> },
+    { key: "学生姓名",   header: "学生姓名",   render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.学生姓名 || "—"}</span> },
+    { key: "检查项",     header: "检查项",     render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.检查项 || "—"}</span> },
+    { key: "扣分项",     header: "扣分项",     render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.扣分项 || "—"}</span> },
+    { key: "扣分",       header: "扣分",       render: r => {
+      const score = Math.abs(r.扣分);
+      if (!score) return <span style={{ fontSize: 15, color: "#9ca3af" }}>—</span>;
+      const high = score >= 5, mid = score >= 3;
+      return (
+        <span className="inline-flex items-center gap-1 whitespace-nowrap">
+          <span className="inline-flex items-center justify-center rounded-md font-black tabular-nums"
+            style={{
+              minWidth: 36, height: 24, fontSize: 13, paddingInline: 6,
+              background: high ? "#fef2f2" : mid ? "#fffbeb" : "#f9fafb",
+              color:      high ? "#dc2626" : mid ? "#d97706" : "#6b7280",
+              border:     `1.5px solid ${high ? "rgba(220,38,38,0.25)" : mid ? "rgba(217,119,6,0.25)" : "rgba(107,114,128,0.15)"}`,
+              boxShadow:  high ? "0 1px 4px rgba(220,38,38,0.12)" : mid ? "0 1px 4px rgba(217,119,6,0.10)" : "none",
+            }}>
+            -{score}
+          </span>
+          {high && <span style={{ fontSize: 10, fontWeight: 700, color: "#dc2626", letterSpacing: "0.02em" }}>严重</span>}
+          {mid && !high && <span style={{ fontSize: 10, fontWeight: 700, color: "#d97706", letterSpacing: "0.02em" }}>警告</span>}
+        </span>
+      );
+    }},
+    { key: "违纪情况说明", header: "违纪情况说明", minWidth: 160, render: r => <span style={{ fontSize: 15, color: r.违纪情况说明 ? "#374151" : "#9ca3af", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }} title={r.违纪情况说明 || undefined}>{r.违纪情况说明 || "—"}</span> },
+    { key: "违纪图片",   header: "违纪图片",   minWidth: 80, render: r => <PhotoList photos={r.违纪图片} /> },
+    { key: "提交人手机号", header: "提交人手机号", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.提交人手机号 || "—"}</span> },
+    { key: "提交时间",   header: "提交时间",   render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }} title={r.提交时间 || undefined}>{formatSubmitTime(r.提交时间)}</span> },
+  ];
 
   const quickEntries: { icon: React.ElementType; label: string; bg: string; color: string; hover: string; target: PageKey | null }[] = [
     { icon: Users,         label: "学生管理看板", bg: "bg-violet-50",  color: "text-violet-600", hover: "group-hover:bg-violet-600",  target: "student-dashboard" },
@@ -174,8 +445,6 @@ export function StudentHomePage({ onMenuOpen, onNavigate }: {
     { icon: TrendingUp,    label: "学情分析",     bg: "bg-fuchsia-50", color: "text-fuchsia-600", hover: "group-hover:bg-fuchsia-600", target: "learning-analysis-table" },
     { icon: Plus,          label: "查看更多",      bg: "bg-gray-50",    color: "text-gray-400",    hover: "group-hover:bg-gray-800",    target: null },
   ];
-
-  const sliced = mockDeductions.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -227,23 +496,26 @@ export function StudentHomePage({ onMenuOpen, onNavigate }: {
             </div>
           </section>
 
-          {/* ── 筛选区（独立一行，6 列平铺）── */}
-          <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {FILTER_DEFS.map(({ label, options }) => (
-              <FilterCard key={label} label={label} options={options} />
-            ))}
-          </section>
+          {/* ── 筛选区 ── */}
+          <FilterBar
+            defs={[
+              { key: "building",   label: "宿舍区", options: cascadingOptions.buildings },
+              { key: "checkItem",  label: "检查项", options: cascadingOptions.checkItems },
+              { key: "dormNo",     label: "宿舍号", options: cascadingOptions.dormNos },
+              { key: "deductItem", label: "扣分项", options: cascadingOptions.deductItems },
+            ]}
+            values={{ building: activeFilters.building, checkItem: activeFilters.checkItem, dormNo: activeFilters.dormNo, deductItem: activeFilters.deductItem }}
+            onChange={(key, v) => { setActiveFilters(f => ({ ...f, [key]: v })); setPage(1); }}
+            onClear={() => { setActiveFilters(f => ({ ...f, building: "", checkItem: "", dormNo: "", deductItem: "" })); setPage(1); }}
+          />
 
           {/* ── 时间筛选 + 统计卡片（独立一行）── */}
           <section className="flex flex-col gap-4">
 
             {/* 扣分时间 */}
             <div className="glass rounded-[20px] px-4 pt-3 pb-4 flex flex-col gap-2.5">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <p className="text-sm font-semibold text-gray-800 flex-1">扣分时间</p>
-                <span className="text-xs font-semibold text-violet-500 cursor-pointer select-none">动态筛选 ▾</span>
-              </div>
-              <div className="flex gap-2 flex-wrap">
+              <p className="text-sm font-semibold text-gray-800">扣分时间</p>
+              <div className="flex gap-2 flex-wrap items-center">
                 {TIME_OPTIONS.map(opt => (
                   <button key={opt} onClick={() => setTimePeriod(opt)}
                     className="px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-150"
@@ -251,127 +523,128 @@ export function StudentHomePage({ onMenuOpen, onNavigate }: {
                     {opt}
                   </button>
                 ))}
+                {timePeriod === "自定义" && (
+                  <div className="flex items-center gap-2 ml-1">
+                    <input
+                      type="date"
+                      value={customDateRange.start}
+                      onChange={e => setCustomDateRange(r => ({ ...r, start: e.target.value }))}
+                      className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm text-gray-700 outline-none focus:border-violet-400 transition-colors bg-white/60"
+                    />
+                    <span className="text-xs text-gray-400">至</span>
+                    <input
+                      type="date"
+                      value={customDateRange.end}
+                      min={customDateRange.start}
+                      onChange={e => setCustomDateRange(r => ({ ...r, end: e.target.value }))}
+                      className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm text-gray-700 outline-none focus:border-violet-400 transition-colors bg-white/60"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
             {/* 4 stat cards 全宽平铺 */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
+              {/* 扣分类型分布 */}
               <TiltCard title="扣分类型分布" actions={[{ Icon: RefreshCw, tip: "刷新" }, { Icon: Maximize2, tip: "放大" }]}>
-                <div className="flex-1 flex flex-col items-center justify-center gap-2">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(139,92,246,0.06)" }}>
-                    <PieChart className="w-6 h-6 text-violet-300" />
-                  </div>
-                  <p className="text-sm text-gray-400">暂无数据</p>
+                <div className="flex-1 flex flex-col justify-center gap-1.5 py-1">
+                  {isPending
+                    ? [80, 60, 45, 30].map((w, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <div className="h-2.5 rounded-full bg-gray-100 animate-pulse" style={{ width: `${w}%` }} />
+                        </div>
+                      ))
+                    : deductItemDist.length === 0
+                      ? <p className="text-sm text-gray-400 text-center">暂无数据</p>
+                      : deductItemDist.map(([label, count], i) => {
+                          const COLORS = ["#818cf8","#60a5fa","#34d399","#f472b6","#fb923c","#a78bfa"];
+                          const color = COLORS[i % COLORS.length];
+                          return (
+                            <div key={label} className="flex items-center gap-2">
+                              <span className="text-xs text-gray-500 shrink-0 text-right overflow-hidden text-ellipsis whitespace-nowrap" style={{ width: 52 }} title={label}>{label}</span>
+                              <div className="flex-1 bg-gray-100 rounded-full overflow-hidden" style={{ height: 9 }}>
+                                <div className="h-full rounded-full transition-all duration-500"
+                                  style={{ width: `${(count / deductItemMax) * 100}%`, background: color }} />
+                              </div>
+                              <span className="text-xs font-bold tabular-nums shrink-0" style={{ width: 18, color, textAlign: "right" }}>{count}</span>
+                            </div>
+                          );
+                        })
+                  }
                 </div>
               </TiltCard>
 
-              {BUILDING_STATS.map(({ label, value, color }) => (
-                <TiltCard key={label} title={label} actions={[{ Icon: Upload, tip: "导出" }, { Icon: Maximize2, tip: "放大" }]}>
-                  <div className="flex-1 flex items-center justify-center">
-                    <span className="font-black leading-none" style={{ fontSize: 72, color }}>{value}</span>
-                  </div>
-                </TiltCard>
-              ))}
+              {/* 总扣分分值 */}
+              <TiltCard title="总扣分分值" actions={[{ Icon: RefreshCw, tip: "刷新" }, { Icon: Maximize2, tip: "放大" }]}>
+                <div className="flex-1 flex items-center justify-center">
+                  {isPending
+                    ? <div className="w-16 h-12 bg-gray-100 rounded-xl animate-pulse" />
+                    : <div className="relative leading-none">
+                        <span className="font-black" style={{ fontSize: 72, color: "#6366f1" }}>{totalDeductions}</span>
+                        <span className="absolute font-semibold text-gray-400" style={{ fontSize: 13, right: -16, bottom: 4 }}>分</span>
+                      </div>
+                  }
+                </div>
+              </TiltCard>
+
+              {/* 各楼栋扣分 — 最多显示 2 栋 */}
+              {isPending
+                ? [0, 1].map(i => (
+                    <TiltCard key={i} title="—" actions={[]}>
+                      <div className="flex-1 flex items-center justify-center">
+                        <div className="w-16 h-12 bg-gray-100 rounded-xl animate-pulse" />
+                      </div>
+                    </TiltCard>
+                  ))
+                : buildingStats.length === 0
+                  ? [0, 1].map(i => (
+                      <TiltCard key={i} title="楼栋扣分" actions={[{ Icon: Maximize2, tip: "放大" }]}>
+                        <div className="flex-1 flex items-center justify-center">
+                          <div className="relative leading-none">
+                            <span className="font-black" style={{ fontSize: 72, color: "#d1d5db" }}>0</span>
+                            <span className="absolute font-semibold text-gray-300" style={{ fontSize: 13, right: -16, bottom: 4 }}>分</span>
+                          </div>
+                        </div>
+                      </TiltCard>
+                    ))
+                  : buildingStats.map(({ label, value, color }) => (
+                      <TiltCard key={label} title={label} actions={[{ Icon: Upload, tip: "导出" }, { Icon: Maximize2, tip: "放大" }]}>
+                        <div className="flex-1 flex items-center justify-center">
+                          <div className="relative leading-none">
+                            <span className="font-black" style={{ fontSize: 72, color }}>{value}</span>
+                            <span className="absolute font-semibold text-gray-400" style={{ fontSize: 13, right: -16, bottom: 4 }}>分</span>
+                          </div>
+                        </div>
+                      </TiltCard>
+                    ))
+              }
 
             </div>
           </section>
 
           {/* ── 扣分明细 table ── */}
-          <section className="glass rounded-[40px] overflow-hidden shadow-sm"
-            onMouseEnter={() => setHvTable(true)} onMouseLeave={() => setHvTable(false)}>
-            <div className="flex items-center justify-between px-8 py-5 border-b border-gray-100/60">
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-4 bg-violet-500 rounded-full" />
-                <h3 className="text-xl font-bold text-gray-700">扣分明细</h3>
-              </div>
-              {hvTable && (
-                <div className="flex items-center gap-0.5">
-                  {([
-                    { Icon: Upload,      tip: "导出" },
-                    { Icon: Printer,     tip: "打印表格" },
-                    { Icon: RefreshCw,   tip: "刷新" },
-                    { Icon: ArrowUpDown, tip: "排序" },
-                    { Icon: Maximize2,   tip: "放大" },
-                  ] as { Icon: React.ElementType; tip: string }[]).map(({ Icon, tip }) => (
-                    <div key={tip} className="relative group/tip">
-                      <button className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-black/[0.06] transition-colors">
-                        <Icon size={14} />
-                      </button>
-                      <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 z-50">
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-800/90" />
-                        <div className="px-2 py-1 bg-gray-800/90 text-white text-xs font-medium rounded-md whitespace-nowrap">{tip}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead style={{ background: "#eff6ff" }}>
-                  <tr>
-                    {TABLE_COLS.map(col => (
-                      <th key={col} className="px-4 py-3 font-medium whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{col}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {sliced.map((row, i) => (
-                    <tr key={row.id} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{(page - 1) * pageSize + i + 1}</td>
-                      <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: "#374151", fontWeight: 600 }}>{row.dorm}</td>
-                      <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{row.building}</td>
-                      <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{row.scene}</td>
-                      <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{row.stuId}</td>
-                      <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{row.stuName}</td>
-                      <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{row.checkItem}</td>
-                      <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{row.reason}</td>
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-                          style={{ background: row.score >= 5 ? "rgba(239,68,68,0.1)" : row.score >= 3 ? "rgba(245,158,11,0.1)" : "rgba(107,114,128,0.08)", color: row.score >= 5 ? "#dc2626" : row.score >= 3 ? "#d97706" : "#6b7280" }}>
-                          -{row.score}分
-                        </span>
-                      </td>
-                      <td className="px-4 py-3" style={{ fontSize: 15, color: "#374151", maxWidth: 160 }} title={row.desc}><span className="block truncate">{row.desc}</span></td>
-                      <td className="px-4 py-3 text-center">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-                          style={{ background: row.photo === "有" ? "rgba(16,185,129,0.08)" : "rgba(0,0,0,0.04)", color: row.photo === "有" ? "#059669" : "#9ca3af" }}>
-                          {row.photo}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{row.phone}</td>
-                      <td className="px-4 py-3 whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{row.time}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* pagination */}
-            <div className="flex flex-wrap justify-between items-center px-4 py-3 border-t border-gray-100" style={{ fontSize: 14, color: "#374151" }}>
-              <div className="flex items-center gap-3">
-                <button className="p-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">📋</button>
-                <div className="flex items-center gap-1">
-                  <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
-                    className="border border-gray-200 rounded-lg px-2 py-1 text-xs outline-none" style={{ color: "#374151" }}>
-                    {[10, 20, 50, 100].map(n => <option key={n} value={n}>{n} 条/页</option>)}
-                  </select>
-                  <span style={{ color: "#6b7280" }}>共 {mockDeductions.length} 条</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <button className="px-2 py-1 border border-gray-200 rounded-lg text-gray-400 hover:bg-gray-50" onClick={() => setPage(p => Math.max(1, p - 1))}>‹</button>
-                <input type="text" value={page} readOnly className="w-8 border border-gray-200 rounded-lg text-center outline-none text-xs" style={{ color: "#374151" }} />
-                <span style={{ color: "#6b7280" }}>/ {totalPages}</span>
-                <button className="px-2 py-1 border border-gray-200 rounded-lg hover:bg-gray-50" style={{ color: "#374151" }} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>›</button>
-              </div>
-            </div>
-          </section>
+          <DashboardTable
+            title="扣分明细"
+            columns={cols}
+            rows={sliced}
+            isPending={isPending}
+            isError={isError}
+            sortAsc={sortAsc}
+            onSortToggle={() => { setSortAsc(v => !v); setPage(1); }}
+            page={page}
+            pageSize={pageSize}
+            totalRows={totalRows}
+            onPageChange={setPage}
+            onPageSizeChange={n => { setPageSize(n); setPage(1); }}
+            onRowClick={setSelectedRecord}
+          />
 
         </main>
       </div>
+
+      <DormAttendanceDrawer record={selectedRecord} onClose={() => setSelectedRecord(null)} />
     </div>
   );
 }
