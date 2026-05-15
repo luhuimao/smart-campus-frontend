@@ -41,6 +41,14 @@ export const JDY_CONFIG = {
     app_id: "6788d444d1eefa169cf74ddc",
     entry_id: "6875fe5bb54b9736c2987d4c",
   },
+  STUDENT_SUPPORT_STATUS: {//一生一案 - 学生资助情况表 app ID，entry ID
+    app_id: "6788d444d1eefa169cf74ddc",
+    entry_id: "687778ddcdb84f994f572b54",
+  },
+  STUDENT_HEART_TO_HEART_TALK: {//一生一案 - 谈心谈话记录表 app ID，entry ID
+    app_id: "6788d444d1eefa169cf74ddc",
+    entry_id: "6923cb96f98d70231e7dfe0c",
+  },
 } as const;
 //教研活动记录
 export const WIDGET_IDS = {
@@ -134,7 +142,6 @@ export const DORM_ATTENDANCE_WIDGET_IDS = {
   file_keys: "file_keys",
   提交时间: "createTime",
 } as const;
-
 //学生请假表
 export const STUDENT_LEAVE_WIDGET_IDS = {
   工作流id: "id",
@@ -331,7 +338,6 @@ export const STUDENT_INFO_WIDGET_IDS = {
   微信OpenID: "wx_open_id",
   提交人: "creator",
 } as const;
-
 
 
 export interface JdyFilterCond {

@@ -701,7 +701,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const studentFilters = useMemo<StudentInfoFilters>(() => ({
     name: nameFilter, className: classFilter, grade: "", status: "",
   }), [nameFilter, classFilter]);
-  const { raw: studentRows, filterOptions: studentFilterOptions, isPending: studentPending, isError: studentError } = useStudentInfo(studentFilters);
+  const { raw: studentRows, filterOptions: studentFilterOptions, isPending: studentPending, isError: studentError } = useStudentInfo(studentFilters, activeTab === 0);
   const totalStudents = studentRows.length;
   const pagedStudents = studentRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
@@ -712,7 +712,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const leaveFilters = useMemo<StudentLeaveFilters>(() => ({
     name: "", type: "", status: "", grade: "",
   }), []);
-  const { raw: leaveRows, isPending: leavePending, isError: leaveError } = useStudentLeave(leaveFilters);
+  const { raw: leaveRows, isPending: leavePending, isError: leaveError } = useStudentLeave(leaveFilters, activeTab === 3);
   const totalLeave = leaveRows.length;
   const pagedLeave = leaveRows.slice((leavePage - 1) * leavePageSize, leavePage * leavePageSize);
 
@@ -723,7 +723,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const healthFilters = useMemo<HealthCheckFilters>(() => ({
     grade: "", className: "", session: "",
   }), []);
-  const { raw: healthRows, isPending: healthPending, isError: healthError } = useHealthCheck(healthFilters);
+  const { raw: healthRows, isPending: healthPending, isError: healthError } = useHealthCheck(healthFilters, activeTab === 1);
   const totalHealth = healthRows.length;
   const pagedHealth = healthRows.slice((healthPage - 1) * healthPageSize, healthPage * healthPageSize);
 
@@ -734,7 +734,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const returnFilters = useMemo<StudentReturnSchoolFilters>(() => ({
     grade: "", className: "", semester: "",
   }), []);
-  const { raw: returnRows, isPending: returnPending, isError: returnError } = useStudentReturnSchool(returnFilters);
+  const { raw: returnRows, isPending: returnPending, isError: returnError } = useStudentReturnSchool(returnFilters, activeTab === 2);
   const totalReturn = returnRows.length;
   const pagedReturn = returnRows.slice((returnPage - 1) * returnPageSize, returnPage * returnPageSize);
 

@@ -704,7 +704,7 @@ function normalizeStudentInfoRecord(r: JdyRecord): StudentInfoRecord {
   };
 }
 
-export function useStudentInfo(filters?: StudentInfoFilters) {
+export function useStudentInfo(filters?: StudentInfoFilters, enabled = true) {
   const { data: allRecords, isPending, isError, error, refetch } = useQuery({
     queryKey: ["student-info", "list"],
     queryFn: async () => {
@@ -718,6 +718,7 @@ export function useStudentInfo(filters?: StudentInfoFilters) {
     },
     staleTime: 10 * 60 * 1000,
     refetchInterval: 5 * 60 * 1000,
+    enabled,
   });
 
   const filterOptions = useMemo(() => {
@@ -792,7 +793,7 @@ function normalizeStudentLeaveRecord(r: JdyRecord): StudentLeaveRecord {
   };
 }
 
-export function useStudentLeave(filters?: StudentLeaveFilters) {
+export function useStudentLeave(filters?: StudentLeaveFilters, enabled = true) {
   const { data: allRecords, isPending, isError, error, refetch } = useQuery({
     queryKey: ["student-leave", "list"],
     queryFn: async () => {
@@ -806,6 +807,7 @@ export function useStudentLeave(filters?: StudentLeaveFilters) {
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: 60_000,
+    enabled,
   });
 
   const filterOptions = useMemo(() => {
@@ -919,7 +921,7 @@ function normalizeHealthCheckRecord(r: JdyRecord): HealthCheckRecord {
   };
 }
 
-export function useHealthCheck(filters?: HealthCheckFilters) {
+export function useHealthCheck(filters?: HealthCheckFilters, enabled = true) {
   const { data: allRecords, isPending, isError, error, refetch } = useQuery({
     queryKey: ["health-check", "list"],
     queryFn: async () => {
@@ -933,6 +935,7 @@ export function useHealthCheck(filters?: HealthCheckFilters) {
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: 60_000,
+    enabled,
   });
 
   const filterOptions = useMemo(() => {
@@ -1033,7 +1036,7 @@ function normalizeStudentReturnSchoolRecord(r: JdyRecord): StudentReturnSchoolRe
   };
 }
 
-export function useStudentReturnSchool(filters?: StudentReturnSchoolFilters) {
+export function useStudentReturnSchool(filters?: StudentReturnSchoolFilters, enabled = true) {
   const { data: allRecords, isPending, isError, error, refetch } = useQuery({
     queryKey: ["student-return-school", "list"],
     queryFn: async () => {
@@ -1047,6 +1050,7 @@ export function useStudentReturnSchool(filters?: StudentReturnSchoolFilters) {
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: 60_000,
+    enabled,
   });
 
   const filterOptions = useMemo(() => {

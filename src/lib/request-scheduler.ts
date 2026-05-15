@@ -47,4 +47,4 @@ class RequestScheduler {
   }
 }
 
-export const scheduler = new RequestScheduler(25);
+export const scheduler = new RequestScheduler(5);
