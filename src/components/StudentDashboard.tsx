@@ -1,8 +1,9 @@
 "use client";
 
 import { Users, PlusCircle, User, Bell, Menu, Upload, Printer, RefreshCw, ArrowUpDown, Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import React from "react";
+import { useStudentInfo, type StudentInfoFilters } from "@/hooks/use-research-dashboard";
 
 const glass = {
   background: "rgba(255,255,255,0.7)",
@@ -178,6 +179,19 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [hvAccess, setHvAccess] = useState(false);
   const [hvReturn, setHvReturn] = useState(false);
   const [hvUnreport, setHvUnreport] = useState(false);
+
+  // ── 学生基础信息 filters & data ──
+  const [pendingName, setPendingName] = useState("");
+  const [pendingClass, setPendingClass] = useState("");
+  const [nameFilter, setNameFilter] = useState("");
+  const [classFilter, setClassFilter] = useState("");
+  const studentFilters = useMemo<StudentInfoFilters>(() => ({
+    name: nameFilter, className: classFilter, grade: "", status: "",
+  }), [nameFilter, classFilter]);
+  const { raw: studentRows, filterOptions: studentFilterOptions, isPending: studentPending, isError: studentError } = useStudentInfo(studentFilters);
+  const totalStudents = studentRows.length;
+  const pagedStudents = studentRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const totalStudentPages = Math.max(1, Math.ceil(totalStudents / pageSize));
   type ActionItem = { Icon: React.ElementType; tip: string };
   const fullActions: ActionItem[] = [{ Icon: Upload, tip: "导出" }, { Icon: Printer, tip: "打印表格" }, { Icon: RefreshCw, tip: "刷新" }, { Icon: ArrowUpDown, tip: "排序" }, { Icon: Maximize2, tip: "放大" }];
   const tableActions: ActionItem[] = activeTab === 3
@@ -361,6 +375,9 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                 <input
                   type="text"
                   placeholder="输入姓名查询"
+                  value={pendingName}
+                  onChange={e => setPendingName(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") { setNameFilter(pendingName); setClassFilter(pendingClass); setCurrentPage(1); } }}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm outline-none transition-all"
                   style={{ background: "rgba(0,0,0,0.04)", border: "none" }}
                   onFocus={(e) => { e.currentTarget.style.background = "rgba(0,0,0,0.06)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(0,113,227,0.1)"; }}
@@ -370,17 +387,20 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
             </div>
             <div className="flex-1 min-w-[200px] space-y-2">
               <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">班级选择</label>
-              <select className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer" style={{ background: "rgba(0,0,0,0.04)", border: "none" }}>
-                <option>等于任意一个</option>
+              <select
+                value={pendingClass}
+                onChange={e => setPendingClass(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer"
+                style={{ background: "rgba(0,0,0,0.04)", border: "none" }}
+              >
+                <option value="">全部班级</option>
+                {studentFilterOptions.classNames.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
-            <div className="flex-1 min-w-[200px] space-y-2">
-              <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">提交时间</label>
-              <select className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer" style={{ background: "rgba(0,0,0,0.04)", border: "none" }}>
-                <option>本周 (动态筛选)</option>
-              </select>
-            </div>
-            <button className="bg-blue-600 text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100">
+            <button
+              className="bg-blue-600 text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100"
+              onClick={() => { setNameFilter(pendingName); setClassFilter(pendingClass); setCurrentPage(1); }}
+            >
               查询
             </button>
           </section>
@@ -763,6 +783,11 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                 </table>
               ) : (
                 /* ── 学生基础信息 ── */
+                studentPending ? (
+                  <div className="flex items-center justify-center py-20 text-gray-400 text-sm">加载中…</div>
+                ) : studentError ? (
+                  <div className="flex items-center justify-center py-20 text-red-400 text-sm">数据加载失败，请刷新重试</div>
+                ) : (
                 <table className="w-full text-left">
                   <thead style={{ background: "#eff6ff" }}>
                     <tr>
@@ -772,74 +797,77 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     </tr>
                   </thead>
                   <tbody className="text-sm divide-y divide-gray-50">
-                    {tableRows.map((row, i) => (
-                      <tr key={i} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
+                    {pagedStudents.map((row, i) => (
+                      <tr key={row._id || i} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">
                           <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-                            style={{ background: row.status==="在读"?"rgba(16,185,129,0.08)":row.status==="休学"?"rgba(245,158,11,0.1)":"rgba(239,68,68,0.08)", color: row.status==="在读"?"#059669":row.status==="休学"?"#d97706":"#dc2626" }}>
-                            {row.status}
+                            style={{ background: row.学籍状态==="在读"?"rgba(16,185,129,0.08)":row.学籍状态==="休学"?"rgba(245,158,11,0.1)":"rgba(239,68,68,0.08)", color: row.学籍状态==="在读"?"#059669":row.学籍状态==="休学"?"#d97706":"#dc2626" }}>
+                            {row.学籍状态 || "—"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 font-semibold text-gray-800 whitespace-nowrap">{row.name}</td>
-                        <td className="px-4 py-3 text-gray-500">{row.ethnicity}</td>
-                        <td className="px-4 py-3 text-gray-500">{row.gender}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.birth}</td>
-                        <td className="px-4 py-3 text-gray-700 font-medium">{row.age}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.politics}</td>
-                        <td className="px-4 py-3 text-gray-400">{row.phone}</td>
-                        <td className="px-4 py-3 text-gray-500 max-w-[140px] truncate" title={row.domicile}>{row.domicile}</td>
-                        <td className="px-4 py-3 text-gray-500 max-w-[140px] truncate" title={row.residence}>{row.residence}</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{row.g1name}</td>
-                        <td className="px-4 py-3 text-gray-400">{row.g1phone}</td>
-                        <td className="px-4 py-3 text-gray-500">{row.g1rel}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.g1work}</td>
-                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{row.g2name}</td>
-                        <td className="px-4 py-3 text-gray-400">{row.g2phone}</td>
-                        <td className="px-4 py-3 text-gray-500">{row.g2rel}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.g2work}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{row.grade}</td>
-                        <td className="px-4 py-3 text-gray-500">{row.gradeAlias}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{row.teacher}</td>
+                        <td className="px-4 py-3 font-semibold text-gray-800 whitespace-nowrap">{row.姓名}</td>
+                        <td className="px-4 py-3 text-gray-500">{row.民族 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-500">{row.性别 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.出生日期 ? row.出生日期.slice(0, 10) : "—"}</td>
+                        <td className="px-4 py-3 text-gray-700 font-medium">{row.年龄 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.政治面貌 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-400">{row.学生本人电话 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-500 max-w-[140px] truncate" title={row.户籍地址}>{row.户籍地址 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-500 max-w-[140px] truncate" title={row.现居地址}>{row.现居地址 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{row.监护人1姓名 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-400">{row.监护人1联系 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-500">{row.监护人1角色 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.监护人1工作单位 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{row.监护人2姓名 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-400">{row.监护人2联系 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-500">{row.监护人2角色 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.监护人2工作单位 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{row.年级名称 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-500">{row.年级别名 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{row.班主任 || "—"}</td>
                         <td className="px-4 py-3">
                           <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-                            style={{ background: row.stuType==="普通学生"?"rgba(107,114,128,0.07)":row.stuType==="低保学生"?"rgba(245,158,11,0.1)":"rgba(239,68,68,0.08)", color: row.stuType==="普通学生"?"#6b7280":row.stuType==="低保学生"?"#d97706":"#dc2626" }}>
-                            {row.stuType}
+                            style={{ background: !row.学生类型||row.学生类型==="普通学生"?"rgba(107,114,128,0.07)":row.学生类型==="低保学生"?"rgba(245,158,11,0.1)":"rgba(239,68,68,0.08)", color: !row.学生类型||row.学生类型==="普通学生"?"#6b7280":row.学生类型==="低保学生"?"#d97706":"#dc2626" }}>
+                            {row.学生类型 || "普通学生"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.school}</td>
-                        <td className="px-4 py-3 text-gray-400">{row.history || "无"}</td>
+                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.毕业学校 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-400">{row.既往病史 || "无"}</td>
                         <td className="px-4 py-3 text-center">
-                          <span style={{ color: row.disabled==="是"?"#dc2626":"#9ca3af" }} className="font-semibold">{row.disabled}</span>
+                          <span style={{ color: row.是否残疾==="是"?"#dc2626":"#9ca3af" }} className="font-semibold">{row.是否残疾 || "否"}</span>
                         </td>
-                        <td className="px-4 py-3 text-gray-700 text-right">{row.boardingAid > 0 ? row.boardingAid : "—"}</td>
-                        <td className="px-4 py-3 text-gray-700 text-right">{row.nutritionAid > 0 ? row.nutritionAid : "—"}</td>
-                        <td className="px-4 py-3 text-center"><span style={{ color: row.poverty==="是"?"#d97706":"#9ca3af" }} className="font-semibold">{row.poverty}</span></td>
-                        <td className="px-4 py-3 text-center"><span style={{ color: row.povertyChild==="是"?"#d97706":"#9ca3af" }} className="font-semibold">{row.povertyChild}</span></td>
-                        <td className="px-4 py-3 text-center text-gray-400">{row.migrant}</td>
-                        <td className="px-4 py-3 text-center"><span style={{ color: row.leftBehind==="是"?"#6366f1":"#9ca3af" }} className="font-semibold">{row.leftBehind}</span></td>
-                        <td className="px-4 py-3 text-gray-400 max-w-[80px] truncate">{row.remark || "—"}</td>
+                        <td className="px-4 py-3 text-gray-700 text-right">{row.享受寄宿生生活补助金额 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-700 text-right">{row.享受营养改善计划补助金额 || "—"}</td>
+                        <td className="px-4 py-3 text-center"><span style={{ color: row.是建档立卡贫困户==="是"?"#d97706":"#9ca3af" }} className="font-semibold">{row.是建档立卡贫困户 || "否"}</span></td>
+                        <td className="px-4 py-3 text-center"><span style={{ color: row.建档立卡脱贫户子女==="是"?"#d97706":"#9ca3af" }} className="font-semibold">{row.建档立卡脱贫户子女 || "否"}</span></td>
+                        <td className="px-4 py-3 text-center text-gray-400">{row.随迁子女入 || "否"}</td>
+                        <td className="px-4 py-3 text-center"><span style={{ color: row.在校农村留守儿童==="是"?"#6366f1":"#9ca3af" }} className="font-semibold">{row.在校农村留守儿童 || "否"}</span></td>
+                        <td className="px-4 py-3 text-gray-400 max-w-[80px] truncate">{row.备注 || "—"}</td>
                         <td className="px-4 py-3">
                           <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-                            style={{ background: row.dormStatus==="已入住"?"rgba(16,185,129,0.08)":"rgba(107,114,128,0.07)", color: row.dormStatus==="已入住"?"#059669":"#6b7280" }}>
-                            {row.dormStatus}
+                            style={{ background: row.宿舍入住状态==="已入住"?"rgba(16,185,129,0.08)":"rgba(107,114,128,0.07)", color: row.宿舍入住状态==="已入住"?"#059669":"#6b7280" }}>
+                            {row.宿舍入住状态 || "—"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{row.dormBuilding}</td>
-                        <td className="px-4 py-3 text-gray-600">{row.dormNo}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.subjects}</td>
+                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{row.宿舍楼栋 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-600">{row.宿舍号 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.选科科目 || "—"}</td>
                         <td className="px-4 py-3">
-                          <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-                            style={{ background: row.direction==="理科"?"rgba(59,130,246,0.08)":"rgba(168,85,247,0.08)", color: row.direction==="理科"?"#2563eb":"#9333ea" }}>
-                            {row.direction}
-                          </span>
+                          {row.选科方向 ? (
+                            <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
+                              style={{ background: row.选科方向==="理科"?"rgba(59,130,246,0.08)":"rgba(168,85,247,0.08)", color: row.选科方向==="理科"?"#2563eb":"#9333ea" }}>
+                              {row.选科方向}
+                            </span>
+                          ) : <span className="text-gray-300">—</span>}
                         </td>
-                        <td className="px-4 py-3 text-gray-500">{row.sub1}</td>
-                        <td className="px-4 py-3 text-gray-500">{row.sub2}</td>
-                        <td className="px-4 py-3 text-gray-500">{row.foreignLang}</td>
+                        <td className="px-4 py-3 text-gray-500">{row.选科1 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-500">{row.选科2 || "—"}</td>
+                        <td className="px-4 py-3 text-gray-500">{row.外语选科 || "—"}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+                )
               )}
             </div>
 

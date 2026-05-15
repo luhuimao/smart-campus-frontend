@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { JDY_CONFIG, WIDGET_IDS, BEIKE_WIDGET_IDS, SCIENTCE_FEST_WIDGET_IDS, CLASS_RANK_WIDGET_IDS, DORM_ATTENDANCE_WIDGET_IDS, jdyListAll, type JdyRecord } from "@/lib/jdy-api";
+import { JDY_CONFIG, WIDGET_IDS, BEIKE_WIDGET_IDS, SCIENTCE_FEST_WIDGET_IDS, CLASS_RANK_WIDGET_IDS, DORM_ATTENDANCE_WIDGET_IDS, STUDENT_INFO_WIDGET_IDS, jdyListAll, type JdyRecord } from "@/lib/jdy-api";
 
 export interface ResearchRecord {
   _id: string;
@@ -597,6 +597,148 @@ export function useDormAttendance(filters?: DormAttendanceFilters) {
       return true;
     });
   }, [allRecords, filters?.semester, filters?.building, filters?.checkItem, filters?.dormNo, filters?.deductItem]);
+
+  return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch };
+}
+
+// ── 学生花名册 ──────────────────────────────────────────────
+
+export interface StudentInfoRecord {
+  _id: string;
+  学籍状态: string;
+  姓名: string;
+  民族: string;
+  性别: string;
+  出生日期: string;
+  年龄: number;
+  政治面貌: string;
+  学生本人电话: string;
+  户籍地址: string;
+  现居地址: string;
+  监护人1姓名: string;
+  监护人1联系: string;
+  监护人1角色: string;
+  监护人1工作单位: string;
+  监护人2姓名: string;
+  监护人2联系: string;
+  监护人2角色: string;
+  监护人2工作单位: string;
+  年级名称: string;
+  年级别名: string;
+  班级名称: string;
+  班主任: string;
+  级部: string;
+  学生类型: string;
+  毕业学校: string;
+  既往病史: string;
+  是否残疾: string;
+  享受寄宿生生活补助金额: string;
+  享受营养改善计划补助金额: string;
+  是建档立卡贫困户: string;
+  建档立卡脱贫户子女: string;
+  随迁子女入: string;
+  在校农村留守儿童: string;
+  备注: string;
+  宿舍入住状态: string;
+  宿舍楼栋: string;
+  宿舍号: string;
+  选科科目: string;
+  选科方向: string;
+  选科1: string;
+  选科2: string;
+  外语选科: string;
+}
+
+export interface StudentInfoFilters {
+  grade: string;
+  className: string;
+  name: string;
+  status: string;
+}
+
+function normalizeStudentInfoRecord(r: JdyRecord): StudentInfoRecord {
+  return {
+    _id: r._id,
+    学籍状态:              pickStr(r, STUDENT_INFO_WIDGET_IDS.学籍状态_教务),
+    姓名:                  pickStr(r, STUDENT_INFO_WIDGET_IDS.姓名),
+    民族:                  pickStr(r, STUDENT_INFO_WIDGET_IDS.民族),
+    性别:                  pickStr(r, STUDENT_INFO_WIDGET_IDS.性别),
+    出生日期:              pickStr(r, STUDENT_INFO_WIDGET_IDS.出生日期),
+    年龄:                  pickNum(r, STUDENT_INFO_WIDGET_IDS.年龄),
+    政治面貌:              pickStr(r, STUDENT_INFO_WIDGET_IDS.政治面貌),
+    学生本人电话:          pickStr(r, STUDENT_INFO_WIDGET_IDS.学生本人电话),
+    户籍地址:              pickStr(r, STUDENT_INFO_WIDGET_IDS.户籍地址) || pickStr(r, STUDENT_INFO_WIDGET_IDS.户籍地址_备注),
+    现居地址:              pickStr(r, STUDENT_INFO_WIDGET_IDS.现居地址) || pickStr(r, STUDENT_INFO_WIDGET_IDS.现居地址_备注),
+    监护人1姓名:           pickStr(r, STUDENT_INFO_WIDGET_IDS.监护人1姓名),
+    监护人1联系:           pickStr(r, STUDENT_INFO_WIDGET_IDS.监护人1电话) || pickStr(r, STUDENT_INFO_WIDGET_IDS.监护人1联系),
+    监护人1角色:           pickStr(r, STUDENT_INFO_WIDGET_IDS.监护人1角色),
+    监护人1工作单位:       pickStr(r, STUDENT_INFO_WIDGET_IDS.监护人1工作单位),
+    监护人2姓名:           pickStr(r, STUDENT_INFO_WIDGET_IDS.监护人2姓名),
+    监护人2联系:           pickStr(r, STUDENT_INFO_WIDGET_IDS.监护人2电话) || pickStr(r, STUDENT_INFO_WIDGET_IDS.监护人2联系),
+    监护人2角色:           pickStr(r, STUDENT_INFO_WIDGET_IDS.监护人2角色),
+    监护人2工作单位:       pickStr(r, STUDENT_INFO_WIDGET_IDS.监护人2工作单位),
+    年级名称:              pickStr(r, STUDENT_INFO_WIDGET_IDS.年级名称),
+    年级别名:              pickStr(r, STUDENT_INFO_WIDGET_IDS.年级别名),
+    班级名称:              pickStr(r, STUDENT_INFO_WIDGET_IDS.班级名称),
+    班主任:                pickStr(r, STUDENT_INFO_WIDGET_IDS.班主任),
+    级部:                  pickStr(r, STUDENT_INFO_WIDGET_IDS.级部),
+    学生类型:              pickStr(r, STUDENT_INFO_WIDGET_IDS.学生类型),
+    毕业学校:              pickStr(r, STUDENT_INFO_WIDGET_IDS.毕业学校),
+    既往病史:              pickStr(r, STUDENT_INFO_WIDGET_IDS.既往病史),
+    是否残疾:              pickStr(r, STUDENT_INFO_WIDGET_IDS.是否残疾),
+    享受寄宿生生活补助金额:    pickStr(r, STUDENT_INFO_WIDGET_IDS.享受寄宿生生活补助金额),
+    享受营养改善计划补助金额:  pickStr(r, STUDENT_INFO_WIDGET_IDS.享受营养改善计划补助金额),
+    是建档立卡贫困户:      pickStr(r, STUDENT_INFO_WIDGET_IDS.是建档立卡贫困户),
+    建档立卡脱贫户子女:    pickStr(r, STUDENT_INFO_WIDGET_IDS.建档立卡脱贫户子女),
+    随迁子女入:            pickStr(r, STUDENT_INFO_WIDGET_IDS.随迁子女入),
+    在校农村留守儿童:      pickStr(r, STUDENT_INFO_WIDGET_IDS.在校农村留守儿童),
+    备注:                  pickStr(r, STUDENT_INFO_WIDGET_IDS.备注),
+    宿舍入住状态:          pickStr(r, STUDENT_INFO_WIDGET_IDS.宿舍入住状态),
+    宿舍楼栋:              pickStr(r, STUDENT_INFO_WIDGET_IDS.宿舍楼栋),
+    宿舍号:                pickStr(r, STUDENT_INFO_WIDGET_IDS.宿舍号),
+    选科科目:              pickStr(r, STUDENT_INFO_WIDGET_IDS.选科科目),
+    选科方向:              pickStr(r, STUDENT_INFO_WIDGET_IDS.选科方向),
+    选科1:                 pickStr(r, STUDENT_INFO_WIDGET_IDS.选科1),
+    选科2:                 pickStr(r, STUDENT_INFO_WIDGET_IDS.选科2),
+    外语选科:              pickStr(r, STUDENT_INFO_WIDGET_IDS.外语选科),
+  };
+}
+
+export function useStudentInfo(filters?: StudentInfoFilters) {
+  const { data: allRecords, isPending, isError, error, refetch } = useQuery({
+    queryKey: ["student-info", "list"],
+    queryFn: async () => {
+      const records = await jdyListAll({
+        app_id: JDY_CONFIG.STUDENT_INFO.app_id,
+        entry_id: JDY_CONFIG.STUDENT_INFO.entry_id,
+        pageSize: 100,
+        maxPages: 50,
+      });
+      return records.map(normalizeStudentInfoRecord);
+    },
+    staleTime: 10 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+  });
+
+  const filterOptions = useMemo(() => {
+    if (!allRecords) return { grades: [] as string[], classNames: [] as string[], statuses: [] as string[] };
+    return {
+      grades:     unique(allRecords.map(r => r.年级名称)),
+      classNames: unique(allRecords.map(r => r.班级名称)),
+      statuses:   unique(allRecords.map(r => r.学籍状态)),
+    };
+  }, [allRecords]);
+
+  const raw = useMemo((): StudentInfoRecord[] => {
+    if (!allRecords) return [];
+    return allRecords.filter(r => {
+      if (filters?.status    && r.学籍状态 !== filters.status)    return false;
+      if (filters?.grade     && r.年级名称 !== filters.grade)     return false;
+      if (filters?.className && r.班级名称 !== filters.className) return false;
+      if (filters?.name      && !r.姓名.includes(filters.name))   return false;
+      return true;
+    });
+  }, [allRecords, filters?.status, filters?.grade, filters?.className, filters?.name]);
 
   return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch };
 }
