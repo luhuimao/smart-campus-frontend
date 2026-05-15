@@ -49,6 +49,10 @@ export const JDY_CONFIG = {
     app_id: "6788d444d1eefa169cf74ddc",
     entry_id: "6923cb96f98d70231e7dfe0c",
   },
+    STUDENT_LEARNING_ANALYSIS: {//一生一案 - 学情分析记录表 app ID，entry ID
+    app_id: "6788d444d1eefa169cf74ddc",
+    entry_id: "69ce20897c81a340631c6825",
+  },
 } as const;
 //教研活动记录
 export const WIDGET_IDS = {
@@ -285,6 +289,17 @@ export const STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS = {
   谈心谈话内容记录: "_widget_1763971800160",
   教师指导建议:     "_widget_1763971800164",
   沟通照片:         "_widget_1763971800168",
+} as const;
+//学情分析记录表
+export const STUDENT_LEARNING_ANALYSIS_WIDGET_IDS = {
+  班级:           "_widget_1775116425061",
+  学生姓名:       "_widget_1775116425063",
+  学科:           "_widget_1775117349258",
+  学情分析开始时间: "_widget_1775117349247",
+  学情分析结束时间: "_widget_1775117349248",
+  掌握较好的知识点: "_widget_1775117349249",
+  掌握不足的知识点: "_widget_1775117349250",
+  教师指导措施:   "_widget_1775117349251",
 } as const;
 //学生花名册
 export const STUDENT_INFO_WIDGET_IDS = {
