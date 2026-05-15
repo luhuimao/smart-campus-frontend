@@ -631,7 +631,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
     { key: "申请时间", header: "发起时间", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#9ca3af" }}>{r.申请时间 ? r.申请时间.slice(0, 16) : "—"}</span> },
     { key: "状态", header: "状态", render: r => r.状态 ? (
       <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-        style={{ background: r.状态==="已审批"?"rgba(16,185,129,0.1)":r.状态==="审批中"?"rgba(59,130,246,0.1)":"rgba(107,114,128,0.08)", color: r.状态==="已审批"?"#059669":r.状态==="审批中"?"#2563eb":"#6b7280" }}>
+        style={{ background: r.状态==="审批通过"?"rgba(16,185,129,0.1)":r.状态==="正在审批"?"rgba(59,130,246,0.1)":"rgba(107,114,128,0.08)", color: r.状态==="审批通过"?"#059669":r.状态==="正在审批"?"#2563eb":"#6b7280" }}>
         {r.状态}
       </span>
     ) : <span className="text-gray-300">—</span> },
@@ -646,9 +646,15 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
     { key: "年级", header: "年级", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.年级 || "—"}</span> },
     { key: "级部", header: "级部", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.级部 || "—"}</span> },
     { key: "班主任", header: "班主任", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.班主任 || "—"}</span> },
-    { key: "检查情况", header: "晨午晚检", render: r => r.检查情况 ? (
+     { key: "上报类型", header: "上报类型", render: r => r.上报类型 ? (
       <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-        style={{ background: r.检查情况==="晨检"?"rgba(59,130,246,0.1)":r.检查情况==="午检"?"rgba(245,158,11,0.1)":"rgba(139,92,246,0.1)", color: r.检查情况==="晨检"?"#2563eb":r.检查情况==="午检"?"#d97706":"#7c3aed" }}>
+        style={{ background: r.上报类型==="晨检"?"rgba(59,130,246,0.1)":r.上报类型==="午检"?"rgba(245,158,11,0.1)":"rgba(139,92,246,0.1)", color: r.上报类型==="晨检"?"#2563eb":r.上报类型==="午检"?"#d97706":"#7c3aed" }}>
+        {r.上报类型}
+      </span>
+    ) : <span className="text-gray-300">—</span> },
+    { key: "检查情况", header: "检查情况", render: r => r.检查情况 ? (
+      <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
+        style={{ background: r.检查情况==="正常"?"rgba(16,185,129,0.1)":"rgba(239,68,68,0.1)", color: r.检查情况==="正常"?"#059669":"#dc2626" }}>
         {r.检查情况}
       </span>
     ) : <span className="text-gray-300">—</span> },
