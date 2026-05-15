@@ -675,7 +675,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const studentCols = useMemo((): ColumnDef<StudentInfoRecord>[] => [
     { key: "学籍状态", header: "学籍状态", render: r => (
       <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-        style={{ background: r.学籍状态==="在读"?"rgba(16,185,129,0.08)":r.学籍状态==="休学"?"rgba(245,158,11,0.1)":"rgba(239,68,68,0.08)", color: r.学籍状态==="在读"?"#059669":r.学籍状态==="休学"?"#d97706":"#dc2626" }}>
+        style={{ background: r.学籍状态==="招生【增加】"?"rgba(16,185,129,0.08)":r.学籍状态==="转出【减少】"?"rgba(245,158,11,0.1)":"rgba(239,68,68,0.08)", color: r.学籍状态==="招生【增加】"?"#059669":r.学籍状态==="转出【减少】"?"#d97706":"#dc2626" }}>
         {r.学籍状态 || "—"}
       </span>
     )},
