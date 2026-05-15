@@ -1,0 +1,133 @@
+{
+  "widgets": [
+    {
+      "name": "id",
+      "widgetName": "_widget_1736497732438",
+      "label": "工作流id",
+      "type": "text"
+    },
+    {
+      "name": "term",
+      "widgetName": "_widget_1764752696000",
+      "label": "学期",
+      "type": "text"
+    },
+    {
+      "name": "name",
+      "widgetName": "_widget_1736497732446",
+      "label": "请假学生姓名",
+      "type": "text"
+    },
+    {
+      "name": "code",
+      "widgetName": "_widget_1752826962795",
+      "label": "宏德学号",
+      "type": "text"
+    },
+    {
+      "name": "type",
+      "widgetName": "_widget_1736497732447",
+      "label": "请假类型",
+      "type": "text"
+    },
+    {
+      "name": "reason",
+      "widgetName": "_widget_1736497732452",
+      "label": "请假原因说明",
+      "type": "text"
+    },
+    {
+      "name": "start_time",
+      "widgetName": "_widget_1736497732449",
+      "label": "请假开始时间",
+      "type": "datetime"
+    },
+    {
+      "name": "end_time",
+      "widgetName": "_widget_1736497732450",
+      "label": "请假结束时间",
+      "type": "datetime"
+    },
+    {
+      "name": "days",
+      "widgetName": "_widget_1736497732451",
+      "label": "请假时长（天数）",
+      "type": "text"
+    },
+    {
+      "name": "days_num",
+      "widgetName": "_widget_1769586037872",
+      "label": "请假时长（天数）-数字",
+      "type": "number"
+    },
+    {
+      "name": "grade_name",
+      "widgetName": "_widget_1752826962793",
+      "label": "请假学生年级",
+      "type": "text"
+    },
+    {
+      "name": "grade_level",
+      "widgetName": "_widget_1769585817039",
+      "label": "请假学生级部",
+      "type": "text"
+    },
+    {
+      "name": "class_name",
+      "widgetName": "_widget_1752826962794",
+      "label": "请假学生班级",
+      "type": "text"
+    },
+    {
+      "name": "class_teacher",
+      "widgetName": "_widget_1752829824897",
+      "label": "班主任",
+      "type": "text"
+    },
+    {
+      "name": "class_teacher_info",
+      "widgetName": "_widget_1769585817038",
+      "label": "班主任（企微）",
+      "type": "user"
+    },
+    {
+      "name": "grade_level_director_info",
+      "widgetName": "_widget_1769585817040",
+      "label": "级部主任（企微）",
+      "type": "user"
+    },
+    {
+      "name": "status",
+      "widgetName": "_widget_1736497732441",
+      "label": "状态",
+      "type": "text"
+    },
+    {
+      "name": "created_at",
+      "widgetName": "_widget_1752568842867",
+      "label": "申请时间",
+      "type": "datetime"
+    }
+  ],
+  "sysWidgets": [
+    {
+      "name": "creator"
+    },
+    {
+      "name": "updater"
+    },
+    {
+      "name": "deleter"
+    },
+    {
+      "name": "createTime"
+    },
+    {
+      "name": "updateTime"
+    },
+    {
+      "name": "deleteTime"
+    }
+  ],
+  "dataModifyTime": "2026-05-15T08:31:13.451Z"
+}

@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { JDY_CONFIG, WIDGET_IDS, BEIKE_WIDGET_IDS, SCIENTCE_FEST_WIDGET_IDS, CLASS_RANK_WIDGET_IDS, DORM_ATTENDANCE_WIDGET_IDS, STUDENT_INFO_WIDGET_IDS, jdyListAll, type JdyRecord } from "@/lib/jdy-api";
+import { JDY_CONFIG, WIDGET_IDS, BEIKE_WIDGET_IDS, SCIENTCE_FEST_WIDGET_IDS, CLASS_RANK_WIDGET_IDS, DORM_ATTENDANCE_WIDGET_IDS, STUDENT_INFO_WIDGET_IDS, STUDENT_LEAVE_WIDGET_IDS, jdyListAll, type JdyRecord } from "@/lib/jdy-api";
 
 export interface ResearchRecord {
   _id: string;
@@ -739,6 +739,94 @@ export function useStudentInfo(filters?: StudentInfoFilters) {
       return true;
     });
   }, [allRecords, filters?.status, filters?.grade, filters?.className, filters?.name]);
+
+  return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch };
+}
+
+// ── 学生请假 ─────────────────────────────────────────────────────
+
+export interface StudentLeaveRecord {
+  _id: string;
+  学期: string;
+  请假学生姓名: string;
+  宏德学号: string;
+  请假类型: string;
+  请假原因说明: string;
+  请假开始时间: string;
+  请假结束时间: string;
+  请假时长_文本: string;
+  请假时长_数字: number;
+  请假学生年级: string;
+  请假学生级部: string;
+  请假学生班级: string;
+  班主任: string;
+  状态: string;
+  申请时间: string;
+}
+
+export interface StudentLeaveFilters {
+  name: string;
+  type: string;
+  status: string;
+  grade: string;
+}
+
+function normalizeStudentLeaveRecord(r: JdyRecord): StudentLeaveRecord {
+  return {
+    _id:            r._id,
+    学期:           pickStr(r, STUDENT_LEAVE_WIDGET_IDS.学期),
+    请假学生姓名:   pickStr(r, STUDENT_LEAVE_WIDGET_IDS.请假学生姓名),
+    宏德学号:       pickStr(r, STUDENT_LEAVE_WIDGET_IDS.宏德学号),
+    请假类型:       pickStr(r, STUDENT_LEAVE_WIDGET_IDS.请假类型),
+    请假原因说明:   pickStr(r, STUDENT_LEAVE_WIDGET_IDS.请假原因说明),
+    请假开始时间:   pickStr(r, STUDENT_LEAVE_WIDGET_IDS.请假开始时间),
+    请假结束时间:   pickStr(r, STUDENT_LEAVE_WIDGET_IDS.请假结束时间),
+    请假时长_文本:  pickStr(r, STUDENT_LEAVE_WIDGET_IDS.请假时长_文本),
+    请假时长_数字:  pickNum(r, STUDENT_LEAVE_WIDGET_IDS.请假时长_数字),
+    请假学生年级:   pickStr(r, STUDENT_LEAVE_WIDGET_IDS.请假学生年级),
+    请假学生级部:   pickStr(r, STUDENT_LEAVE_WIDGET_IDS.请假学生级部),
+    请假学生班级:   pickStr(r, STUDENT_LEAVE_WIDGET_IDS.请假学生班级),
+    班主任:         pickStr(r, STUDENT_LEAVE_WIDGET_IDS.班主任),
+    状态:           pickStr(r, STUDENT_LEAVE_WIDGET_IDS.状态),
+    申请时间:       pickStr(r, STUDENT_LEAVE_WIDGET_IDS.申请时间),
+  };
+}
+
+export function useStudentLeave(filters?: StudentLeaveFilters) {
+  const { data: allRecords, isPending, isError, error, refetch } = useQuery({
+    queryKey: ["student-leave", "list"],
+    queryFn: async () => {
+      const records = await jdyListAll({
+        app_id: JDY_CONFIG.STUDENT_LEAVE_APPLICATION.app_id,
+        entry_id: JDY_CONFIG.STUDENT_LEAVE_APPLICATION.entry_id,
+        pageSize: 100,
+        maxPages: 50,
+      });
+      return records.map(normalizeStudentLeaveRecord);
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 60_000,
+  });
+
+  const filterOptions = useMemo(() => {
+    if (!allRecords) return { types: [] as string[], statuses: [] as string[], grades: [] as string[] };
+    return {
+      types:    unique(allRecords.map(r => r.请假类型).filter(Boolean)),
+      statuses: unique(allRecords.map(r => r.状态).filter(Boolean)),
+      grades:   unique(allRecords.map(r => r.请假学生年级).filter(Boolean)),
+    };
+  }, [allRecords]);
+
+  const raw = useMemo((): StudentLeaveRecord[] => {
+    if (!allRecords) return [];
+    return allRecords.filter(r => {
+      if (filters?.name   && !r.请假学生姓名.includes(filters.name)) return false;
+      if (filters?.type   && r.请假类型 !== filters.type)            return false;
+      if (filters?.status && r.状态 !== filters.status)              return false;
+      if (filters?.grade  && r.请假学生年级 !== filters.grade)       return false;
+      return true;
+    });
+  }, [allRecords, filters?.name, filters?.type, filters?.status, filters?.grade]);
 
   return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch };
 }

@@ -308,6 +308,115 @@ const toY = (v: number) => padT + chartH - (v / maxV) * chartH;
 
 ---
 
+## 表格行点击 → 详情抽屉规范
+
+> 参照 `ResearchActivityAnalysisPage.tsx` 的 `RecordDrawer` 实现，以及 `StudentDashboard.tsx` 的 `StudentInfoDrawer`。所有需要点击表格行展示详情的页面统一遵循以下规范。
+
+### 结构
+
+```tsx
+// 1. 父组件维护选中状态
+const [selectedRecord, setSelectedRecord] = useState<MyRecord | null>(null);
+
+// 2. DashboardTable 传入 onRowClick
+<DashboardTable
+  ...
+  onRowClick={setSelectedRecord}
+/>
+
+// 3. 抽屉渲染在组件根节点末尾（在所有内容之外，确保 z-index 正确）
+<MyDrawer record={selectedRecord} onClose={() => setSelectedRecord(null)} />
+```
+
+### 抽屉组件结构
+
+```tsx
+function MyDrawer({ record, onClose }: { record: MyRecord | null; onClose: () => void }) {
+  // Esc 键关闭
+  useEffect(() => {
+    if (!record) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [record, onClose]);
+
+  return (
+    <>
+      {/* 遮罩：点击关闭，record 为 null 时透明且不可交互 */}
+      <div className="fixed inset-0 z-40 transition-opacity duration-300"
+        style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
+        onClick={onClose} />
+
+      {/* 抽屉面板：从右侧滑入 */}
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+        style={{
+          width: 480,          // 标准宽度；内容多时可用 520
+          maxWidth: "100vw",
+          background: "#fff",
+          transform: record ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)",
+        }}>
+        {record && (
+          <>
+            {/* 顶部：标题 + 关闭按钮 */}
+            <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+              <div className="flex-1 min-w-0 pr-4">
+                {/* 副标题（如学期、年级）*/}
+                <p className="text-xs font-semibold text-blue-500 mb-1">{record.学期 || "—"}</p>
+                <h2 className="text-base font-bold text-gray-900 leading-snug">{record.主题 || "—"}</h2>
+              </div>
+              <button onClick={onClose}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* 内容区：可滚动，按 section 分区 */}
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              <section>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">基本信息</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[
+                    { label: "字段名", value: record.字段值 },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                      <p className="text-base font-medium text-gray-800">{value || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+```
+
+### 关键约束
+
+| 项目 | 规范 |
+|------|------|
+| 抽屉宽度 | 标准 `480px`，内容较多时 `520px` |
+| z-index | 遮罩 `z-40`，面板 `z-50` |
+| 动画 | `transform` + `cubic-bezier(0.23,1,0.32,1)` 0.3s，**不用** `opacity` 切换 |
+| 关闭方式 | 遮罩点击 + Esc 键，两者都要实现 |
+| record 为 null | 面板 `translateX(100%)` 滑出，遮罩透明且 `pointerEvents: none`，**不卸载 DOM** |
+| 内容分区 | 用 `<section>` + `text-sm font-bold text-gray-400 uppercase tracking-wider` 标题 |
+| 字段网格 | `grid grid-cols-2 gap-x-6 gap-y-4`，每格 label `text-sm text-gray-400` + value `text-base font-medium text-gray-800` |
+| 抽屉位置 | 渲染在组件 JSX 根节点的**最末尾**，在主内容 `</div>` 之后 |
+
+### 已有实现参考
+
+- `ResearchActivityAnalysisPage.tsx` → `RecordDrawer`（教研活动详情，含照片/附件/Lightbox）
+- `StudentDashboard.tsx` → `StudentInfoDrawer`（学生基础信息详情，六分区布局）
+
+---
+
 ## 当前模块结构
 
 ### 一师一案（教师端，蓝色主题）

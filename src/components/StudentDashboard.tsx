@@ -3,10 +3,10 @@
 import { Users, PlusCircle, User, Bell, Menu, RefreshCw, ArrowUpDown, Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
-import { useStudentInfo, type StudentInfoFilters } from "@/hooks/use-research-dashboard";
+import { useStudentInfo, useStudentLeave, type StudentInfoFilters, type StudentLeaveFilters } from "@/hooks/use-research-dashboard";
 import { DashboardTable } from "@/components/ui/DashboardTable";
 import type { ColumnDef } from "@/components/ui/DashboardTable";
-import type { StudentInfoRecord } from "@/hooks/use-research-dashboard";
+import type { StudentInfoRecord, StudentLeaveRecord } from "@/hooks/use-research-dashboard";
 
 // ── StudentInfoDrawer ────────────────────────────────────────────
 function StudentInfoDrawer({ record, onClose }: { record: StudentInfoRecord | null; onClose: () => void }) {
@@ -378,6 +378,42 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const totalStudents = studentRows.length;
   const pagedStudents = studentRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
+  // ── 学生请假 filters & data ──
+  const [leavePage, setLeavePage] = useState(1);
+  const [leavePageSize, setLeavePageSize] = useState(20);
+  const [leaveSortAsc, setLeaveSortAsc] = useState(false);
+  const leaveFilters = useMemo<StudentLeaveFilters>(() => ({
+    name: "", type: "", status: "", grade: "",
+  }), []);
+  const { raw: leaveRows, isPending: leavePending, isError: leaveError } = useStudentLeave(leaveFilters);
+  const totalLeave = leaveRows.length;
+  const pagedLeave = leaveRows.slice((leavePage - 1) * leavePageSize, leavePage * leavePageSize);
+
+  const leaveCols = useMemo((): ColumnDef<StudentLeaveRecord>[] => [
+    { key: "请假学生姓名", header: "请假人", render: r => <span className="font-semibold whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.请假学生姓名 || "—"}</span> },
+    { key: "请假类型", header: "请假类型", render: r => r.请假类型 ? (
+      <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
+        style={{ background: r.请假类型==="病假"?"rgba(239,68,68,0.1)":r.请假类型==="事假"?"rgba(245,158,11,0.1)":"rgba(99,102,241,0.1)", color: r.请假类型==="病假"?"#dc2626":r.请假类型==="事假"?"#d97706":"#4f46e5" }}>
+        {r.请假类型}
+      </span>
+    ) : <span className="text-gray-300">—</span> },
+    { key: "请假开始时间", header: "请假开始时间", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.请假开始时间 ? r.请假开始时间.slice(0, 16) : "—"}</span> },
+    { key: "请假结束时间", header: "请假结束时间", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.请假结束时间 ? r.请假结束时间.slice(0, 16) : "—"}</span> },
+    { key: "请假时长_数字", header: "请假时长（天）", render: r => <span className="font-medium" style={{ fontSize: 15, color: "#374151" }}>{r.请假时长_数字 || r.请假时长_文本 || "—"}</span> },
+    { key: "请假原因说明", header: "请假原因说明", minWidth: 160, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 160 }} title={r.请假原因说明}>{r.请假原因说明 || "—"}</span> },
+    { key: "申请时间", header: "发起时间", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#9ca3af" }}>{r.申请时间 ? r.申请时间.slice(0, 16) : "—"}</span> },
+    { key: "状态", header: "状态", render: r => r.状态 ? (
+      <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
+        style={{ background: r.状态==="已审批"?"rgba(16,185,129,0.1)":r.状态==="审批中"?"rgba(59,130,246,0.1)":"rgba(107,114,128,0.08)", color: r.状态==="已审批"?"#059669":r.状态==="审批中"?"#2563eb":"#6b7280" }}>
+        {r.状态}
+      </span>
+    ) : <span className="text-gray-300">—</span> },
+    { key: "请假学生年级", header: "年级", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.请假学生年级 || "—"}</span> },
+    { key: "请假学生班级", header: "班级", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.请假学生班级 || "—"}</span> },
+    { key: "班主任", header: "班主任", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.班主任 || "—"}</span> },
+    { key: "学期", header: "学期", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.学期 || "—"}</span> },
+  ], []);
+
   const studentCols = useMemo((): ColumnDef<StudentInfoRecord>[] => [
     { key: "学籍状态", header: "学籍状态", render: r => (
       <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
@@ -675,7 +711,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
             </div>
 
             {/* Toolbar — hidden for tabs with their own per-table toolbars, and for tab 0 which uses DashboardTable's built-in toolbar */}
-            {activeTab !== 4 && activeTab !== 2 && activeTab !== 0 && (
+            {activeTab !== 4 && activeTab !== 2 && activeTab !== 0 && activeTab !== 3 && (
             <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100"
               style={{ background: "rgba(249,250,251,0.6)" }}
               onMouseEnter={() => setHvTable(true)} onMouseLeave={() => setHvTable(false)}>
@@ -922,39 +958,22 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                 </table>
               ) : activeTab === 3 ? (
                 /* ── 学生请假数据 ── */
-                <table className="w-full text-left">
-                  <thead style={{ background: "#eff6ff" }}>
-                    <tr>
-                      {LEAVE_COLS.map(col => (
-                        <th key={col} className="px-4 py-3 font-medium whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{col}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="text-sm divide-y divide-gray-50">
-                    {leaveRows.map((row, i) => (
-                      <tr key={i} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-semibold text-gray-800 whitespace-nowrap">{row.name}</td>
-                        <td className="px-4 py-3">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-                            style={{ background: row.type === "病假" ? "rgba(239,68,68,0.1)" : row.type === "事假" ? "rgba(245,158,11,0.1)" : "rgba(99,102,241,0.1)", color: row.type === "病假" ? "#dc2626" : row.type === "事假" ? "#d97706" : "#4f46e5" }}>
-                            {row.type}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.start}</td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.end}</td>
-                        <td className="px-4 py-3 text-center font-medium text-gray-700">{row.days}</td>
-                        <td className="px-4 py-3 text-gray-500 max-w-[160px] truncate" title={row.reason}>{row.reason}</td>
-                        <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{row.created}</td>
-                        <td className="px-4 py-3">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-                            style={{ background: row.status === "已审批" ? "rgba(16,185,129,0.1)" : row.status === "审批中" ? "rgba(59,130,246,0.1)" : "rgba(107,114,128,0.08)", color: row.status === "已审批" ? "#059669" : row.status === "审批中" ? "#2563eb" : "#6b7280" }}>
-                            {row.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="-mx-0">
+                  <DashboardTable
+                    title="学生请假数据"
+                    columns={leaveCols}
+                    rows={pagedLeave}
+                    isPending={leavePending}
+                    isError={leaveError}
+                    sortAsc={leaveSortAsc}
+                    onSortToggle={() => { setLeaveSortAsc(v => !v); setLeavePage(1); }}
+                    page={leavePage}
+                    pageSize={leavePageSize}
+                    totalRows={totalLeave}
+                    onPageChange={setLeavePage}
+                    onPageSizeChange={n => { setLeavePageSize(n); setLeavePage(1); }}
+                  />
+                </div>
               ) : activeTab === 5 ? (
                 /* ── 学生资助情况 ── */
                 <table className="w-full text-left">

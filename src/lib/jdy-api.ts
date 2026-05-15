@@ -135,6 +135,27 @@ export const DORM_ATTENDANCE_WIDGET_IDS = {
   提交时间: "createTime",
 } as const;
 
+export const STUDENT_LEAVE_WIDGET_IDS = {
+  工作流id:       "id",
+  学期:           "term",
+  请假学生姓名:   "name",
+  宏德学号:       "code",
+  请假类型:       "type",
+  请假原因说明:   "reason",
+  请假开始时间:   "start_time",
+  请假结束时间:   "end_time",
+  请假时长_文本:  "days",
+  请假时长_数字:  "days_num",
+  请假学生年级:   "grade_name",
+  请假学生级部:   "grade_level",
+  请假学生班级:   "class_name",
+  班主任:         "class_teacher",
+  班主任_企微:    "class_teacher_info",
+  级部主任_企微:  "grade_level_director_info",
+  状态:           "status",
+  申请时间:       "created_at",
+} as const;
+
 export const STUDENT_INFO_WIDGET_IDS = {
   学籍状态_教务: "student_status",
   学籍状态_运营: "student_status_two",
@@ -216,6 +237,8 @@ export const STUDENT_INFO_WIDGET_IDS = {
   微信OpenID: "wx_open_id",
   提交人: "creator",
 } as const;
+
+
 
 export interface JdyFilterCond {
   field: string;
