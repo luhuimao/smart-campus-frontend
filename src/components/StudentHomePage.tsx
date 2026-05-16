@@ -329,7 +329,7 @@ export function StudentHomePage({ onMenuOpen, onNavigate }: {
     semester: "", building: "", checkItem: "", dormNo: "", deductItem: "",
   });
 
-  const { raw, allRecords, filterOptions, isPending, isError } = useDormAttendance(activeFilters);
+  const { raw, allRecords, filterOptions, isPending, isError, refetch } = useDormAttendance(activeFilters);
 
   // 级联筛选选项 — 每个筛选器的选项由其他筛选器的当前值决定
   const cascadingOptions = useMemo(() => {
@@ -464,7 +464,7 @@ export function StudentHomePage({ onMenuOpen, onNavigate }: {
             <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(#ffffff 1px,transparent 1px)", backgroundSize: "32px 32px" }} />
             <div className="relative z-10 text-center space-y-3">
               <h2 className="text-4xl md:text-5xl font-black text-white tracking-widest" style={{ textShadow: "0 0 30px rgba(139,92,246,0.8)" }}>
-                学生数据看板
+                宿舍考勤看板
               </h2>
               <div className="flex items-center justify-center gap-4 mt-6">
                 <div className="h-px w-12 bg-gradient-to-r from-transparent to-violet-400" />
@@ -637,7 +637,9 @@ export function StudentHomePage({ onMenuOpen, onNavigate }: {
             onPageChange={setPage}
             onPageSizeChange={n => { setPageSize(n); setPage(1); }}
             onRowClick={setSelectedRecord}
+            onRefresh={refetch}
           />
+
 
         </main>
       </div>

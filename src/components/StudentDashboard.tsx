@@ -3,10 +3,16 @@
 import { Users, PlusCircle, User, Bell, Menu, RefreshCw, ArrowUpDown, Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
-import { useStudentInfo, useStudentLeave, useHealthCheck, useStudentReturnSchool, useStudentSupport, useHeartToHeartTalk, type StudentInfoFilters, type StudentLeaveFilters, type HealthCheckFilters, type StudentReturnSchoolFilters, type StudentSupportFilters, type HeartToHeartTalkFilters } from "@/hooks/use-research-dashboard";
+import { useStudentInfo, useStudentLeave, useStudentLeaveCount, useHealthCheck, useStudentReturnSchool, useStudentSupport, useHeartToHeartTalk, type StudentInfoFilters, type StudentLeaveFilters, type HealthCheckFilters, type StudentReturnSchoolFilters, type StudentSupportFilters, type HeartToHeartTalkFilters } from "@/hooks/use-research-dashboard";
 import { DashboardTable } from "@/components/ui/DashboardTable";
 import type { ColumnDef } from "@/components/ui/DashboardTable";
 import type { StudentInfoRecord, StudentLeaveRecord, HealthCheckRecord, StudentReturnSchoolRecord, StudentSupportRecord, HeartToHeartTalkRecord } from "@/hooks/use-research-dashboard";
+
+function formatCount(n: number | null | undefined): string {
+  if (n == null) return "…";
+  if (n >= 10000) return "10K+";
+  return n.toLocaleString();
+}
 
 // ── StudentInfoDrawer ────────────────────────────────────────────
 function StudentInfoDrawer({ record, onClose }: { record: StudentInfoRecord | null; onClose: () => void }) {
@@ -899,11 +905,88 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [nameFilter, setNameFilter] = useState("");
   const [classFilter, setClassFilter] = useState("");
   const [studentSortAsc, setStudentSortAsc] = useState(false);
+
+  // ── 学生晨午检 pending filters ──
+  const [pendingHealthGrade, setPendingHealthGrade] = useState("");
+  const [pendingHealthClass, setPendingHealthClass] = useState("");
+  const [pendingHealthSession, setPendingHealthSession] = useState("");
+  const [healthGradeFilter, setHealthGradeFilter] = useState("");
+  const [healthClassFilter, setHealthClassFilter] = useState("");
+  const [healthSessionFilter, setHealthSessionFilter] = useState("");
+
+  // ── 学生返校情况 pending filters ──
+  const [pendingReturnGrade, setPendingReturnGrade] = useState("");
+  const [pendingReturnClass, setPendingReturnClass] = useState("");
+  const [pendingReturnSemester, setPendingReturnSemester] = useState("");
+  const [returnGradeFilter, setReturnGradeFilter] = useState("");
+  const [returnClassFilter, setReturnClassFilter] = useState("");
+  const [returnSemesterFilter, setReturnSemesterFilter] = useState("");
+
+  // ── 学生请假 pending filters ──
+  const [pendingLeaveName, setPendingLeaveName] = useState("");
+  const [pendingLeaveType, setPendingLeaveType] = useState("");
+  const [pendingLeaveGrade, setPendingLeaveGrade] = useState("");
+  const [leaveNameFilter, setLeaveNameFilter] = useState("");
+  const [leaveTypeFilter, setLeaveTypeFilter] = useState("");
+  const [leaveGradeFilter, setLeaveGradeFilter] = useState("");
+
+  // ── 学生资助 pending filters ──
+  const [pendingSupportGrade, setPendingSupportGrade] = useState("");
+  const [pendingSupportClass, setPendingSupportClass] = useState("");
+  const [supportGradeFilter, setSupportGradeFilter] = useState("");
+  const [supportClassFilter, setSupportClassFilter] = useState("");
+
+  // ── 谈心谈话 pending filters ──
+  const [pendingTalkClass, setPendingTalkClass] = useState("");
+  const [pendingTalkTeacher, setPendingTalkTeacher] = useState("");
+  const [talkClassFilter, setTalkClassFilter] = useState("");
+  const [talkTeacherFilter, setTalkTeacherFilter] = useState("");
+
   const studentFilters = useMemo<StudentInfoFilters>(() => ({
     name: nameFilter, className: classFilter, grade: "", status: "",
   }), [nameFilter, classFilter]);
-  const { raw: studentRows, filterOptions: studentFilterOptions, isPending: studentPending, isError: studentError } = useStudentInfo(studentFilters, activeTab === 0);
+  const { raw: studentRows, allRecords: studentAllRecords, filterOptions: studentFilterOptions, isPending: studentPending, isError: studentError, refetch: studentRefetch } = useStudentInfo(studentFilters, true);
   const totalStudents = studentRows.length;
+  const enrolledStats = useMemo(() => {
+    const enrolled = studentAllRecords.filter(r => !r.学籍状态 || r.学籍状态 === "招生【增加】"||r.学籍状态 === "转入【增加】"||r.学籍状态 === "复读【增加】");
+    return {
+      total: enrolled.length,
+      male: enrolled.filter(r => r.性别 === "男").length,
+      female: enrolled.filter(r => r.性别 === "女").length,
+      classes: new Set(enrolled.map(r => r.班级名称).filter(Boolean)).size,
+    };
+  }, [studentAllRecords]);
+  const gradeStats = useMemo(() => {
+    const map = new Map<string, { students: number; classes: Set<string> }>();
+    studentAllRecords.forEach(r => {
+      if (!r.年级名称) return;
+      if (!map.has(r.年级名称)) map.set(r.年级名称, { students: 0, classes: new Set() });
+      const g = map.get(r.年级名称)!;
+      g.students++;
+      if (r.班级名称) g.classes.add(r.班级名称);
+    });
+    return Array.from(map.entries())
+      .map(([grade, { students, classes }]) => ({ grade, students, classes: classes.size }))
+      .sort((a, b) => a.grade.localeCompare(b.grade));
+  }, [studentAllRecords]);
+  const statusStats = useMemo(() => {
+    if (studentPending) return { transfer: null, suspend: null, dropout: null };
+    const now = new Date();
+    const start = new Date(now);
+    if (activeTime === 0) { start.setHours(0, 0, 0, 0); }
+    else if (activeTime === 1) { start.setDate(now.getDate() - now.getDay()); start.setHours(0, 0, 0, 0); }
+    else if (activeTime === 2) { start.setDate(1); start.setHours(0, 0, 0, 0); }
+    else { start.setMonth(0, 1); start.setHours(0, 0, 0, 0); }
+    const inPeriod = (r: { 提交时间: string }) =>
+      r.提交时间 ? new Date(r.提交时间) >= start : false;
+    return {
+      transfer: studentAllRecords.filter(r =>
+        (r.学籍状态 === "转出【减少】" || r.学籍状态 === "转入【增加】") && inPeriod(r)
+      ).length,
+      suspend: studentAllRecords.filter(r => r.学籍状态 === "休学【减少】" && inPeriod(r)).length,
+      dropout: studentAllRecords.filter(r => r.学籍状态 === "退学【减少】" && inPeriod(r)).length,
+    };
+  }, [studentAllRecords, studentPending, activeTime]);
   const sortedStudents = [...studentRows].sort((a, b) => studentSortAsc ? a._id.localeCompare(b._id) : b._id.localeCompare(a._id));
   const pagedStudents = sortedStudents.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
@@ -912,24 +995,37 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [leavePageSize, setLeavePageSize] = useState(20);
   const [leaveSortAsc, setLeaveSortAsc] = useState(false);
   const leaveFilters = useMemo<StudentLeaveFilters>(() => ({
-    name: "", type: "", status: "", grade: "",
-  }), []);
-  const { raw: leaveRows, isPending: leavePending, isError: leaveError } = useStudentLeave(leaveFilters, activeTab === 3);
-  const totalLeave = leaveRows.length;
-  const sortedLeave = [...leaveRows].sort((a, b) => {
+    name: leaveNameFilter, type: leaveTypeFilter, status: "", grade: leaveGradeFilter,
+  }), [leaveNameFilter, leaveTypeFilter, leaveGradeFilter]);
+  // full pull for filterOptions + table data
+  const { allRecords: leaveAllRecords, filterOptions: leaveFilterOptions, isPending: leaveStatsPending, refetch: leaveRefetch } = useStudentLeave(undefined, true);
+  // lightweight count query for 动态数据 stat — accurate for all time periods
+  const { count: filteredLeaveCount, isPending: leaveCountPending } = useStudentLeaveCount(activeTime);
+  const filteredLeaveRows = useMemo(() => {
+    return leaveAllRecords.filter(r => {
+      if (leaveFilters.name   && !r.请假学生姓名.includes(leaveFilters.name)) return false;
+      if (leaveFilters.type   && r.请假类型 !== leaveFilters.type)            return false;
+      if (leaveFilters.grade  && r.请假学生年级 !== leaveFilters.grade)       return false;
+      return true;
+    });
+  }, [leaveAllRecords, leaveFilters.name, leaveFilters.type, leaveFilters.grade]);
+  const sortedLeave = useMemo(() => [...filteredLeaveRows].sort((a, b) => {
     const av = a.申请时间 ?? ""; const bv = b.申请时间 ?? "";
     return leaveSortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
-  });
+  }), [filteredLeaveRows, leaveSortAsc]);
+  const totalLeave = sortedLeave.length;
   const pagedLeave = sortedLeave.slice((leavePage - 1) * leavePageSize, leavePage * leavePageSize);
+  const leavePending = leaveStatsPending;
+  const leaveError = false;
 
   // ── 学生晨午检 filters & data ──
   const [healthPage, setHealthPage] = useState(1);
   const [healthPageSize, setHealthPageSize] = useState(20);
   const [healthSortAsc, setHealthSortAsc] = useState(false);
   const healthFilters = useMemo<HealthCheckFilters>(() => ({
-    grade: "", className: "", session: "",
-  }), []);
-  const { raw: healthRows, isPending: healthPending, isError: healthError } = useHealthCheck(healthFilters, activeTab === 1);
+    grade: healthGradeFilter, className: healthClassFilter, session: healthSessionFilter,
+  }), [healthGradeFilter, healthClassFilter, healthSessionFilter]);
+  const { raw: healthRows, filterOptions: healthFilterOptions, isPending: healthPending, isError: healthError, refetch: healthRefetch } = useHealthCheck(healthFilters, activeTab === 1);
   const totalHealth = healthRows.length;
   const sortedHealth = [...healthRows].sort((a, b) => {
     const av = a.填报日期_日期 ?? ""; const bv = b.填报日期_日期 ?? "";
@@ -942,9 +1038,9 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [returnPageSize, setReturnPageSize] = useState(20);
   const [returnSortAsc, setReturnSortAsc] = useState(false);
   const returnFilters = useMemo<StudentReturnSchoolFilters>(() => ({
-    grade: "", className: "", semester: "",
-  }), []);
-  const { raw: returnRows, isPending: returnPending, isError: returnError } = useStudentReturnSchool(returnFilters, activeTab === 2);
+    grade: returnGradeFilter, className: returnClassFilter, semester: returnSemesterFilter,
+  }), [returnGradeFilter, returnClassFilter, returnSemesterFilter]);
+  const { raw: returnRows, filterOptions: returnFilterOptions, isPending: returnPending, isError: returnError, refetch: returnRefetch } = useStudentReturnSchool(returnFilters, activeTab === 2);
   const totalReturn = returnRows.length;
   const sortedReturn = [...returnRows].sort((a, b) => {
     const av = a.填报日期 ?? ""; const bv = b.填报日期 ?? "";
@@ -957,9 +1053,9 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [supportPageSize, setSupportPageSize] = useState(20);
   const [supportSortAsc, setSupportSortAsc] = useState(false);
   const supportFilters = useMemo<StudentSupportFilters>(() => ({
-    grade: "", className: "", semester: "",
-  }), []);
-  const { raw: supportRows, isPending: supportPending, isError: supportError } = useStudentSupport(supportFilters, activeTab === 5);
+    grade: supportGradeFilter, className: supportClassFilter, semester: "",
+  }), [supportGradeFilter, supportClassFilter]);
+  const { raw: supportRows, filterOptions: supportFilterOptions, isPending: supportPending, isError: supportError, refetch: supportRefetch } = useStudentSupport(supportFilters, activeTab === 5);
   const totalSupport = supportRows.length;
   const sortedSupport = [...supportRows].sort((a, b) => supportSortAsc ? a._id.localeCompare(b._id) : b._id.localeCompare(a._id));
   const pagedSupport = sortedSupport.slice((supportPage - 1) * supportPageSize, supportPage * supportPageSize);
@@ -969,9 +1065,9 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [talkPageSize, setTalkPageSize] = useState(20);
   const [talkSortAsc, setTalkSortAsc] = useState(false);
   const talkFilters = useMemo<HeartToHeartTalkFilters>(() => ({
-    className: "", teacher: "",
-  }), []);
-  const { raw: talkApiRows, isPending: talkPending, isError: talkError } = useHeartToHeartTalk(talkFilters, activeTab === 7);
+    className: talkClassFilter, teacher: talkTeacherFilter,
+  }), [talkClassFilter, talkTeacherFilter]);
+  const { raw: talkApiRows, filterOptions: talkFilterOptions, isPending: talkPending, isError: talkError, refetch: talkRefetch } = useHeartToHeartTalk(talkFilters, activeTab === 7);
   const totalTalk = talkApiRows.length;
   const sortedTalk = [...talkApiRows].sort((a, b) => {
     const av = a.谈心谈话时间 ?? ""; const bv = b.谈心谈话时间 ?? "";
@@ -1188,17 +1284,6 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex bg-gray-200/50 p-1 rounded-xl text-xs font-bold text-gray-500">
-            {timeFilters.map((t, i) => (
-              <button
-                key={t}
-                className={`px-4 py-1.5 rounded-lg transition-all ${activeTime === i ? "bg-white shadow-sm text-blue-600" : "hover:bg-white"}`}
-                onClick={() => setActiveTime(i)}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
           <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
             <div className="p-2 hover:bg-gray-100 rounded-full cursor-pointer relative">
               <Bell className="w-5 h-5 text-gray-600" />
@@ -1225,37 +1310,82 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
               <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, rgba(255,255,255,0.1) 1px, transparent 0)", backgroundSize: "24px 24px" }} />
               <div className="relative z-10 space-y-4">
                 <p className="text-blue-100 text-sm font-medium">在读学生总数</p>
-                <h2 className="text-6xl font-black text-white tracking-tighter">3,587</h2>
+                <h2 className="text-6xl font-black text-white tracking-tighter">
+                  {studentPending ? "…" : enrolledStats.total.toLocaleString()}
+                </h2>
                 <div className="flex gap-3">
-                  <div className="bg-white/20 backdrop-blur px-3 py-1 rounded-lg text-xs text-white border border-white/20">男: 2,217</div>
-                  <div className="bg-white/20 backdrop-blur px-3 py-1 rounded-lg text-xs text-white border border-white/20">女: 1,370</div>
+                  <div className="bg-white/20 backdrop-blur px-3 py-1 rounded-lg text-xs text-white border border-white/20">
+                    男: {studentPending ? "…" : enrolledStats.male.toLocaleString()}
+                  </div>
+                  <div className="bg-white/20 backdrop-blur px-3 py-1 rounded-lg text-xs text-white border border-white/20">
+                    女: {studentPending ? "…" : enrolledStats.female.toLocaleString()}
+                  </div>
                 </div>
               </div>
               <div className="relative z-10 text-right">
                 <div className="bg-white/10 p-4 rounded-3xl backdrop-blur border border-white/20">
                   <p className="text-blue-100 text-xs font-bold mb-1">班级总数</p>
-                  <span className="text-4xl font-black text-white">60</span>
+                  <span className="text-4xl font-black text-white">
+                    {studentPending ? "…" : enrolledStats.classes}
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* Small stats grid */}
-            <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-              {smallStats.map(({ label, value, color, textColor }) => (
-                <div
-                  key={label}
-                  className="p-5 flex flex-col justify-between transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
-                  style={{ ...glass, borderLeft: `4px solid ${color}` }}
-                >
-                  <p className="text-[14px] font-bold text-gray-800 uppercase">{label}</p>
-                  <span className={`text-2xl font-black ${textColor}`}>{value}</span>
+            <div className="lg:col-span-2 space-y-4">
+              {/* 动态数据 */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">动态数据</p>
+                  <div className="flex bg-gray-200/50 p-0.5 rounded-lg text-[11px] font-bold text-gray-500">
+                    {timeFilters.map((t, i) => (
+                      <button
+                        key={t}
+                        className={`px-3 py-1 rounded-md transition-all ${activeTime === i ? "bg-white shadow-sm text-blue-600" : "hover:bg-white/60"}`}
+                        onClick={() => setActiveTime(i)}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              ))}
-              <div
-                className="p-5 flex items-center justify-center cursor-pointer transition-all duration-300 hover:bg-gray-800"
-                style={{ ...glass, background: "#111827" }}
-              >
-                <PlusCircle className="w-8 h-8 text-white opacity-50" />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { label: "请假人数", color: "#10b981", textColor: "text-emerald-500",
+                      value: leaveCountPending ? "…" : formatCount(filteredLeaveCount) },
+                    { label: "消费金额", color: "#8b5cf6", textColor: "text-purple-600", value: "242K" },
+                    { label: "出校人数", color: "#f59e0b", textColor: "text-amber-600", value: "9,706" },
+                    { label: "入校人数", color: "#06b6d4", textColor: "text-cyan-600", value: "3,031" },
+                  ].map(({ label, color, textColor, value }) => (
+                    <div key={label} className="p-4 flex flex-col justify-between transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg" style={{ ...glass, borderLeft: `4px solid ${color}` }}>
+                      <p className="text-[13px] font-bold text-gray-800">{label}</p>
+                      <span className={`text-2xl font-black ${textColor}`}>{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* 学籍状态 */}
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">学籍状态</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { label: "休学总数", color: "#f97316", textColor: "text-orange-500",
+                      value: studentPending ? "…" : (statusStats.suspend ?? 0).toLocaleString() },
+                    { label: "转学总数", color: "#3b82f6", textColor: "text-blue-500",
+                      value: studentPending ? "…" : (statusStats.transfer ?? 0).toLocaleString() },
+                    { label: "退学总数", color: "#f43f5e", textColor: "text-rose-500",
+                      value: studentPending ? "…" : (statusStats.dropout ?? 0).toLocaleString() },
+                  ].map(({ label, color, textColor, value }) => (
+                    <div key={label} className="p-4 flex flex-col justify-between transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg" style={{ ...glass, borderLeft: `4px solid ${color}` }}>
+                      <p className="text-[13px] font-bold text-gray-800">{label}</p>
+                      <span className={`text-2xl font-black ${textColor}`}>{value}</span>
+                    </div>
+                  ))}
+                  <div className="p-4 flex items-center justify-center cursor-pointer transition-all duration-300 hover:bg-gray-800" style={{ ...glass, background: "#111827" }}>
+                    <PlusCircle className="w-7 h-7 text-white opacity-50" />
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -1267,17 +1397,27 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
               <h3 className="text-sm font-bold text-gray-800 mb-6 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" /> 男女比例
               </h3>
-              <div className="flex-1 flex items-center justify-center relative">
-                <div className="w-32 h-32 rounded-full rotate-45 shadow-inner" style={{ border: "12px solid #3b82f6", borderLeftColor: "#34d399" }} />
-                <div className="absolute text-center">
-                  <p className="text-xs font-bold text-gray-800">占比</p>
-                  <p className="text-sm font-black">57.4%</p>
-                </div>
-              </div>
-              <div className="mt-6 flex justify-center gap-6 text-[10px] font-bold text-gray-800">
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500" /> 男</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400" /> 女</span>
-              </div>
+              {(() => {
+                const total = enrolledStats.male + enrolledStats.female;
+                const malePct = total > 0 ? Math.round(enrolledStats.male / total * 1000) / 10 : 0;
+                const maleDeg = total > 0 ? enrolledStats.male / total * 360 : 0;
+                return (
+                  <>
+                    <div className="flex-1 flex items-center justify-center relative">
+                      <div className="w-32 h-32 rounded-full shadow-inner" style={{ background: `conic-gradient(#3b82f6 ${maleDeg}deg, #34d399 ${maleDeg}deg)` }} />
+                      <div className="absolute w-20 h-20 rounded-full bg-white/90" />
+                      <div className="absolute text-center">
+                        <p className="text-xs font-bold text-gray-800">男生</p>
+                        <p className="text-sm font-black">{studentPending ? "…" : `${malePct}%`}</p>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex justify-center gap-6 text-[10px] font-bold text-gray-800">
+                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500" /> 男 {studentPending ? "…" : enrolledStats.male}</span>
+                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400" /> 女 {studentPending ? "…" : enrolledStats.female}</span>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
             {/* Bar chart */}
@@ -1285,17 +1425,27 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
               <h3 className="text-sm font-bold text-gray-800 mb-6 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" /> 各年级人数
               </h3>
-              <div className="flex items-end justify-between h-32 px-4">
-                {[{ h: "100%", v: "1339", c: "bg-blue-500" }, { h: "75%", v: "969", c: "bg-blue-400" }, { h: "60%", v: "779", c: "bg-blue-300" }].map(({ h, v, c }) => (
-                  <div key={v} className="flex flex-col items-center gap-1" style={{ height: "100%", justifyContent: "flex-end" }}>
-                    <p className="text-[8px] font-bold text-gray-400">{v}</p>
-                    <div className={`w-8 ${c} rounded-t-lg`} style={{ height: h }} />
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 flex justify-between text-[10px] font-bold text-gray-400 px-2">
-                <span>高2023级</span><span>高2024级</span><span>高2025级</span>
-              </div>
+              {studentPending ? (
+                <div className="h-32 flex items-center justify-center text-xs text-gray-400">加载中…</div>
+              ) : (() => {
+                const colors = ["bg-blue-500", "bg-blue-400", "bg-blue-300", "bg-blue-200"];
+                const max = Math.max(...gradeStats.map(g => g.students), 1);
+                return (
+                  <>
+                    <div className="flex items-end justify-around h-32 px-2">
+                      {gradeStats.map((g, i) => (
+                        <div key={g.grade} className="flex flex-col items-center gap-1" style={{ height: "100%", justifyContent: "flex-end" }}>
+                          <p className="text-[8px] font-bold text-gray-400">{g.students}</p>
+                          <div className={`w-8 ${colors[i % colors.length]} rounded-t-lg`} style={{ height: `${Math.round(g.students / max * 100)}%` }} />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4 flex justify-around text-[10px] font-bold text-gray-400 px-2">
+                      {gradeStats.map(g => <span key={g.grade}>{g.grade}</span>)}
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
             {/* Class count table */}
@@ -1304,10 +1454,12 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                 <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" /> 各年级班级数
               </h3>
               <div className="space-y-2">
-                {gradeClasses.map(({ grade, count, active }) => (
-                  <div key={grade} className={`flex justify-between p-2 rounded-lg text-xs ${active ? "bg-blue-50/50" : "bg-gray-50"}`}>
-                    <span className={`font-bold ${active ? "text-blue-600" : "text-gray-600"}`}>{grade}</span>
-                    <span className="font-black">{count}</span>
+                {studentPending ? (
+                  <div className="text-xs text-gray-400 text-center py-4">加载中…</div>
+                ) : gradeStats.map((g, i) => (
+                  <div key={g.grade} className={`flex justify-between p-2 rounded-lg text-xs ${i === 0 ? "bg-blue-50/50" : "bg-gray-50"}`}>
+                    <span className={`font-bold ${i === 0 ? "text-blue-600" : "text-gray-600"}`}>{g.grade}</span>
+                    <span className="font-black">{g.classes}</span>
                   </div>
                 ))}
               </div>
@@ -1334,43 +1486,184 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
           </section>
 
           {/* Search & Filters */}
+          {activeTab !== 4 && activeTab !== 6 && (
           <section className="p-6 flex flex-wrap items-end gap-6" style={glass}>
-            <div className="flex-1 min-w-[200px] space-y-2">
-              <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">学生姓名</label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                <input
-                  type="text"
-                  placeholder="输入姓名查询"
-                  value={pendingName}
-                  onChange={e => setPendingName(e.target.value)}
-                  onKeyDown={e => { if (e.key === "Enter") { setNameFilter(pendingName); setClassFilter(pendingClass); setCurrentPage(1); } }}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm outline-none transition-all"
-                  style={{ background: "rgba(0,0,0,0.04)", border: "none" }}
-                  onFocus={(e) => { e.currentTarget.style.background = "rgba(0,0,0,0.06)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(0,113,227,0.1)"; }}
-                  onBlur={(e) => { e.currentTarget.style.background = "rgba(0,0,0,0.04)"; e.currentTarget.style.boxShadow = "none"; }}
-                />
+            {activeTab === 0 && (<>
+              <div className="flex-1 min-w-[200px] space-y-2">
+                <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">学生姓名</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                  <input type="text" placeholder="输入姓名查询" value={pendingName}
+                    onChange={e => setPendingName(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter") { setNameFilter(pendingName); setClassFilter(pendingClass); setCurrentPage(1); } }}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm outline-none transition-all"
+                    style={{ background: "rgba(0,0,0,0.04)", border: "none" }}
+                    onFocus={e => { e.currentTarget.style.background = "rgba(0,0,0,0.06)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(0,113,227,0.1)"; }}
+                    onBlur={e => { e.currentTarget.style.background = "rgba(0,0,0,0.04)"; e.currentTarget.style.boxShadow = "none"; }}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="flex-1 min-w-[200px] space-y-2">
-              <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">班级选择</label>
-              <select
-                value={pendingClass}
-                onChange={e => setPendingClass(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer"
-                style={{ background: "rgba(0,0,0,0.04)", border: "none" }}
-              >
-                <option value="">全部班级</option>
-                {studentFilterOptions.classNames.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <button
-              className="bg-blue-600 text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100"
-              onClick={() => { setNameFilter(pendingName); setClassFilter(pendingClass); setCurrentPage(1); }}
-            >
-              查询
-            </button>
+              <div className="flex-1 min-w-[200px] space-y-2">
+                <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">班级选择</label>
+                <select value={pendingClass} onChange={e => setPendingClass(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer"
+                  style={{ background: "rgba(0,0,0,0.04)", border: "none" }}>
+                  <option value="">全部班级</option>
+                  {studentFilterOptions.classNames.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <button className="bg-blue-600 text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100"
+                onClick={() => { setNameFilter(pendingName); setClassFilter(pendingClass); setCurrentPage(1); }}>查询</button>
+            </>)}
+
+            {activeTab === 1 && (<>
+              <div className="flex-1 min-w-[160px] space-y-2">
+                <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">年级</label>
+                <select value={pendingHealthGrade} onChange={e => setPendingHealthGrade(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer"
+                  style={{ background: "rgba(0,0,0,0.04)", border: "none" }}>
+                  <option value="">全部年级</option>
+                  {healthFilterOptions.grades.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+              <div className="flex-1 min-w-[160px] space-y-2">
+                <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">班级</label>
+                <select value={pendingHealthClass} onChange={e => setPendingHealthClass(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer"
+                  style={{ background: "rgba(0,0,0,0.04)", border: "none" }}>
+                  <option value="">全部班级</option>
+                  {healthFilterOptions.classNames.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="flex-1 min-w-[160px] space-y-2">
+                <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">检查情况</label>
+                <select value={pendingHealthSession} onChange={e => setPendingHealthSession(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer"
+                  style={{ background: "rgba(0,0,0,0.04)", border: "none" }}>
+                  <option value="">全部</option>
+                  {healthFilterOptions.sessions.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <button className="bg-blue-600 text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100"
+                onClick={() => { setHealthGradeFilter(pendingHealthGrade); setHealthClassFilter(pendingHealthClass); setHealthSessionFilter(pendingHealthSession); setHealthPage(1); }}>查询</button>
+            </>)}
+
+            {activeTab === 2 && (<>
+              <div className="flex-1 min-w-[160px] space-y-2">
+                <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">年级</label>
+                <select value={pendingReturnGrade} onChange={e => setPendingReturnGrade(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer"
+                  style={{ background: "rgba(0,0,0,0.04)", border: "none" }}>
+                  <option value="">全部年级</option>
+                  {returnFilterOptions.grades.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+              <div className="flex-1 min-w-[160px] space-y-2">
+                <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">班级</label>
+                <select value={pendingReturnClass} onChange={e => setPendingReturnClass(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer"
+                  style={{ background: "rgba(0,0,0,0.04)", border: "none" }}>
+                  <option value="">全部班级</option>
+                  {returnFilterOptions.classNames.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="flex-1 min-w-[160px] space-y-2">
+                <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">学期</label>
+                <select value={pendingReturnSemester} onChange={e => setPendingReturnSemester(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer"
+                  style={{ background: "rgba(0,0,0,0.04)", border: "none" }}>
+                  <option value="">全部学期</option>
+                  {returnFilterOptions.semesters.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <button className="bg-blue-600 text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100"
+                onClick={() => { setReturnGradeFilter(pendingReturnGrade); setReturnClassFilter(pendingReturnClass); setReturnSemesterFilter(pendingReturnSemester); setReturnPage(1); }}>查询</button>
+            </>)}
+
+            {activeTab === 3 && (<>
+              <div className="flex-1 min-w-[160px] space-y-2">
+                <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">学生姓名</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                  <input type="text" placeholder="输入姓名查询" value={pendingLeaveName}
+                    onChange={e => setPendingLeaveName(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter") { setLeaveNameFilter(pendingLeaveName); setLeaveTypeFilter(pendingLeaveType); setLeaveGradeFilter(pendingLeaveGrade); setLeavePage(1); } }}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm outline-none transition-all"
+                    style={{ background: "rgba(0,0,0,0.04)", border: "none" }}
+                    onFocus={e => { e.currentTarget.style.background = "rgba(0,0,0,0.06)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(0,113,227,0.1)"; }}
+                    onBlur={e => { e.currentTarget.style.background = "rgba(0,0,0,0.04)"; e.currentTarget.style.boxShadow = "none"; }}
+                  />
+                </div>
+              </div>
+              <div className="flex-1 min-w-[160px] space-y-2">
+                <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">请假类型</label>
+                <select value={pendingLeaveType} onChange={e => setPendingLeaveType(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer"
+                  style={{ background: "rgba(0,0,0,0.04)", border: "none" }}>
+                  <option value="">全部类型</option>
+                  {leaveFilterOptions.types.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div className="flex-1 min-w-[160px] space-y-2">
+                <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">年级</label>
+                <select value={pendingLeaveGrade} onChange={e => setPendingLeaveGrade(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer"
+                  style={{ background: "rgba(0,0,0,0.04)", border: "none" }}>
+                  <option value="">全部年级</option>
+                  {leaveFilterOptions.grades.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+              <button className="bg-blue-600 text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100"
+                onClick={() => { setLeaveNameFilter(pendingLeaveName); setLeaveTypeFilter(pendingLeaveType); setLeaveGradeFilter(pendingLeaveGrade); setLeavePage(1); }}>查询</button>
+            </>)}
+
+            {activeTab === 5 && (<>
+              <div className="flex-1 min-w-[160px] space-y-2">
+                <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">年级</label>
+                <select value={pendingSupportGrade} onChange={e => setPendingSupportGrade(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer"
+                  style={{ background: "rgba(0,0,0,0.04)", border: "none" }}>
+                  <option value="">全部年级</option>
+                  {supportFilterOptions.grades.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+              <div className="flex-1 min-w-[160px] space-y-2">
+                <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">班级</label>
+                <select value={pendingSupportClass} onChange={e => setPendingSupportClass(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer"
+                  style={{ background: "rgba(0,0,0,0.04)", border: "none" }}>
+                  <option value="">全部班级</option>
+                  {supportFilterOptions.classNames.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <button className="bg-blue-600 text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100"
+                onClick={() => { setSupportGradeFilter(pendingSupportGrade); setSupportClassFilter(pendingSupportClass); setSupportPage(1); }}>查询</button>
+            </>)}
+
+            {activeTab === 7 && (<>
+              <div className="flex-1 min-w-[160px] space-y-2">
+                <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">班级</label>
+                <select value={pendingTalkClass} onChange={e => setPendingTalkClass(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer"
+                  style={{ background: "rgba(0,0,0,0.04)", border: "none" }}>
+                  <option value="">全部班级</option>
+                  {talkFilterOptions.classNames.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="flex-1 min-w-[160px] space-y-2">
+                <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">谈心教师</label>
+                <select value={pendingTalkTeacher} onChange={e => setPendingTalkTeacher(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer"
+                  style={{ background: "rgba(0,0,0,0.04)", border: "none" }}>
+                  <option value="">全部教师</option>
+                  {talkFilterOptions.teachers.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <button className="bg-blue-600 text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100"
+                onClick={() => { setTalkClassFilter(pendingTalkClass); setTalkTeacherFilter(pendingTalkTeacher); setTalkPage(1); }}>查询</button>
+            </>)}
           </section>
+          )}
 
           {/* Data Table */}
           <section className="overflow-hidden" style={glass}>
@@ -1529,6 +1822,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     onPageChange={setReturnPage}
                     onPageSizeChange={n => { setReturnPageSize(n); setReturnPage(1); }}
                     onRowClick={setSelectedReturnSchool}
+                    onRefresh={returnRefetch}
                   />
                 </div>
               ) : activeTab === 1 ? (
@@ -1548,6 +1842,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     onPageChange={setHealthPage}
                     onPageSizeChange={n => { setHealthPageSize(n); setHealthPage(1); }}
                     onRowClick={setSelectedHealthCheck}
+                    onRefresh={healthRefetch}
                   />
                 </div>
               ) : activeTab === 3 ? (
@@ -1567,6 +1862,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     onPageChange={setLeavePage}
                     onPageSizeChange={n => { setLeavePageSize(n); setLeavePage(1); }}
                     onRowClick={setSelectedLeave}
+                    onRefresh={leaveRefetch}
                   />
                 </div>
               ) : activeTab === 5 ? (
@@ -1586,6 +1882,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     onPageChange={setSupportPage}
                     onPageSizeChange={n => { setSupportPageSize(n); setSupportPage(1); }}
                     onRowClick={setSelectedSupport}
+                    onRefresh={supportRefetch}
                   />
                 </div>
               ) : activeTab === 6 ? (
@@ -1614,6 +1911,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     onPageChange={setTalkPage}
                     onPageSizeChange={n => { setTalkPageSize(n); setTalkPage(1); }}
                     onRowClick={setSelectedTalk}
+                    onRefresh={talkRefetch}
                   />
                 </div>
               ) : (
@@ -1633,6 +1931,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     onPageChange={setCurrentPage}
                     onPageSizeChange={n => { setPageSize(n); setCurrentPage(1); }}
                     onRowClick={setSelectedStudent}
+                    onRefresh={studentRefetch}
                   />
                 </div>
               )}

@@ -384,6 +384,7 @@ export const STUDENT_INFO_WIDGET_IDS = {
   更新标识: "_widget_1766064060389",
   微信OpenID: "wx_open_id",
   提交人: "creator",
+  提交时间: "createTime",
 } as const;
 
 
@@ -415,6 +416,7 @@ export interface JdyRecord {
 
 export interface JdyListResponse {
   data: JdyRecord[];
+  total?: number;
 }
 
 async function rawListRequest(params: JdyListParams): Promise<JdyListResponse> {
@@ -432,6 +434,27 @@ async function rawListRequest(params: JdyListParams): Promise<JdyListResponse> {
 
 export function jdyList(params: JdyListParams): Promise<JdyListResponse> {
   return scheduler.schedule(() => rawListRequest(params));
+}
+
+export interface JdyPageResult {
+  records: JdyRecord[];
+  nextCursor: string | null;
+}
+
+export async function jdyListPage(
+  params: Omit<JdyListParams, "data_id"> & { pageSize?: number; cursor?: string | null },
+): Promise<JdyPageResult> {
+  const pageSize = params.pageSize ?? 100;
+  const { data } = await jdyList({
+    ...params,
+    limit: pageSize,
+    data_id: params.cursor ?? undefined,
+  });
+  const records = data ?? [];
+  return {
+    records,
+    nextCursor: records.length === pageSize ? records[records.length - 1]._id : null,
+  };
 }
 
 export async function jdyListAll(

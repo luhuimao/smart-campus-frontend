@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { JDY_CONFIG, WIDGET_IDS, BEIKE_WIDGET_IDS, SCIENTCE_FEST_WIDGET_IDS, CLASS_RANK_WIDGET_IDS, DORM_ATTENDANCE_WIDGET_IDS, STUDENT_INFO_WIDGET_IDS, STUDENT_LEAVE_WIDGET_IDS, HEALTH_CHECK_WIDGET_IDS, STUDENT_RETURN_SCHOOL_WIDGET_IDS, STUDENT_SUPPORT_STATUS_WIDGET_IDS, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS, jdyListAll, type JdyRecord } from "@/lib/jdy-api";
+import { JDY_CONFIG, WIDGET_IDS, BEIKE_WIDGET_IDS, SCIENTCE_FEST_WIDGET_IDS, CLASS_RANK_WIDGET_IDS, DORM_ATTENDANCE_WIDGET_IDS, STUDENT_INFO_WIDGET_IDS, STUDENT_LEAVE_WIDGET_IDS, HEALTH_CHECK_WIDGET_IDS, STUDENT_RETURN_SCHOOL_WIDGET_IDS, STUDENT_SUPPORT_STATUS_WIDGET_IDS, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS, jdyListAll, jdyListPage, jdyList, type JdyRecord, type JdyPageResult } from "@/lib/jdy-api";
 
 export interface ResearchRecord {
   _id: string;
@@ -606,6 +606,7 @@ export function useDormAttendance(filters?: DormAttendanceFilters) {
 export interface StudentInfoRecord {
   _id: string;
   学籍状态: string;
+  学籍状态开始时间: string;
   姓名: string;
   民族: string;
   性别: string;
@@ -647,6 +648,7 @@ export interface StudentInfoRecord {
   选科1: string;
   选科2: string;
   外语选科: string;
+  提交时间:string;
 }
 
 export interface StudentInfoFilters {
@@ -659,7 +661,8 @@ export interface StudentInfoFilters {
 function normalizeStudentInfoRecord(r: JdyRecord): StudentInfoRecord {
   return {
     _id: r._id,
-    学籍状态:              pickStr(r, STUDENT_INFO_WIDGET_IDS.学籍状态_教务),
+    学籍状态:              pickStr(r, STUDENT_INFO_WIDGET_IDS.学籍状态_教务) || pickStr(r, STUDENT_INFO_WIDGET_IDS.学籍状态_运营),
+    学籍状态开始时间:      pickStr(r, STUDENT_INFO_WIDGET_IDS.学籍状态开始时间),
     姓名:                  pickStr(r, STUDENT_INFO_WIDGET_IDS.姓名),
     民族:                  pickStr(r, STUDENT_INFO_WIDGET_IDS.民族),
     性别:                  pickStr(r, STUDENT_INFO_WIDGET_IDS.性别),
@@ -701,6 +704,7 @@ function normalizeStudentInfoRecord(r: JdyRecord): StudentInfoRecord {
     选科1:                 pickStr(r, STUDENT_INFO_WIDGET_IDS.选科1),
     选科2:                 pickStr(r, STUDENT_INFO_WIDGET_IDS.选科2),
     外语选科:              pickStr(r, STUDENT_INFO_WIDGET_IDS.外语选科),
+    提交时间:              pickStr(r, STUDENT_INFO_WIDGET_IDS.提交时间),
   };
 }
 
@@ -794,14 +798,28 @@ function normalizeStudentLeaveRecord(r: JdyRecord): StudentLeaveRecord {
 }
 
 export function useStudentLeave(filters?: StudentLeaveFilters, enabled = true) {
+  const { rangeStart, rangeEnd } = useMemo(() => {
+    const now = new Date();
+    const start = new Date(now);
+    start.setDate(start.getDate() - 5);
+    const end = new Date(now);
+    end.setDate(end.getDate() + 1);
+    const fmt = (d: Date) => d.toISOString().split("T")[0];
+    return { rangeStart: fmt(start), rangeEnd: fmt(end) };
+  }, []);
+
   const { data: allRecords, isPending, isError, error, refetch } = useQuery({
-    queryKey: ["student-leave", "list"],
+    queryKey: ["student-leave", "list", rangeStart, rangeEnd],
     queryFn: async () => {
       const records = await jdyListAll({
         app_id: JDY_CONFIG.STUDENT_LEAVE_APPLICATION.app_id,
         entry_id: JDY_CONFIG.STUDENT_LEAVE_APPLICATION.entry_id,
         pageSize: 100,
         maxPages: 50,
+        filter: {
+          rel: "and",
+          cond: [{ field: "createTime", method: "range", value: [rangeStart, rangeEnd] }],
+        },
       });
       return records.map(normalizeStudentLeaveRecord);
     },
@@ -831,6 +849,95 @@ export function useStudentLeave(filters?: StudentLeaveFilters, enabled = true) {
   }, [allRecords, filters?.name, filters?.type, filters?.status, filters?.grade]);
 
   return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch };
+}
+
+export function useStudentLeaveCount(activeTime: number) {
+  const { rangeStart, rangeEnd } = useMemo(() => {
+    const now = new Date();
+    const start = new Date(now);
+    if (activeTime === 0) { start.setHours(0, 0, 0, 0); }
+    else if (activeTime === 1) { start.setDate(now.getDate() - now.getDay()); start.setHours(0, 0, 0, 0); }
+    else if (activeTime === 2) { start.setDate(1); start.setHours(0, 0, 0, 0); }
+    else { start.setMonth(0, 1); start.setHours(0, 0, 0, 0); }
+    const end = new Date(now);
+    end.setDate(end.getDate() + 1);
+    const fmt = (d: Date) => d.toISOString().split("T")[0];
+    return { rangeStart: fmt(start), rangeEnd: fmt(end) };
+  }, [activeTime]);
+
+  const { data, isPending } = useQuery({
+    queryKey: ["student-leave-count", rangeStart, rangeEnd],
+    queryFn: async () => {
+      const records = await jdyListAll({
+        app_id: JDY_CONFIG.STUDENT_LEAVE_APPLICATION.app_id,
+        entry_id: JDY_CONFIG.STUDENT_LEAVE_APPLICATION.entry_id,
+        pageSize: 100,
+        maxPages: 100,
+        filter: {
+          rel: "and",
+          cond: [{ field: "createTime", method: "range", value: [rangeStart, rangeEnd] }],
+        },
+      });
+      return records.length;
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 60_000,
+  });
+
+  return { count: data ?? null, isPending };
+}
+
+export function useStudentLeavePage(
+  filters: StudentLeaveFilters | undefined,
+  cursor: string | null,
+  pageSize = 100,
+) {
+  const { rangeStart, rangeEnd } = useMemo(() => {
+    const now = new Date();
+    const start = new Date(now);
+    start.setDate(start.getDate() - 5);
+    const end = new Date(now);
+    end.setDate(end.getDate() + 1);
+    const fmt = (d: Date) => d.toISOString().split("T")[0];
+    return { rangeStart: fmt(start), rangeEnd: fmt(end) };
+  }, []);
+
+  const { data, isPending, isError, error, refetch } = useQuery<JdyPageResult>({
+    queryKey: ["student-leave-page", cursor, pageSize, rangeStart, rangeEnd, filters?.name, filters?.type, filters?.status, filters?.grade],
+    queryFn: () =>
+      jdyListPage({
+        app_id: JDY_CONFIG.STUDENT_LEAVE_APPLICATION.app_id,
+        entry_id: JDY_CONFIG.STUDENT_LEAVE_APPLICATION.entry_id,
+        pageSize,
+        cursor,
+        filter: {
+          rel: "and",
+          cond: [{ field: "createTime", method: "range", value: [rangeStart, rangeEnd] }],
+        },
+      }),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const records = useMemo((): StudentLeaveRecord[] => {
+    if (!data) return [];
+    const normalized = data.records.map(normalizeStudentLeaveRecord);
+    return normalized.filter(r => {
+      if (filters?.name   && !r.请假学生姓名.includes(filters.name)) return false;
+      if (filters?.type   && r.请假类型 !== filters.type)            return false;
+      if (filters?.status && r.状态 !== filters.status)              return false;
+      if (filters?.grade  && r.请假学生年级 !== filters.grade)       return false;
+      return true;
+    });
+  }, [data, filters?.name, filters?.type, filters?.status, filters?.grade]);
+
+  return {
+    records,
+    nextCursor: data?.nextCursor ?? null,
+    isPending,
+    isError,
+    error,
+    refetch,
+  };
 }
 
 // ── 学生晨午晚检 ──────────────────────────────────────────────────

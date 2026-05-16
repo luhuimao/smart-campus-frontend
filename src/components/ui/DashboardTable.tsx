@@ -10,19 +10,20 @@ export type ActionItem = {
   tip: string;
   onClick?: () => void;
   tipAlign?: "center" | "right";
+  spinning?: boolean;
 };
 
 export function ActionBar({ show, actions }: { show: boolean; actions: ActionItem[] }) {
   if (!show) return null;
   return (
     <div className="flex items-center gap-0.5 shrink-0">
-      {actions.map(({ Icon, tip, onClick, tipAlign = "center" }) => (
+      {actions.map(({ Icon, tip, onClick, tipAlign = "center", spinning }) => (
         <div key={tip} className="relative group/tip">
           <button
             onClick={onClick}
             className="w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-black/[0.06] transition-colors"
           >
-            <Icon size={12} />
+            <span className={spinning ? "animate-spin" : undefined}><Icon size={12} /></span>
           </button>
           <div className={`pointer-events-none absolute top-full mt-2 opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 z-50 ${tipAlign === "right" ? "right-0" : "left-1/2 -translate-x-1/2"}`}>
             {tipAlign !== "right" && <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-800/90" />}
@@ -261,12 +262,22 @@ interface DashboardTableProps<T extends { _id: string }> {
   isError: boolean;
   sortAsc: boolean;
   onSortToggle: () => void;
-  page: number;
   pageSize: number;
-  totalRows: number;
-  onPageChange: (p: number) => void;
   onPageSizeChange: (s: number) => void;
   onRowClick?: (row: T) => void;
+  onRefresh?: () => Promise<unknown> | void;
+  // offset-pagination mode
+  page?: number;
+  totalRows?: number;
+  onPageChange?: (p: number) => void;
+  // cursor-pagination mode
+  hasPrev?: boolean;
+  hasNext?: boolean;
+  onPrev?: () => void;
+  onNext?: () => void;
+  onFirst?: () => void;
+  onLast?: () => void;
+  pageIndex?: number;
 }
 
 export function DashboardTable<T extends { _id: string }>({
@@ -283,9 +294,24 @@ export function DashboardTable<T extends { _id: string }>({
   onPageChange,
   onPageSizeChange,
   onRowClick,
+  onRefresh,
+  hasPrev,
+  hasNext,
+  onPrev,
+  onNext,
+  onFirst,
+  onLast,
+  pageIndex,
 }: DashboardTableProps<T>) {
   const [hovered, setHovered] = useState(false);
-  const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  async function handleRefresh() {
+    if (!onRefresh || isRefreshing) return;
+    setIsRefreshing(true);
+    try { await onRefresh(); } finally { setIsRefreshing(false); }
+  }
+  const cursorMode = onPrev !== undefined || onNext !== undefined;
+  const totalPages = cursorMode ? undefined : Math.max(1, Math.ceil((totalRows ?? 0) / pageSize));
 
   return (
     <div className="glass rounded-[40px] overflow-hidden"
@@ -294,7 +320,7 @@ export function DashboardTable<T extends { _id: string }>({
         <h3 className="flex-1 min-w-0 truncate" style={{ fontSize: 15, fontWeight: 600, color: "#111827" }}>{title}</h3>
         <ActionBar show={hovered} actions={[
           { Icon: Upload, tip: "导出" },
-          { Icon: RefreshCw, tip: "刷新" },
+          { Icon: RefreshCw, tip: "刷新", onClick: handleRefresh, spinning: isRefreshing },
           { Icon: ArrowUpDown, tip: sortAsc ? "时间升序（点击切换降序）" : "时间降序（点击切换升序）", onClick: onSortToggle, tipAlign: "right" },
           { Icon: Maximize2, tip: "放大", tipAlign: "right" },
         ]} />
@@ -350,19 +376,44 @@ export function DashboardTable<T extends { _id: string }>({
         <div className="flex items-center gap-1">
           <select className="border border-gray-200 rounded-lg px-2 py-1 text-xs outline-none"
             style={{ color: "#374151" }} value={pageSize}
-            onChange={e => { onPageSizeChange(Number(e.target.value)); onPageChange(1); }}>
+            onChange={e => { onPageSizeChange(Number(e.target.value)); if (onPageChange) onPageChange(1); }}>
             {[10, 20, 50, 100].map(n => <option key={n} value={n}>{n} 条/页</option>)}
           </select>
-          <span style={{ color: "#6b7280" }}>共 {totalRows} 条</span>
+          <span style={{ color: "#6b7280" }}>共 {totalRows ?? rows.length} 条</span>
         </div>
         <div className="flex items-center gap-1">
-          <button onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page === 1}
-            className="px-2 py-1 border border-gray-200 rounded-lg text-gray-400 hover:bg-gray-50 disabled:opacity-40">‹</button>
-          <span className="px-2" style={{ color: "#374151" }}>{page}</span>
-          <span style={{ color: "#6b7280" }}>/ {totalPages}</span>
-          <button onClick={() => onPageChange(Math.min(totalPages, page + 1))} disabled={page === totalPages}
-            className="px-2 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40"
-            style={{ color: "#374151" }}>›</button>
+          {cursorMode ? (
+            <>
+              <button onClick={onFirst} disabled={!hasPrev}
+                className="px-2 py-1 border border-gray-200 rounded-lg text-gray-400 hover:bg-gray-50 disabled:opacity-40">«</button>
+              <button onClick={onPrev} disabled={!hasPrev}
+                className="px-2 py-1 border border-gray-200 rounded-lg text-gray-400 hover:bg-gray-50 disabled:opacity-40">‹</button>
+              <span className="px-2" style={{ color: "#374151" }}>
+                第 {(pageIndex ?? 0) + 1} 页
+                {totalRows != null && <> / 共 {Math.max(1, Math.ceil(totalRows / pageSize))} 页</>}
+              </span>
+              <button onClick={onNext} disabled={!hasNext}
+                className="px-2 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+                style={{ color: "#374151" }}>›</button>
+              <button onClick={onLast} disabled={!hasNext}
+                className="px-2 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+                style={{ color: "#374151" }}>»</button>
+            </>
+          ) : (
+            <>
+              <button onClick={() => onPageChange!(1)} disabled={(page ?? 1) === 1}
+                className="px-2 py-1 border border-gray-200 rounded-lg text-gray-400 hover:bg-gray-50 disabled:opacity-40">«</button>
+              <button onClick={() => onPageChange!(Math.max(1, (page ?? 1) - 1))} disabled={(page ?? 1) === 1}
+                className="px-2 py-1 border border-gray-200 rounded-lg text-gray-400 hover:bg-gray-50 disabled:opacity-40">‹</button>
+              <span className="px-2" style={{ color: "#374151" }}>{page ?? 1} / {totalPages}</span>
+              <button onClick={() => onPageChange!(Math.min(totalPages!, (page ?? 1) + 1))} disabled={(page ?? 1) === totalPages}
+                className="px-2 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+                style={{ color: "#374151" }}>›</button>
+              <button onClick={() => onPageChange!(totalPages!)} disabled={(page ?? 1) === totalPages}
+                className="px-2 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+                style={{ color: "#374151" }}>»</button>
+            </>
+          )}
         </div>
       </div>
     </div>
