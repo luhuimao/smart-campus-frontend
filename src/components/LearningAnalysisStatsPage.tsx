@@ -122,7 +122,7 @@ export function LearningAnalysisStatsPage({ onMenuOpen }: { onMenuOpen?: () => v
     subject: subjectFilter,
   }), [classFilter, subjectFilter]);
 
-  const { raw, filterOptions, isPending, isError } = useLearningAnalysis(filters);
+  const { raw, filterOptions, isPending, isError, refetch } = useLearningAnalysis(filters);
 
   const hasFilter = !!(classFilter || subjectFilter || startDate || endDate);
 
@@ -251,6 +251,7 @@ export function LearningAnalysisStatsPage({ onMenuOpen }: { onMenuOpen?: () => v
           onPageChange={setPage}
           onPageSizeChange={n => { setPageSize(n); setPage(1); }}
           onRowClick={setSelectedRecord}
+          onRefresh={refetch}
         />
 
       </div>
