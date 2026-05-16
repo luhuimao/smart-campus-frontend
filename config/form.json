@@ -1,189 +1,51 @@
 {
   "widgets": [
     {
-      "name": "_widget_1736929837045",
-      "widgetName": "_widget_1736929837045",
-      "label": "填报日期",
+      "name": "_widget_1775116425061",
+      "widgetName": "_widget_1775116425061",
+      "label": "班级",
+      "type": "combo"
+    },
+    {
+      "name": "_widget_1775116425063",
+      "widgetName": "_widget_1775116425063",
+      "label": "学生姓名",
+      "type": "combo"
+    },
+    {
+      "name": "_widget_1775117349258",
+      "widgetName": "_widget_1775117349258",
+      "label": "学科",
+      "type": "combo"
+    },
+    {
+      "name": "_widget_1775117349247",
+      "widgetName": "_widget_1775117349247",
+      "label": "学情分析开始时间",
       "type": "datetime"
     },
     {
-      "name": "_widget_1752654559799",
-      "widgetName": "_widget_1752654559799",
-      "label": "学期",
-      "type": "text"
+      "name": "_widget_1775117349248",
+      "widgetName": "_widget_1775117349248",
+      "label": "学情分析结束时间",
+      "type": "datetime"
     },
     {
-      "name": "_widget_1752654559800",
-      "widgetName": "_widget_1752654559800",
-      "label": "是否当前学期",
-      "type": "text"
+      "name": "_widget_1775117349249",
+      "widgetName": "_widget_1775117349249",
+      "label": "掌握较好的知识点",
+      "type": "image"
     },
     {
-      "name": "_widget_1736930971161",
-      "widgetName": "_widget_1736930971161",
-      "label": "提交人",
-      "type": "user"
+      "name": "_widget_1775117349250",
+      "widgetName": "_widget_1775117349250",
+      "label": "掌握不足的知识点",
+      "type": "image"
     },
     {
-      "name": "_widget_1752654559786",
-      "widgetName": "_widget_1752654559786",
-      "label": "班主任编号",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1736927246680",
-      "widgetName": "_widget_1736927246680",
-      "label": "班级名称",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1752654559814",
-      "widgetName": "_widget_1752654559814",
-      "label": "年级",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1767086981553",
-      "widgetName": "_widget_1767086981553",
-      "label": "级部",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1767086981554",
-      "widgetName": "_widget_1767086981554",
-      "label": "年级别名",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1752656478041",
-      "widgetName": "_widget_1752656478041",
-      "label": "年级总人数",
-      "type": "number"
-    },
-    {
-      "name": "_widget_1736929837049",
-      "widgetName": "_widget_1736929837049",
-      "label": "应到学生人数",
-      "type": "number"
-    },
-    {
-      "name": "_widget_1736929837089",
-      "widgetName": "_widget_1736929837089",
-      "label": "返校学生人数",
-      "type": "number"
-    },
-    {
-      "name": "_widget_1736929837051",
-      "widgetName": "_widget_1736929837051",
-      "label": "未返校学生人数",
-      "type": "number"
-    },
-    {
-      "name": "_widget_1736929837090",
-      "widgetName": "_widget_1736929837090",
-      "label": "转入学生人数",
-      "type": "number"
-    },
-    {
-      "name": "_widget_1767086981552",
-      "widgetName": "_widget_1767086981552",
-      "label": "班主任",
-      "type": "user"
-    },
-    {
-      "name": "_widget_1767086981560",
-      "widgetName": "_widget_1767086981560",
-      "label": "级部主任",
-      "type": "user"
-    },
-    {
-      "name": "_widget_1736929837055",
-      "widgetName": "_widget_1736929837055",
-      "label": "病假学生姓名",
-      "type": "combocheck"
-    },
-    {
-      "name": "_widget_1736929837061",
-      "widgetName": "_widget_1736929837061",
-      "label": "病假学生人数",
-      "type": "number"
-    },
-    {
-      "name": "_widget_1736929837068",
-      "widgetName": "_widget_1736929837068",
-      "label": "病假具体情况说明",
-      "type": "textarea"
-    },
-    {
-      "name": "_widget_1736929837065",
-      "widgetName": "_widget_1736929837065",
-      "label": "事假学生姓名",
-      "type": "combocheck"
-    },
-    {
-      "name": "_widget_1736929837067",
-      "widgetName": "_widget_1736929837067",
-      "label": "事假学生人数",
-      "type": "number"
-    },
-    {
-      "name": "_widget_1736929837069",
-      "widgetName": "_widget_1736929837069",
-      "label": "事假具体情况说明",
-      "type": "textarea"
-    },
-    {
-      "name": "_widget_1736929837074",
-      "widgetName": "_widget_1736929837074",
-      "label": "在外学习培训学生姓名",
-      "type": "combocheck"
-    },
-    {
-      "name": "_widget_1736929837076",
-      "widgetName": "_widget_1736929837076",
-      "label": "在外学习培训学生人数",
-      "type": "number"
-    },
-    {
-      "name": "_widget_1736929837077",
-      "widgetName": "_widget_1736929837077",
-      "label": "在外学习培训具体情况说明",
-      "type": "textarea"
-    },
-    {
-      "name": "_widget_1736929837079",
-      "widgetName": "_widget_1736929837079",
-      "label": "休学学生姓名",
-      "type": "combocheck"
-    },
-    {
-      "name": "_widget_1736929837081",
-      "widgetName": "_widget_1736929837081",
-      "label": "休学学生人数",
-      "type": "number"
-    },
-    {
-      "name": "_widget_1736929837082",
-      "widgetName": "_widget_1736929837082",
-      "label": "休学具体情况说明",
-      "type": "textarea"
-    },
-    {
-      "name": "_widget_1736929837084",
-      "widgetName": "_widget_1736929837084",
-      "label": "流失学生姓名",
-      "type": "combocheck"
-    },
-    {
-      "name": "_widget_1736929837086",
-      "widgetName": "_widget_1736929837086",
-      "label": "流失学生人数",
-      "type": "number"
-    },
-    {
-      "name": "_widget_1736929837087",
-      "widgetName": "_widget_1736929837087",
-      "label": "流失学生具体情况说明",
+      "name": "_widget_1775117349251",
+      "widgetName": "_widget_1775117349251",
+      "label": "教师指导措施",
       "type": "textarea"
     }
   ],
@@ -207,5 +69,5 @@
       "name": "deleteTime"
     }
   ],
-  "dataModifyTime": "2025-12-30T09:52:34.774Z"
+  "dataModifyTime": "2026-05-07T02:15:08.256Z"
 }

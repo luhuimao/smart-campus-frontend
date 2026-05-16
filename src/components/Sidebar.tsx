@@ -301,7 +301,7 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
                         onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = "rgba(0,0,0,0.04)"; }}
                         onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
                         onClick={() => {
-                          if (label === "首页")         { handleNavigate("student-home", label); return; }
+                          if (label === "首页")         { handleNavigate("student-dashboard", label); return; }
                           if (label === "学生管理看板") { handleNavigate("student-dashboard", label); return; }
                           if (label === "宿舍考勤看板") { handleNavigate("student-home", label); return; }
                           if (children) toggleYisheng(label);
