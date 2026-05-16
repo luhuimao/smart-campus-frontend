@@ -562,7 +562,7 @@ export function LessonPrepAnalysisPage({ onMenuOpen }: { onMenuOpen?: () => void
   const [teacherPage,   setTeacherPage]   = useState(1);
   const LIST_PAGE_SIZE = 6;
 
-  const { data, filterOptions, isPending, isError, raw } = useBeikeDashboard(activeFilters);
+  const { data, filterOptions, isPending, isError, raw, refetch } = useBeikeDashboard(activeFilters);
 
   useEffect(() => {
     setTablePage(1);
@@ -930,6 +930,7 @@ export function LessonPrepAnalysisPage({ onMenuOpen }: { onMenuOpen?: () => void
               onPageChange={setTablePage}
               onPageSizeChange={n => { setTablePageSize(n); setTablePage(1); }}
               onRowClick={setSelectedRecord}
+              onRefresh={refetch}
             />
           );
         })()}

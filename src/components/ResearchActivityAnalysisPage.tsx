@@ -435,7 +435,7 @@ export function ResearchActivityAnalysisPage({ onMenuOpen }: { onMenuOpen?: () =
 
   const [activeFilters, setActiveFilters] = useState<ActiveFilters>({ semester: "", group: "", subject: "" });
 
-  const { data, filterOptions, isPending, isError, raw } = useResearchDashboard(activeFilters);
+  const { data, filterOptions, isPending, isError, raw, refetch } = useResearchDashboard(activeFilters);
 
   // 筛选变化时重置分页
   useEffect(() => {
@@ -826,6 +826,7 @@ export function ResearchActivityAnalysisPage({ onMenuOpen }: { onMenuOpen?: () =
               onPageChange={setTablePage}
               onPageSizeChange={n => { setTablePageSize(n); setTablePage(1); }}
               onRowClick={setSelectedRecord}
+              onRefresh={refetch}
             />
           );
         })()}

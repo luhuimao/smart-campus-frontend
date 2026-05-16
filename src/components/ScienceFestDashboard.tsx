@@ -271,7 +271,7 @@ export function ScienceFestDashboard({ onMenuOpen }: { onMenuOpen?: () => void }
   const [lightbox, setLightbox] = useState<{ images: { name: string; url: string }[]; index: number } | null>(null);
   const [activeFilters, setActiveFilters] = useState<ScienceFestFilters>({ group: "", teacher: "" });
 
-  const { raw, filterOptions, isPending, isError } = useScienceFestDashboard(activeFilters);
+  const { raw, filterOptions, isPending, isError, refetch } = useScienceFestDashboard(activeFilters);
 
   useEffect(() => {
     setTablePage(1);
@@ -682,6 +682,7 @@ export function ScienceFestDashboard({ onMenuOpen }: { onMenuOpen?: () => void }
               onPageChange={setTablePage}
               onPageSizeChange={n => { setTablePageSize(n); setTablePage(1); }}
               onRowClick={setSelectedRecord}
+              onRefresh={refetch}
             />
           );
         })()}
