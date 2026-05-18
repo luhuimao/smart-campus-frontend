@@ -31,59 +31,150 @@ WECOM_SECRET=        # 应用密钥
 
 ---
 
-## 阶段二：网页授权（免登录）
+## 阶段二：网页授权（免登录）✅ 已实现
 
 用户在企业微信内打开应用时，通过 OAuth2 获取用户身份。
 
 ### 流程
 
 ```
-① 前端跳转授权地址
+① middleware 检测到未登录，重定向到 /api/auth/wecom?redirect={原始路径}
+
+② /api/auth/wecom 构造企业微信 OAuth 授权 URL，302 跳转：
    https://open.weixin.qq.com/connect/oauth2/authorize
-   ?appid={CorpId}
-   &redirect_uri={回调URL，需 encodeURIComponent}
-   &response_type=code
-   &scope=snsapi_base
-   &agentid={AgentId}
+   ?appid={CorpId}&redirect_uri={callbackUrl}&response_type=code
+   &scope=snsapi_base&agentid={AgentId}&state={redirect}
    #wechat_redirect
 
-② 企业微信回调，URL 携带 code 参数
+③ 企业微信回调 /api/auth/callback?code=xxx&state={原始路径}
 
-③ 前端将 code 传给后端 /api/auth/wecom
-
-④ 后端用 code 换取用户身份
-   GET https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo
-       ?access_token={access_token}&code={code}
-   → 返回 UserId
+④ 后端用 code 换取用户身份，写 HTTP-only Cookie，跳回原始路径
 ```
 
-### Next.js 路由示例
+### 已实现文件
+
+#### `src/lib/wecom-auth.ts` — 核心工具库
 
 ```ts
-// src/app/api/auth/wecom/route.ts
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const code = searchParams.get("code");
+export type WecomUser = { userId: string; name: string; avatar?: string };
 
-  // 1. 获取 access_token
-  const tokenRes = await fetch(
-    `https://qyapi.weixin.qq.com/cgi-bin/gettoken` +
-    `?corpid=${process.env.WECOM_CORP_ID}` +
-    `&corpsecret=${process.env.WECOM_SECRET}`
-  );
-  const { access_token } = await tokenRes.json();
+// Session Cookie 编解码（Base64url JSON，无需加密库）
+export function encodeSession(user: WecomUser): string
+export function decodeSession(value: string): WecomUser | null
 
-  // 2. 用 code 换 UserId
-  const userRes = await fetch(
-    `https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo` +
-    `?access_token=${access_token}&code=${code}`
-  );
-  const { UserId } = await userRes.json();
+// 本地开发绕过（读取 WECOM_DEV_USER_ID / WECOM_DEV_USER_NAME）
+export function getDevUser(): WecomUser | null
 
-  // 3. 根据 UserId 查询系统用户，生成 session/token
-  // ...
+// 企业微信 API
+export async function getAccessToken(): Promise<string>
+export async function getUserByCode(code: string): Promise<WecomUser>
+export function buildOAuthUrl(redirectUri: string, state?: string): string
+
+export const SESSION_COOKIE = "wecom_session";
+export const SESSION_MAX_AGE = 8 * 60 * 60; // 8 小时
+```
+
+#### `src/app/api/auth/wecom/route.ts` — OAuth 入口
+
+```ts
+// GET /api/auth/wecom?redirect=/some/path
+export async function GET(req: NextRequest) {
+  const redirect = searchParams.get("redirect") ?? "/";
+
+  // 开发模式：直接写假 session，跳回目标页
+  const devUser = getDevUser();
+  if (devUser) {
+    const res = NextResponse.redirect(new URL(redirect, origin));
+    res.cookies.set(SESSION_COOKIE, encodeSession(devUser), { httpOnly: true, sameSite: "lax", maxAge: SESSION_MAX_AGE, path: "/" });
+    return res;
+  }
+
+  // 生产：跳转企业微信授权页
+  const callbackUrl = `${origin}/api/auth/callback`;
+  return NextResponse.redirect(buildOAuthUrl(callbackUrl, redirect));
 }
 ```
+
+#### `src/app/api/auth/callback/route.ts` — OAuth 回调
+
+```ts
+// GET /api/auth/callback?code=xxx&state=/some/path
+export async function GET(req: NextRequest) {
+  const code = searchParams.get("code");
+  const state = searchParams.get("state") ?? "/";
+
+  const user = await getUserByCode(code);          // code → UserId → 用户详情
+  const res = NextResponse.redirect(new URL(state, origin));
+  res.cookies.set(SESSION_COOKIE, encodeSession(user), {
+    httpOnly: true, sameSite: "lax", maxAge: SESSION_MAX_AGE, path: "/",
+  });
+  return res;
+}
+```
+
+#### `src/app/api/auth/logout/route.ts` — 退出登录
+
+```ts
+// GET /api/auth/logout
+export async function GET() {
+  const res = NextResponse.redirect(new URL("/api/auth/wecom", origin));
+  res.cookies.set(SESSION_COOKIE, "", { maxAge: 0, path: "/" });
+  return res;
+}
+```
+
+#### `src/middleware.ts` — 路由守卫
+
+```ts
+const PUBLIC_PREFIXES = ["/api/auth/", "/_next/", "/favicon.ico"];
+
+export function middleware(req: NextRequest) {
+  if (PUBLIC_PREFIXES.some(p => pathname.startsWith(p))) return NextResponse.next();
+  if (getDevUser()) return NextResponse.next();  // 开发模式放行
+
+  const sessionCookie = req.cookies.get(SESSION_COOKIE)?.value;
+  if (sessionCookie && decodeSession(sessionCookie)) return NextResponse.next();
+
+  // 未登录 → 跳转授权
+  const loginUrl = new URL("/api/auth/wecom", origin);
+  loginUrl.searchParams.set("redirect", pathname);
+  return NextResponse.redirect(loginUrl);
+}
+
+export const config = {
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+};
+```
+
+#### `src/app/page.tsx` — Server Component 读取 session
+
+```ts
+export default async function Home() {
+  let currentUser: WecomUser | null = getDevUser();
+  if (!currentUser) {
+    const jar = await cookies();
+    const val = jar.get("wecom_session")?.value;
+    if (val) currentUser = decodeSession(val);
+  }
+  return <HomeClient currentUser={currentUser} />;
+}
+```
+
+#### `src/components/Sidebar.tsx` — 侧边栏底部用户信息
+
+侧边栏底部展示当前用户头像首字、姓名，以及退出登录按钮（`/api/auth/logout`）。
+
+### 本地开发绕过
+
+`.env.local` 中设置以下变量即可跳过 OAuth，直接以模拟用户登录：
+
+```env
+WECOM_DEV_USER_ID=dev_user
+WECOM_DEV_USER_NAME=开发者
+```
+
+两个变量同时存在时，middleware 直接放行，`/api/auth/wecom` 写入假 session。
+**生产部署时删除这两个变量即可自动切换为真实 OAuth 流程。**
 
 ---
 
