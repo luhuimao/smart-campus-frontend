@@ -1,13 +1,14 @@
 "use client";
 
 import {
-  LayoutGrid, Search, Bell, FilePenLine, PieChart, Users2,
+  LayoutGrid, Search, FilePenLine, PieChart, Users2,
   TrendingUp, Plus, Share2, Download, BarChart3, Menu,
   RefreshCw, ArrowUpDown, Maximize2, Upload,
 } from "lucide-react";
 import React, { useState } from "react";
 import { useResearchDashboard, useBeikeDashboard } from "@/hooks/use-research-dashboard";
 import type { ActiveFilters, BeikeActiveFilters } from "@/hooks/use-research-dashboard";
+import { UserAvatarMenu } from "@/components/ui/UserAvatarMenu";
 
 const glass = {
   background: "rgba(255,255,255,0.8)",
@@ -117,23 +118,7 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
           <h1 className="text-base font-bold text-gray-900">教科研看板</h1>
         </div>
         <div className="flex items-center gap-4">
-          {/* <div className="relative hidden sm:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="搜索..."
-              className="pl-9 pr-4 py-1.5 bg-gray-200/40 border-none rounded-full text-xs outline-none w-48 transition-all focus:w-64"
-            />
-          </div> */}
-          <div className="flex items-center gap-3">
-            <div className="p-2 hover:bg-gray-100 rounded-full cursor-pointer relative">
-              <Bell className="w-5 h-5 text-gray-600" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
-            </div>
-            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-rose-400 to-orange-400 flex items-center justify-center text-white font-bold shadow-sm ring-2 ring-white cursor-pointer hover:scale-105 transition-transform text-sm">
-              卢
-            </div>
-          </div>
+          <UserAvatarMenu />
         </div>
       </header>
 

@@ -1,12 +1,13 @@
 "use client";
 
-import { Users, PlusCircle, User, Bell, Menu, RefreshCw, ArrowUpDown, Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, PlusCircle, User, Menu, RefreshCw, ArrowUpDown, Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
 import { useStudentInfo, useStudentLeave, useStudentLeaveCount, useHealthCheck, useStudentReturnSchool, useStudentSupport, useHeartToHeartTalk, type StudentInfoFilters, type StudentLeaveFilters, type HealthCheckFilters, type StudentReturnSchoolFilters, type StudentSupportFilters, type HeartToHeartTalkFilters } from "@/hooks/use-research-dashboard";
 import { DashboardTable } from "@/components/ui/DashboardTable";
 import type { ColumnDef } from "@/components/ui/DashboardTable";
 import type { StudentInfoRecord, StudentLeaveRecord, HealthCheckRecord, StudentReturnSchoolRecord, StudentSupportRecord, HeartToHeartTalkRecord } from "@/hooks/use-research-dashboard";
+import { UserAvatarMenu } from "@/components/ui/UserAvatarMenu";
 
 function formatCount(n: number | null | undefined): string {
   if (n == null) return "…";
@@ -1284,15 +1285,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
-            <div className="p-2 hover:bg-gray-100 rounded-full cursor-pointer relative">
-              <Bell className="w-5 h-5 text-gray-600" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
-            </div>
-            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold shadow-sm ring-2 ring-white">
-              卢
-            </div>
-          </div>
+          <UserAvatarMenu />
         </div>
       </header>
 
