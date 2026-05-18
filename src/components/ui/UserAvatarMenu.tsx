@@ -37,9 +37,14 @@ export function UserAvatarMenu() {
         </div>
         {open && (
           <div
-            className="absolute right-0 top-full mt-2 min-w-[120px] rounded-xl shadow-lg border border-gray-100 overflow-hidden"
+            className="absolute right-0 top-full mt-2 min-w-[140px] rounded-xl shadow-lg border border-gray-100 overflow-hidden"
             style={{ background: "rgba(255,255,255,0.95)", backdropFilter: "blur(16px)", zIndex: 50 }}
           >
+            {currentUser && (
+              <div className="px-4 py-2.5 border-b border-gray-100">
+                <p className="text-sm font-semibold text-gray-800 truncate">{currentUser.name}</p>
+              </div>
+            )}
             {USER_MENU_OPTIONS.map((opt) => (
               <button
                 key={opt}
