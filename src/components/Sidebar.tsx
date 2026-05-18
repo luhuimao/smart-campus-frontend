@@ -1,7 +1,6 @@
 "use client";
 
-import { Search, Home, Folder, ChevronDown, ChevronRight, ChevronLeft, FileText, BookOpen, GraduationCap, BarChart2, LayoutDashboard, Building2, LogOut } from "lucide-react";
-import type { WecomUser } from "@/lib/wecom-auth";
+import { Search, Home, Folder, ChevronDown, ChevronRight, ChevronLeft, FileText, BookOpen, GraduationCap, BarChart2, LayoutDashboard, Building2 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 
 const treeItems = [
@@ -85,7 +84,6 @@ interface SidebarProps {
   activePage?: PageKey;
   mobileOpen?: boolean;
   onClose?: () => void;
-  currentUser?: WecomUser;
 }
 
 const sidebarBaseStyle: React.CSSProperties = {
@@ -97,7 +95,7 @@ const sidebarBaseStyle: React.CSSProperties = {
   fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
 };
 
-export function Sidebar({ onNavigate, activePage, mobileOpen, onClose, currentUser }: SidebarProps) {
+export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: SidebarProps) {
   const [expanded,     setExpanded]    = useState<Record<string, boolean>>({ [PARENT_KEY]: true });
   const [activeParent, setActiveParent] = useState<string>(PARENT_KEY);
   const [activeLabel,  setActiveLabel] = useState<string>("首页");
@@ -377,23 +375,7 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose, currentUs
         </div>
       </div>
 
-      {/* User info footer */}
-      {currentUser && (
-        <div className="shrink-0 flex items-center gap-2.5 px-4 py-3" style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
-          <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 overflow-hidden"
-            style={{ background: activeParent === "一生一案" ? "linear-gradient(135deg,#8b5cf6,#6d28d9)" : "linear-gradient(135deg,#5BC8F5,#2B8FD9)" }}>
-            {currentUser.avatar
-              ? <img src={currentUser.avatar} alt={currentUser.name} className="w-full h-full object-cover" />
-              : currentUser.name.slice(0, 1)}
-          </div>
-          <span className="flex-1 min-w-0 truncate text-xs font-semibold" style={{ color: "#374151" }}>{currentUser.name}</span>
-          <a href="/api/auth/logout" title="退出登录"
-            className="w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-black/[0.06] transition-colors shrink-0">
-            <LogOut size={12} />
-          </a>
-        </div>
-      )}
-    </>
+</>
   );
 
   return (

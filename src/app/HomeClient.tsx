@@ -44,6 +44,7 @@ import { SemesterConfigPage } from "@/components/SemesterConfigPage";
 import { GradeConfigPage } from "@/components/GradeConfigPage";
 import type { PageKey } from "./page";
 import type { WecomUser } from "@/lib/wecom-auth";
+import { UserProvider } from "@/lib/user-context";
 
 export function HomeClient({ currentUser }: { currentUser: WecomUser | null }) {
   const [activePage, setActivePage] = useState<PageKey>("research-dashboard");
@@ -51,6 +52,7 @@ export function HomeClient({ currentUser }: { currentUser: WecomUser | null }) {
   const onMenuOpen = () => setMobileMenuOpen(true);
 
   return (
+    <UserProvider value={currentUser}>
     <div
       className="flex"
       style={{
@@ -66,7 +68,6 @@ export function HomeClient({ currentUser }: { currentUser: WecomUser | null }) {
         activePage={activePage}
         mobileOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
-        currentUser={currentUser ?? undefined}
       />
 
       <div style={{ flex: 1, height: "100vh", overflow: "hidden" }}>
@@ -112,5 +113,6 @@ export function HomeClient({ currentUser }: { currentUser: WecomUser | null }) {
         {activePage === "grade-config"                && <GradeConfigPage onMenuOpen={onMenuOpen} />}
       </div>
     </div>
+    </UserProvider>
   );
 }
