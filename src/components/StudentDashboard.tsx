@@ -1,18 +1,26 @@
 "use client";
 
+import * as XLSX from "xlsx";
 import { Users, PlusCircle, User, Menu, RefreshCw, ArrowUpDown, Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
-import { useStudentInfo, useStudentLeave, useStudentLeaveCount, useHealthCheck, useStudentReturnSchool, useStudentSupport, useHeartToHeartTalk, type StudentInfoFilters, type StudentLeaveFilters, type HealthCheckFilters, type StudentReturnSchoolFilters, type StudentSupportFilters, type HeartToHeartTalkFilters } from "@/hooks/use-research-dashboard";
+import { useStudentInfo, useStudentLeave, useStudentLeaveCount, useHealthCheck, useStudentReturnSchool, useStudentSupport, useHeartToHeartTalk, useTransactionsToday, useAccessLogsToday, useTransactionStats, useAccessStats, type StudentInfoFilters, type StudentLeaveFilters, type HealthCheckFilters, type StudentReturnSchoolFilters, type StudentSupportFilters, type HeartToHeartTalkFilters } from "@/hooks/use-research-dashboard";
 import { DashboardTable } from "@/components/ui/DashboardTable";
 import type { ColumnDef } from "@/components/ui/DashboardTable";
-import type { StudentInfoRecord, StudentLeaveRecord, HealthCheckRecord, StudentReturnSchoolRecord, StudentSupportRecord, HeartToHeartTalkRecord } from "@/hooks/use-research-dashboard";
+import type { StudentInfoRecord, StudentLeaveRecord, HealthCheckRecord, StudentReturnSchoolRecord, StudentSupportRecord, HeartToHeartTalkRecord, TransactionsRecord, AccessLogRecord } from "@/hooks/use-research-dashboard";
 import { UserAvatarMenu } from "@/components/ui/UserAvatarMenu";
 
 function formatCount(n: number | null | undefined): string {
   if (n == null) return "…";
-  if (n >= 10000) return "10K+";
+  if (n >= 10000) return `${(n / 10000).toFixed(1)}万`;
   return n.toLocaleString();
+}
+
+function exportToExcel(filename: string, headers: string[], rows: (string | number)[][]) {
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+  XLSX.writeFile(wb, `${filename}.xlsx`);
 }
 
 // ── StudentInfoDrawer ────────────────────────────────────────────
@@ -719,6 +727,106 @@ function HeartToHeartTalkDrawer({ record, onClose }: { record: HeartToHeartTalkR
   );
 }
 
+// ── ConsumeDrawer ────────────────────────────────────────────────
+function ConsumeDrawer({ record, onClose }: { record: TransactionsRecord | null; onClose: () => void }) {
+  useEffect(() => {
+    if (!record) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [record, onClose]);
+
+  return (<>
+    <div className="fixed inset-0 z-40 transition-opacity duration-300"
+      style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
+      onClick={onClose} />
+    <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+      style={{ width: 480, maxWidth: "100vw", background: "#fff", transform: record ? "translateX(0)" : "translateX(100%)", transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)" }}>
+      {record && (<>
+        <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+          <div className="flex-1 min-w-0 pr-4">
+            <p className="text-xs font-semibold text-blue-500 mb-1">{record.交易时间?.slice(0, 16) || "—"}</p>
+            <h2 className="text-base font-bold text-gray-900 leading-snug">{record.订单类型 || "消费记录"}</h2>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 shrink-0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+          <section>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">基本信息</p>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              {[{ label: "姓名", value: record.姓名 }, { label: "班级", value: record.班级 }, { label: "学/工号", value: record.宏德学_工号 }, { label: "年级", value: record.年级 }, { label: "级部", value: record.级部 }].map(({ label, value }) => (<div key={label}><p className="text-sm text-gray-400 mb-0.5">{label}</p><p className="text-base font-medium text-gray-800">{value || "—"}</p></div>))}
+            </div>
+          </section>
+          <section>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">订单信息</p>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              {[{ label: "订单类型", value: record.订单类型 }, { label: "订单号", value: record.订单号 }, { label: "支付方式", value: record.支付方式 }, { label: "交易金额", value: `¥${(record.交易金额 ?? 0).toFixed(2)}` }, { label: "实付金额", value: `¥${(record.实付金额 ?? 0).toFixed(2)}` }, { label: "消费方式", value: record.消费方式 }, { label: "门店", value: record.门店 }, { label: "订单状态", value: record.订单状态 }].map(({ label, value }) => (<div key={label}><p className="text-sm text-gray-400 mb-0.5">{label}</p><p className="text-base font-medium text-gray-800">{value || "—"}</p></div>))}
+            </div>
+          </section>
+          <section>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">时间信息</p>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              {[{ label: "消费机时间", value: record.消费机时间 }, { label: "交易时间", value: record.交易时间 }, { label: "支付时间", value: record.支付时间 }].map(({ label, value }) => (<div key={label}><p className="text-sm text-gray-400 mb-0.5">{label}</p><p className="text-base font-medium text-gray-800">{value ? value.slice(0, 16) : "—"}</p></div>))}
+            </div>
+          </section>
+          {(record.退款金额 > 0) && (<section>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">退款信息</p>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              {[{ label: "退款金额", value: `¥${record.退款金额.toFixed(2)}` }, { label: "退款时间", value: record.退款时间 }, { label: "退款状态", value: record.退款状态 }].map(({ label, value }) => (<div key={label}><p className="text-sm text-gray-400 mb-0.5">{label}</p><p className="text-base font-medium text-gray-800">{value || "—"}</p></div>))}
+            </div>
+          </section>)}
+        </div>
+      </>)}
+    </div>
+  </>);
+}
+
+// ── AccessDrawer ──────────────────────────────────────────────────
+function AccessDrawer({ record, onClose }: { record: AccessLogRecord | null; onClose: () => void }) {
+  useEffect(() => {
+    if (!record) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [record, onClose]);
+
+  return (<>
+    <div className="fixed inset-0 z-40 transition-opacity duration-300"
+      style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
+      onClick={onClose} />
+    <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+      style={{ width: 480, maxWidth: "100vw", background: "#fff", transform: record ? "translateX(0)" : "translateX(100%)", transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)" }}>
+      {record && (<>
+        <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+          <div className="flex-1 min-w-0 pr-4">
+            <p className="text-xs font-semibold text-blue-500 mb-1">{record.通行时间?.slice(0, 16) || "—"}</p>
+            <h2 className="text-base font-bold text-gray-900 leading-snug">{record.姓名 || "门禁记录"}</h2>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 shrink-0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+          <section>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">基本信息</p>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              {[{ label: "姓名", value: record.姓名 }, { label: "身份", value: record.身份 }, { label: "学/工号", value: record.宏德学_工号 }, { label: "年级", value: record.年级 }, { label: "级部", value: record.级部 }, { label: "班级", value: record.班级 }, { label: "班主任", value: record.班主任 }, { label: "级部主任", value: record.级部主任 }].map(({ label, value }) => (<div key={label}><p className="text-sm text-gray-400 mb-0.5">{label}</p><p className="text-base font-medium text-gray-800">{value || "—"}</p></div>))}
+            </div>
+          </section>
+          <section>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">通行信息</p>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              {[{ label: "通行时间", value: record.通行时间 }, { label: "出入场所", value: record.出入场所 }, { label: "通行方向", value: `${record.通行方向 || "—"}入` }, { label: "打卡设备", value: record.打卡设备 }, { label: "设备状态", value: record.设备状态 }].map(({ label, value }) => (<div key={label}><p className="text-sm text-gray-400 mb-0.5">{label}</p><p className="text-base font-medium text-gray-800">{value || "—"}</p></div>))}
+            </div>
+          </section>
+        </div>
+      </>)}
+    </div>
+  </>);
+}
+
 const glass = {
   background: "rgba(255,255,255,0.7)",
   backdropFilter: "blur(20px)",
@@ -743,11 +851,7 @@ const gradeClasses = [
   { grade: "高2024级", count: 18, active: false },
 ];
 
-const consumeItems = [
-  { label: "餐饮消费", pct: 75, color: "bg-orange-400" },
-  { label: "文具采购", pct: 15, color: "bg-blue-400" },
-  { label: "其他",     pct: 10, color: "bg-gray-300" },
-];
+const CONSUME_CATEGORY_COLORS = ["bg-orange-400", "bg-blue-400", "bg-emerald-400", "bg-purple-400", "bg-gray-300"];
 
 const tabs = ["学生基础信息", "学生晨午检", "学生返校情况", "学生请假数据", "学生消费进出数据", "学生资助情况","学生成长","一生一案谈心谈话记录表"];
 
@@ -811,34 +915,6 @@ const talkRows = [
   { teacher: "王志强", cls: "高三(2)班", stuName: "何婷",   idCard: "450102200811180110", stuId: "20241118", subject: "数学", talkTime: "2026-04-19 11:00", topic: "家庭困难",      record: "家庭经济困难，学生情绪不稳定，有辍学想法", advice: "立即联系家长，协助学生申请困难补助，稳定其学习意愿", photo: "有", submitter: "王志强", submitTime: "2026-04-19 12:00" },
 ];
 
-const CONSUME_COLS = ["姓名","班级","学/工号","订单类型","支付方式","交易金额","实付金额","消费机时间","交易时间","支付时间","订单状态","消费方式","门店","交易号","消费机SN","退款时间","退款金额","退款状态"];
-const ACCESS_COLS  = ["姓名","年级","班级","身份","学号","通行时间","出入场所","进出状态","打卡设备"];
-
-const consumeRows = [
-  { name:"莫佳龙", cls:"高一(1)班", stuId:"20240101", orderType:"餐饮消费", payMethod:"校园卡", amount:12.50, paid:12.50, machineTime:"2026-04-25 07:32", txTime:"2026-04-25 07:32", payTime:"2026-04-25 07:32", status:"已完成", consumeWay:"刷卡",  store:"第一食堂",   txNo:"TX20260425001", sn:"SN-A001", refundTime:"—",                refundAmount:0,   refundStatus:"—"    },
-  { name:"陆彦希", cls:"高一(2)班", stuId:"20240215", orderType:"餐饮消费", payMethod:"微信支付", amount:18.00, paid:18.00, machineTime:"2026-04-25 11:45", txTime:"2026-04-25 11:45", payTime:"2026-04-25 11:45", status:"已完成", consumeWay:"扫码",  store:"第二食堂",   txNo:"TX20260425002", sn:"SN-B002", refundTime:"—",                refundAmount:0,   refundStatus:"—"    },
-  { name:"张欣蕾", cls:"高一(3)班", stuId:"20240322", orderType:"文具采购", payMethod:"校园卡", amount:35.00, paid:35.00, machineTime:"2026-04-24 14:20", txTime:"2026-04-24 14:20", payTime:"2026-04-24 14:21", status:"已完成", consumeWay:"刷卡",  store:"校园超市",   txNo:"TX20260424003", sn:"SN-C003", refundTime:"—",                refundAmount:0,   refundStatus:"—"    },
-  { name:"刘静",   cls:"高二(1)班", stuId:"20240533", orderType:"餐饮消费", payMethod:"校园卡", amount:9.50,  paid:9.50,  machineTime:"2026-04-25 18:05", txTime:"2026-04-25 18:05", payTime:"2026-04-25 18:05", status:"已完成", consumeWay:"刷卡",  store:"第一食堂",   txNo:"TX20260425004", sn:"SN-A001", refundTime:"—",                refundAmount:0,   refundStatus:"—"    },
-  { name:"赵磊",   cls:"高二(2)班", stuId:"20240619", orderType:"餐饮消费", payMethod:"支付宝", amount:22.00, paid:22.00, machineTime:"2026-04-25 12:10", txTime:"2026-04-25 12:10", payTime:"2026-04-25 12:11", status:"已完成", consumeWay:"扫码",  store:"清真食堂",   txNo:"TX20260425005", sn:"SN-D004", refundTime:"—",                refundAmount:0,   refundStatus:"—"    },
-  { name:"孙丽",   cls:"高二(3)班", stuId:"20240724", orderType:"餐饮消费", payMethod:"校园卡", amount:13.00, paid:13.00, machineTime:"2026-04-24 07:28", txTime:"2026-04-24 07:28", payTime:"2026-04-24 07:28", status:"已完成", consumeWay:"刷卡",  store:"第二食堂",   txNo:"TX20260424006", sn:"SN-B002", refundTime:"—",                refundAmount:0,   refundStatus:"—"    },
-  { name:"周建国", cls:"高三(1)班", stuId:"20240831", orderType:"其他消费", payMethod:"校园卡", amount:50.00, paid:50.00, machineTime:"2026-04-23 16:00", txTime:"2026-04-23 16:00", payTime:"2026-04-23 16:00", status:"已完成", consumeWay:"刷卡",  store:"校园书店",   txNo:"TX20260423007", sn:"SN-E005", refundTime:"—",                refundAmount:0,   refundStatus:"—"    },
-  { name:"吴雪",   cls:"高三(2)班", stuId:"20240912", orderType:"餐饮消费", payMethod:"微信支付", amount:16.00, paid:16.00, machineTime:"2026-04-23 11:55", txTime:"2026-04-23 11:55", payTime:"2026-04-23 11:56", status:"退款中", consumeWay:"扫码",  store:"第一食堂",   txNo:"TX20260423008", sn:"SN-A001", refundTime:"2026-04-23 14:00", refundAmount:16.00, refundStatus:"处理中" },
-  { name:"郑浩然", cls:"高三(1)班", stuId:"20241005", orderType:"餐饮消费", payMethod:"校园卡", amount:8.50,  paid:8.50,  machineTime:"2026-04-22 07:30", txTime:"2026-04-22 07:30", payTime:"2026-04-22 07:30", status:"已完成", consumeWay:"刷卡",  store:"第二食堂",   txNo:"TX20260422009", sn:"SN-B002", refundTime:"—",                refundAmount:0,   refundStatus:"—"    },
-  { name:"何婷",   cls:"高三(2)班", stuId:"20241118", orderType:"文具采购", payMethod:"支付宝", amount:28.00, paid:28.00, machineTime:"2026-04-22 15:40", txTime:"2026-04-22 15:40", payTime:"2026-04-22 15:41", status:"已完成", consumeWay:"扫码",  store:"校园超市",   txNo:"TX20260422010", sn:"SN-C003", refundTime:"—",                refundAmount:0,   refundStatus:"—"    },
-];
-
-const accessRows = [
-  { name:"莫佳龙", grade:"高2025级", cls:"高一(1)班", role:"学生", stuId:"20240101", time:"2026-04-25 07:15", place:"正门",     direction:"进",  device:"闸机A01" },
-  { name:"陆彦希", grade:"高2025级", cls:"高一(2)班", role:"学生", stuId:"20240215", time:"2026-04-25 07:22", place:"正门",     direction:"进",  device:"闸机A01" },
-  { name:"张欣蕾", grade:"高2025级", cls:"高一(3)班", role:"学生", stuId:"20240322", time:"2026-04-25 17:30", place:"宿舍楼B区",direction:"进",  device:"门禁B03" },
-  { name:"刘静",   grade:"高2024级", cls:"高二(1)班", role:"学生", stuId:"20240533", time:"2026-04-25 07:18", place:"正门",     direction:"进",  device:"闸机A01" },
-  { name:"赵磊",   grade:"高2024级", cls:"高二(2)班", role:"学生", stuId:"20240619", time:"2026-04-25 21:45", place:"宿舍楼A区",direction:"进",  device:"门禁A02" },
-  { name:"孙丽",   grade:"高2024级", cls:"高二(3)班", role:"学生", stuId:"20240724", time:"2026-04-25 17:55", place:"图书馆",   direction:"出",  device:"门禁C01" },
-  { name:"周建国", grade:"高2023级", cls:"高三(1)班", role:"学生", stuId:"20240831", time:"2026-04-25 06:58", place:"正门",     direction:"进",  device:"闸机A02" },
-  { name:"吴雪",   grade:"高2023级", cls:"高三(2)班", role:"学生", stuId:"20240912", time:"2026-04-25 18:10", place:"侧门",     direction:"出",  device:"闸机B01" },
-  { name:"郑浩然", grade:"高2023级", cls:"高三(1)班", role:"学生", stuId:"20241005", time:"2026-04-25 07:05", place:"正门",     direction:"进",  device:"闸机A01" },
-  { name:"何婷",   grade:"高2023级", cls:"高三(2)班", role:"学生", stuId:"20241118", time:"2026-04-25 22:01", place:"宿舍楼C区",direction:"进",  device:"门禁C02" },
-];
 
 const BASE_COLS = ["学籍状态","姓名","民族","性别","出生日期","年龄","政治面貌","学生本人电话","户籍地址","现居地址","监护人1姓名","监护人1联系方式","监护人1关系","监护人1工作单位","监护人2姓名","监护人2联系方式","监护人2关系","监护人2工作单位","年级","年级别名","班主任","学生类型","毕业院校","既往病史","是否残疾","享受寄宿生生活补助金额（元）","享受营养改善计划补助金额（元）","是建档立卡贫苦户","建档立卡贫困户子女","随迁子女入","在校（园）农村留守儿童","备注","宿舍入住状态","宿舍楼栋","宿舍号","选科科目","选科方向","选科1","选科2","外语选科"];
 
@@ -889,8 +965,6 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [hvTable, setHvTable] = useState(false);
-  const [hvConsume, setHvConsume] = useState(false);
-  const [hvAccess, setHvAccess] = useState(false);
   const [hvReturn, setHvReturn] = useState(false);
   const [hvUnreport, setHvUnreport] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<StudentInfoRecord | null>(null);
@@ -1076,6 +1150,113 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   });
   const pagedTalk = sortedTalk.slice((talkPage - 1) * talkPageSize, talkPage * talkPageSize);
 
+  const { raw: txApiRows, isPending: txPending, isError: txError, refetch: txRefetch } = useTransactionsToday();
+  const { raw: accessApiRows, isPending: accessPending, isError: accessError, refetch: accessRefetch } = useAccessLogsToday();
+  const [consumeSortAsc, setConsumeSortAsc] = useState(false);
+  const [consumePage, setConsumePage] = useState(1);
+  const [consumePageSize, setConsumePageSize] = useState(20);
+  const [accessSortAsc, setAccessSortAsc] = useState(false);
+  const [accessPage, setAccessPage] = useState(1);
+  const [accessPageSize, setAccessPageSize] = useState(20);
+  const [selectedConsume, setSelectedConsume] = useState<TransactionsRecord | null>(null);
+  const [selectedAccess, setSelectedAccess] = useState<AccessLogRecord | null>(null);
+  const [pendingConsumeName, setPendingConsumeName] = useState("");
+  const [pendingAccessName, setPendingAccessName] = useState("");
+  const [consumeNameFilter, setConsumeNameFilter] = useState("");
+  const [accessNameFilter, setAccessNameFilter] = useState("");
+  const sortedConsume = useMemo(() => {
+    let list = txApiRows;
+    if (consumeNameFilter) list = list.filter(r => r.姓名?.includes(consumeNameFilter));
+    return [...list].sort((a, b) => {
+      const av = a.交易时间 || ""; const bv = b.交易时间 || "";
+      return consumeSortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+    });
+  }, [txApiRows, consumeSortAsc, consumeNameFilter]);
+  const sortedAccess = useMemo(() => {
+    let list = accessApiRows;
+    if (accessNameFilter) list = list.filter(r => r.姓名?.includes(accessNameFilter));
+    return [...list].sort((a, b) => {
+      const av = a.通行时间 || ""; const bv = b.通行时间 || "";
+      return accessSortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+    });
+  }, [accessApiRows, accessSortAsc, accessNameFilter]);
+  const pagedConsume = sortedConsume.slice((consumePage - 1) * consumePageSize, consumePage * consumePageSize);
+  const pagedAccess = sortedAccess.slice((accessPage - 1) * accessPageSize, accessPage * accessPageSize);
+
+  const { amount: consumeAmount, isPending: consumeStatsPending } = useTransactionStats(activeTime);
+  const { exitCount, enterCount, isPending: accessStatsPending } = useAccessStats(activeTime);
+
+  function formatAmount(n: number | null): string {
+    if (n == null) return "…";
+    if (n >= 10000) return `${(n / 10000).toFixed(1)}万`;
+    if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
+    return `¥${n.toFixed(0)}`;
+  }
+
+  const consumeItems = useMemo(() => {
+    const total = txApiRows.length;
+    if (total === 0) return [] as { label: string; pct: number; color: string }[];
+    const map = new Map<string, number>();
+    for (const r of txApiRows) {
+      const cat = r.订单类型 || "其他";
+      map.set(cat, (map.get(cat) ?? 0) + 1);
+    }
+    const entries = [...map.entries()].sort(([, a], [, b]) => b - a).slice(0, 5);
+    return entries.map(([label, count], i) => ({
+      label: label || "其他",
+      pct: Math.round((count / total) * 100),
+      color: CONSUME_CATEGORY_COLORS[i % CONSUME_CATEGORY_COLORS.length],
+    }));
+  }, [txApiRows]);
+
+  const consumeCols = useMemo((): ColumnDef<TransactionsRecord>[] => [
+    { key: "姓名", header: "姓名", render: r => <span className="font-semibold whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.姓名 || "—"}</span> },
+    { key: "班级", header: "班级", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.班级 || "—"}</span> },
+    { key: "宏德学_工号", header: "学/工号", render: r => <span style={{ fontSize: 15, color: "#6b7280" }}>{r.宏德学_工号 || "—"}</span> },
+    { key: "订单类型", header: "订单类型", render: r => r.订单类型 ? <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap" style={{ background:"rgba(99,102,241,0.08)", color:"#4f46e5" }}>{r.订单类型}</span> : <span className="text-gray-300">—</span> },
+    { key: "支付方式", header: "支付方式", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#6b7280" }}>{r.支付方式 || "—"}</span> },
+    { key: "交易金额", header: "交易金额", render: r => <span className="font-medium" style={{ fontSize: 15, color: "#374151" }}>¥{(r.交易金额 ?? 0).toFixed(2)}</span> },
+    { key: "实付金额", header: "实付金额", render: r => <span className="font-bold" style={{ fontSize: 15, color: "#059669" }}>¥{(r.实付金额 ?? 0).toFixed(2)}</span> },
+    { key: "交易时间", header: "交易时间", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#6b7280" }}>{r.交易时间 ? r.交易时间.slice(0, 16) : "—"}</span> },
+    { key: "订单状态", header: "订单状态", render: r => r.订单状态 ? <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap" style={{ background: r.订单状态==="已完成"?"rgba(16,185,129,0.08)":"rgba(245,158,11,0.1)", color: r.订单状态==="已完成"?"#059669":"#d97706" }}>{r.订单状态}</span> : <span className="text-gray-300">—</span> },
+    { key: "消费方式", header: "消费方式", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#6b7280" }}>{r.消费方式 || "—"}</span> },
+    { key: "门店", header: "门店", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.门店 || "—"}</span> },
+    { key: "退款金额", header: "退款金额", render: r => <span style={{ fontSize: 15, color: r.退款金额 > 0 ? "#d97706" : "#9ca3af" }}>{r.退款金额 > 0 ? `¥${r.退款金额.toFixed(2)}` : "—"}</span> },
+  ], []);
+
+  const accessCols = useMemo((): ColumnDef<AccessLogRecord>[] => [
+    { key: "姓名", header: "姓名", render: r => <span className="font-semibold whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.姓名 || "—"}</span> },
+    { key: "年级", header: "年级", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#6b7280" }}>{r.年级 || "—"}</span> },
+    { key: "班级", header: "班级", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.班级 || "—"}</span> },
+    { key: "身份", header: "身份", render: r => <span style={{ fontSize: 15, color: "#6b7280" }}>{r.身份 || "学生"}</span> },
+    { key: "宏德学_工号", header: "学号", render: r => <span style={{ fontSize: 15, color: "#6b7280" }}>{r.宏德学_工号 || "—"}</span> },
+    { key: "通行时间", header: "通行时间", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#6b7280" }}>{r.通行时间 ? r.通行时间.slice(0, 16) : "—"}</span> },
+    { key: "出入场所", header: "出入场所", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.出入场所 || "—"}</span> },
+    { key: "通行方向", header: "进出状态", render: r => r.通行方向 ? <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap" style={{ background: r.通行方向==="进"?"rgba(16,185,129,0.08)":"rgba(239,68,68,0.08)", color: r.通行方向==="进"?"#059669":"#dc2626" }}>{r.通行方向}入</span> : <span className="text-gray-300">—</span> },
+    { key: "打卡设备", header: "打卡设备", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#6b7280" }}>{r.打卡设备 || "—"}</span> },
+  ], []);
+
+  const tableActions: { Icon: React.ElementType; tip: string }[] = [];
+
+  function exportConsume() {
+    const headers = consumeCols.map(c => c.header);
+    const rows = sortedConsume.map(r => [
+      r.姓名||"", r.班级||"", r.宏德学_工号||"", r.订单类型||"", r.支付方式||"",
+      `¥${(r.交易金额??0).toFixed(2)}`, `¥${(r.实付金额??0).toFixed(2)}`,
+      r.交易时间?.slice(0,16)||"", r.订单状态||"", r.消费方式||"", r.门店||"",
+      r.退款金额>0 ? `¥${r.退款金额.toFixed(2)}` : "—",
+    ]);
+    exportToExcel("学生消费明细", headers, rows);
+  }
+  function exportAccess() {
+    const headers = accessCols.map(c => c.header);
+    const rows = sortedAccess.map(r => [
+      r.姓名||"", r.年级||"", r.班级||"", r.身份||"", r.宏德学_工号||"",
+      r.通行时间?.slice(0,16)||"", r.出入场所||"", `${r.通行方向||""}入`, r.打卡设备||"",
+    ]);
+    exportToExcel("学生进出数据", headers, rows);
+  }
+
   const leaveCols = useMemo((): ColumnDef<StudentLeaveRecord>[] => [
     { key: "请假学生姓名", header: "请假人", render: r => <span className="font-semibold whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.请假学生姓名 || "—"}</span> },
     { key: "请假类型", header: "请假类型", render: r => r.请假类型 ? (
@@ -1258,9 +1439,74 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
     { key: "外语选科", header: "外语选科", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.外语选科 || "—"}</span> },
   ], []);
 
-  type ActionItem = { Icon: React.ElementType; tip: string };
-  const fullActions: ActionItem[] = [];
-  const tableActions: ActionItem[] = [];
+
+  function exportStudents() {
+    const headers = ["学籍状态","姓名","民族","性别","出生日期","年龄","政治面貌","学生本人电话","年级","班级","班主任","学生类型","宿舍入住状态","宿舍楼栋","宿舍号","选科方向","备注"];
+    const rows = sortedStudents.map(r => [
+      r.学籍状态||"", r.姓名||"", r.民族||"", r.性别||"", r.出生日期?.slice(0,10)||"", r.年龄??"",
+      r.政治面貌||"", r.学生本人电话||"", r.年级名称||"", r.班级名称||"", r.班主任||"",
+      r.学生类型||"", r.宿舍入住状态||"", r.宿舍楼栋||"", r.宿舍号||"", r.选科方向||"", r.备注||"",
+    ]);
+    exportToExcel("学生基础信息", headers, rows);
+  }
+
+  function exportHealth() {
+    const headers = ["班级名称","年级","级部","班主任","上报类型","检查情况","填报日期","应到人数","实到人数","因病缺课","发热","流感确诊","咽痛流涕咳嗽","乏力","腹泻","呼吸困难","其他症状","学期"];
+    const rows = sortedHealth.map(r => [
+      r.班级名称||r.班级||"", r.年级||"", r.级部||"", r.班主任||"", r.上报类型||"", r.检查情况||"",
+      r.填报日期_文本||r.填报日期_日期?.slice(0,10)||"",
+      r.应到学生人数??"", r.实到学生人数??"", r.因病缺课学生人数??"",
+      r.发热学生人数??"", r.流感确诊学生人数??"", r.是否有咽痛流涕咳嗽学生数??"",
+      r.乏力学生数??"", r.腹泻学生数??"", r.呼吸困难学生数??"", r.其他症状学生数??"", r.学期||"",
+    ]);
+    exportToExcel("学生晨午检", headers, rows);
+  }
+
+  function exportReturn() {
+    const headers = ["填报日期","年级","班级名称","班主任","应到人数","返校人数","未返校人数","转入人数","病假学生姓名","病假人数","病假说明","事假学生姓名","事假人数","事假说明","在外培训学生","在外培训说明","休学学生姓名","休学人数","休学说明","流失学生姓名","流失人数","流失说明","学期"];
+    const rows = sortedReturn.map(r => [
+      r.填报日期?.slice(0,10)||"", r.年级||"", r.班级名称||"", r.班主任||"",
+      r.应到学生人数??"", r.返校学生人数??"", r.未返校学生人数??"", r.转入学生人数??"",
+      r.病假学生姓名||"", r.病假学生人数??"", r.病假具体情况说明||"",
+      r.事假学生姓名||"", r.事假学生人数??"", r.事假具体情况说明||"",
+      r.在外学习培训学生姓名||"", r.在外学习培训具体情况说明||"",
+      r.休学学生姓名||"", r.休学学生人数??"", r.休学具体情况说明||"",
+      r.流失学生姓名||"", r.流失学生人数??"", r.流失学生具体情况说明||"", r.学期||"",
+    ]);
+    exportToExcel("学生返校情况", headers, rows);
+  }
+
+  function exportLeave() {
+    const headers = ["请假人","请假类型","请假开始时间","请假结束时间","请假时长（天）","请假原因说明","发起时间","状态","年级","班级","班主任","学期"];
+    const rows = sortedLeave.map(r => [
+      r.请假学生姓名||"", r.请假类型||"",
+      r.请假开始时间?.slice(0,16)||"", r.请假结束时间?.slice(0,16)||"",
+      r.请假时长_数字||r.请假时长_文本||"", r.请假原因说明||"",
+      r.申请时间?.slice(0,16)||"", r.状态||"",
+      r.请假学生年级||"", r.请假学生班级||"", r.班主任||"", r.学期||"",
+    ]);
+    exportToExcel("学生请假数据", headers, rows);
+  }
+
+  function exportSupport() {
+    const headers = ["学生姓名","年级","班级名称","资助项目名称","资助单位","资助金额","发放学期","学号","性别","家长姓名","手机号码","备注"];
+    const rows = sortedSupport.map(r => [
+      r.学生姓名||"", r.年级||"", r.班级名称||"", r.资助项目名称||"", r.资助单位||"",
+      r.资助金额??"", r.发放学期||"", r.学生学号||"", r.性别||"",
+      r.家长姓名||"", r.手机号码||"", r.备注||"",
+    ]);
+    exportToExcel("学生资助情况", headers, rows);
+  }
+
+  function exportTalk() {
+    const headers = ["谈心教师","班级名称","学生姓名","学生身份证","学生学号","谈心教师学科","谈心谈话时间","谈话内容","谈心谈话内容记录","教师指导建议","沟通照片"];
+    const rows = sortedTalk.map(r => [
+      r.谈心教师||"", r.班级名称||"", r.学生姓名||"", r.学生身份证||"", r.学生学号||"",
+      r.谈心教师学科||"", r.谈心谈话时间?.slice(0,16)||"", r.谈话内容||"",
+      r.谈心谈话内容记录||"", r.教师指导建议||"", r.沟通照片||"",
+    ]);
+    exportToExcel("谈心谈话记录", headers, rows);
+  }
 
   return (
     <div
@@ -1347,9 +1593,12 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                   {[
                     { label: "请假人数", color: "#10b981", textColor: "text-emerald-500",
                       value: leaveCountPending ? "…" : formatCount(filteredLeaveCount) },
-                    { label: "消费金额", color: "#8b5cf6", textColor: "text-purple-600", value: "242K" },
-                    { label: "出校人数", color: "#f59e0b", textColor: "text-amber-600", value: "9,706" },
-                    { label: "入校人数", color: "#06b6d4", textColor: "text-cyan-600", value: "3,031" },
+                    { label: "消费金额", color: "#8b5cf6", textColor: "text-purple-600",
+                      value: consumeStatsPending ? "…" : formatAmount(consumeAmount) },
+                    { label: "出校人数", color: "#f59e0b", textColor: "text-amber-600",
+                      value: accessStatsPending ? "…" : (exitCount != null ? exitCount.toLocaleString() : "…") },
+                    { label: "入校人数", color: "#06b6d4", textColor: "text-cyan-600",
+                      value: accessStatsPending ? "…" : (enterCount != null ? enterCount.toLocaleString() : "…") },
                   ].map(({ label, color, textColor, value }) => (
                     <div key={label} className="p-4 flex flex-col justify-between transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg" style={{ ...glass, borderLeft: `4px solid ${color}` }}>
                       <p className="text-[13px] font-bold text-gray-800">{label}</p>
@@ -1421,17 +1670,21 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
               {studentPending ? (
                 <div className="h-32 flex items-center justify-center text-xs text-gray-400">加载中…</div>
               ) : (() => {
-                const colors = ["bg-blue-500", "bg-blue-400", "bg-blue-300", "bg-blue-200"];
                 const max = Math.max(...gradeStats.map(g => g.students), 1);
                 return (
                   <>
                     <div className="flex items-end justify-around h-32 px-2">
-                      {gradeStats.map((g, i) => (
-                        <div key={g.grade} className="flex flex-col items-center gap-1" style={{ height: "100%", justifyContent: "flex-end" }}>
-                          <p className="text-[8px] font-bold text-gray-400">{g.students}</p>
-                          <div className={`w-8 ${colors[i % colors.length]} rounded-t-lg`} style={{ height: `${Math.round(g.students / max * 100)}%` }} />
-                        </div>
-                      ))}
+                      {gradeStats.map((g) => {
+                        const ratio = g.students / max;
+                        const bar = ratio >= 0.9 ? "bg-indigo-500" : ratio >= 0.6 ? "bg-blue-500" : ratio >= 0.3 ? "bg-cyan-500" : "bg-gray-400";
+                        const label = ratio >= 0.9 ? "text-indigo-600" : ratio >= 0.6 ? "text-blue-600" : ratio >= 0.3 ? "text-cyan-600" : "text-gray-400";
+                        return (
+                          <div key={g.grade} className="flex flex-col items-center gap-1" style={{ height: "100%", justifyContent: "flex-end" }}>
+                            <p className={`text-[8px] font-bold ${label}`}>{g.students}</p>
+                            <div className={`w-8 ${bar} rounded-t-lg`} style={{ height: `${Math.round(g.students / max * 100)}%` }} />
+                          </div>
+                        );
+                      })}
                     </div>
                     <div className="mt-4 flex justify-around text-[10px] font-bold text-gray-400 px-2">
                       {gradeStats.map(g => <span key={g.grade}>{g.grade}</span>)}
@@ -1448,13 +1701,20 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
               </h3>
               <div className="space-y-2">
                 {studentPending ? (
-                  <div className="text-xs text-gray-400 text-center py-4">加载中…</div>
-                ) : gradeStats.map((g, i) => (
-                  <div key={g.grade} className={`flex justify-between p-2 rounded-lg text-xs ${i === 0 ? "bg-blue-50/50" : "bg-gray-50"}`}>
-                    <span className={`font-bold ${i === 0 ? "text-blue-600" : "text-gray-600"}`}>{g.grade}</span>
-                    <span className="font-black">{g.classes}</span>
-                  </div>
-                ))}
+                  <div className="h-32 flex items-center justify-center text-xs text-gray-400">加载中…</div>
+                ) : gradeStats.map((g) => {
+                  const max = Math.max(...gradeStats.map(x => x.classes), 1);
+                  const ratio = g.classes / max;
+                  const bg = ratio >= 0.9 ? "bg-indigo-50" : ratio >= 0.6 ? "bg-blue-50" : ratio >= 0.3 ? "bg-cyan-50" : "bg-gray-50";
+                  const text = ratio >= 0.9 ? "text-indigo-700" : ratio >= 0.6 ? "text-blue-700" : ratio >= 0.3 ? "text-cyan-700" : "text-gray-600";
+                  const badge = ratio >= 0.9 ? "bg-indigo-600" : ratio >= 0.6 ? "bg-blue-500" : ratio >= 0.3 ? "bg-cyan-500" : "bg-gray-400";
+                  return (
+                    <div key={g.grade} className={`flex justify-between p-2 rounded-lg text-xs ${bg}`}>
+                      <span className={`font-bold ${text}`}>{g.grade}</span>
+                      <span className={`inline-flex items-center justify-center min-w-[28px] h-5 rounded-full text-[10px] font-black text-white ${badge}`}>{g.classes}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -1463,23 +1723,29 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
               <h3 className="text-sm font-bold text-gray-800 mb-6 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0" /> 消费情况
               </h3>
-              <div className="space-y-4">
-                {consumeItems.map(({ label, pct, color }) => (
-                  <div key={label} className="space-y-1">
-                    <div className="flex justify-between text-[10px] font-bold">
-                      <span>{label}</span><span>{pct}%</span>
+              {txPending ? (
+                <div className="h-32 flex items-center justify-center text-xs text-gray-400">加载中…</div>
+              ) : consumeItems.length === 0 ? (
+                <div className="h-32 flex items-center justify-center text-xs text-gray-400">暂无数据</div>
+              ) : (
+                <div className="space-y-4">
+                  {consumeItems.map(({ label, pct, color }) => (
+                    <div key={label} className="space-y-1">
+                      <div className="flex justify-between text-[10px] font-bold">
+                        <span>{label}</span><span>{pct}%</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className={`h-full ${color} rounded-full`} style={{ width: `${pct}%` }} />
+                      </div>
                     </div>
-                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className={`h-full ${color} rounded-full`} style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
 
           {/* Search & Filters */}
-          {activeTab !== 4 && activeTab !== 6 && (
+          {activeTab !== 6 && (
           <section className="p-6 flex flex-wrap items-end gap-6" style={glass}>
             {activeTab === 0 && (<>
               <div className="flex-1 min-w-[200px] space-y-2">
@@ -1610,6 +1876,25 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                 onClick={() => { setLeaveNameFilter(pendingLeaveName); setLeaveTypeFilter(pendingLeaveType); setLeaveGradeFilter(pendingLeaveGrade); setLeavePage(1); }}>查询</button>
             </>)}
 
+            {activeTab === 4 && (<>
+              <div className="flex-1 min-w-[200px] space-y-2">
+                <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">姓名搜索</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                  <input type="text" placeholder="搜索消费/进出姓名" value={pendingConsumeName}
+                    onChange={e => setPendingConsumeName(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter") { setConsumeNameFilter(pendingConsumeName); setAccessNameFilter(pendingConsumeName); setConsumePage(1); setAccessPage(1); } }}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm outline-none transition-all"
+                    style={{ background: "rgba(0,0,0,0.04)", border: "none" }}
+                    onFocus={e => { e.currentTarget.style.background = "rgba(0,0,0,0.06)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(0,113,227,0.1)"; }}
+                    onBlur={e => { e.currentTarget.style.background = "rgba(0,0,0,0.04)"; e.currentTarget.style.boxShadow = "none"; }}
+                  />
+                </div>
+              </div>
+              <button className="bg-blue-600 text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100"
+                onClick={() => { setConsumeNameFilter(pendingConsumeName); setAccessNameFilter(pendingConsumeName); setConsumePage(1); setAccessPage(1); }}>查询</button>
+            </>)}
+
             {activeTab === 5 && (<>
               <div className="flex-1 min-w-[160px] space-y-2">
                 <label className="text-[14px] font-black text-gray-800 uppercase tracking-widest">年级</label>
@@ -1705,98 +1990,41 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
             {/* Table */}
             <div className="overflow-x-auto">
               {activeTab === 4 ? (
-                /* ── 学生消费进出数据 ── */
-                <div>
-                  {/* 学生消费明细 */}
-                  <div onMouseEnter={() => setHvConsume(true)} onMouseLeave={() => setHvConsume(false)}>
-                    <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100" style={{ background: "rgba(249,250,251,0.6)" }}>
-                      <span className="text-sm font-semibold text-gray-700">学生消费明细</span>
-                      <div className="flex items-center gap-0.5" style={{ minHeight: 28 }}>
-                        {hvConsume && fullActions.map(({ Icon, tip }) => (
-                          <div key={tip} className="relative group/tip">
-                            <button className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-black/[0.06] transition-colors"><Icon size={14} /></button>
-                            <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 z-50">
-                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-800/90" />
-                              <div className="px-2 py-1 bg-gray-800/90 text-white text-xs font-medium rounded-md whitespace-nowrap">{tip}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left">
-                        <thead style={{ background: "#eff6ff" }}>
-                          <tr>{CONSUME_COLS.map(col => <th key={col} className="px-4 py-3 font-medium whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{col}</th>)}</tr>
-                        </thead>
-                        <tbody className="text-sm divide-y divide-gray-50">
-                          {consumeRows.map((row, i) => (
-                            <tr key={i} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
-                              <td className="px-4 py-3 font-semibold text-gray-800 whitespace-nowrap">{row.name}</td>
-                              <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{row.cls}</td>
-                              <td className="px-4 py-3 text-gray-400">{row.stuId}</td>
-                              <td className="px-4 py-3"><span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap" style={{ background:"rgba(99,102,241,0.08)", color:"#4f46e5" }}>{row.orderType}</span></td>
-                              <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.payMethod}</td>
-                              <td className="px-4 py-3 font-medium text-gray-700">¥{row.amount.toFixed(2)}</td>
-                              <td className="px-4 py-3 font-bold text-emerald-600">¥{row.paid.toFixed(2)}</td>
-                              <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{row.machineTime}</td>
-                              <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{row.txTime}</td>
-                              <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{row.payTime}</td>
-                              <td className="px-4 py-3"><span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap" style={{ background: row.status==="已完成"?"rgba(16,185,129,0.08)":"rgba(245,158,11,0.1)", color: row.status==="已完成"?"#059669":"#d97706" }}>{row.status}</span></td>
-                              <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.consumeWay}</td>
-                              <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{row.store}</td>
-                              <td className="px-4 py-3 text-gray-400 text-[11px] whitespace-nowrap">{row.txNo}</td>
-                              <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{row.sn}</td>
-                              <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{row.refundTime}</td>
-                              <td className="px-4 py-3 text-gray-500">{row.refundAmount > 0 ? `¥${row.refundAmount.toFixed(2)}` : "—"}</td>
-                              <td className="px-4 py-3"><span className="text-gray-400 text-[11px]">{row.refundStatus}</span></td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-
-                  {/* 学生进出数据 */}
-                  <div onMouseEnter={() => setHvAccess(true)} onMouseLeave={() => setHvAccess(false)} className="border-t-4 border-gray-100">
-                    <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100" style={{ background: "rgba(249,250,251,0.6)" }}>
-                      <span className="text-sm font-semibold text-gray-700">学生进出数据</span>
-                      <div className="flex items-center gap-0.5" style={{ minHeight: 28 }}>
-                        {hvAccess && fullActions.map(({ Icon, tip }) => (
-                          <div key={tip} className="relative group/tip">
-                            <button className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-black/[0.06] transition-colors"><Icon size={14} /></button>
-                            <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 z-50">
-                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-800/90" />
-                              <div className="px-2 py-1 bg-gray-800/90 text-white text-xs font-medium rounded-md whitespace-nowrap">{tip}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left">
-                        <thead style={{ background: "#eff6ff" }}>
-                          <tr>{ACCESS_COLS.map(col => <th key={col} className="px-4 py-3 font-medium whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{col}</th>)}</tr>
-                        </thead>
-                        <tbody className="text-sm divide-y divide-gray-50">
-                          {accessRows.map((row, i) => (
-                            <tr key={i} className="border-t border-gray-50 hover:bg-gray-50 transition-colors">
-                              <td className="px-4 py-3 font-semibold text-gray-800 whitespace-nowrap">{row.name}</td>
-                              <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{row.grade}</td>
-                              <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{row.cls}</td>
-                              <td className="px-4 py-3 text-gray-500">{row.role}</td>
-                              <td className="px-4 py-3 text-gray-400">{row.stuId}</td>
-                              <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{row.time}</td>
-                              <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{row.place}</td>
-                              <td className="px-4 py-3">
-                                <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap" style={{ background: row.direction==="进"?"rgba(16,185,129,0.08)":"rgba(239,68,68,0.08)", color: row.direction==="进"?"#059669":"#dc2626" }}>{row.direction}入</span>
-                              </td>
-                              <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{row.device}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+                <div className="space-y-4">
+                  <DashboardTable
+                    title="学生消费明细"
+                    columns={consumeCols}
+                    rows={pagedConsume}
+                    isPending={txPending}
+                    isError={txError}
+                    sortAsc={consumeSortAsc}
+                    onSortToggle={() => { setConsumeSortAsc(v => !v); setConsumePage(1); }}
+                    page={consumePage}
+                    pageSize={consumePageSize}
+                    totalRows={sortedConsume.length}
+                    onPageChange={setConsumePage}
+                    onPageSizeChange={n => { setConsumePageSize(n); setConsumePage(1); }}
+                    onRowClick={setSelectedConsume}
+                    onRefresh={txRefetch}
+                    onExport={exportConsume}
+                  />
+                  <DashboardTable
+                    title="学生进出数据"
+                    columns={accessCols}
+                    rows={pagedAccess}
+                    isPending={accessPending}
+                    isError={accessError}
+                    sortAsc={accessSortAsc}
+                    onSortToggle={() => { setAccessSortAsc(v => !v); setAccessPage(1); }}
+                    page={accessPage}
+                    pageSize={accessPageSize}
+                    totalRows={sortedAccess.length}
+                    onPageChange={setAccessPage}
+                    onPageSizeChange={n => { setAccessPageSize(n); setAccessPage(1); }}
+                    onRowClick={setSelectedAccess}
+                    onRefresh={accessRefetch}
+                    onExport={exportAccess}
+                  />
                 </div>
               ) : activeTab === 2 ? (
                 /* ── 学生返校情况 ── */
@@ -1816,6 +2044,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     onPageSizeChange={n => { setReturnPageSize(n); setReturnPage(1); }}
                     onRowClick={setSelectedReturnSchool}
                     onRefresh={returnRefetch}
+                    onExport={exportReturn}
                   />
                 </div>
               ) : activeTab === 1 ? (
@@ -1836,6 +2065,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     onPageSizeChange={n => { setHealthPageSize(n); setHealthPage(1); }}
                     onRowClick={setSelectedHealthCheck}
                     onRefresh={healthRefetch}
+                    onExport={exportHealth}
                   />
                 </div>
               ) : activeTab === 3 ? (
@@ -1856,6 +2086,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     onPageSizeChange={n => { setLeavePageSize(n); setLeavePage(1); }}
                     onRowClick={setSelectedLeave}
                     onRefresh={leaveRefetch}
+                    onExport={exportLeave}
                   />
                 </div>
               ) : activeTab === 5 ? (
@@ -1876,6 +2107,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     onPageSizeChange={n => { setSupportPageSize(n); setSupportPage(1); }}
                     onRowClick={setSelectedSupport}
                     onRefresh={supportRefetch}
+                    onExport={exportSupport}
                   />
                 </div>
               ) : activeTab === 6 ? (
@@ -1905,6 +2137,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     onPageSizeChange={n => { setTalkPageSize(n); setTalkPage(1); }}
                     onRowClick={setSelectedTalk}
                     onRefresh={talkRefetch}
+                    onExport={exportTalk}
                   />
                 </div>
               ) : (
@@ -1925,6 +2158,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     onPageSizeChange={n => { setPageSize(n); setCurrentPage(1); }}
                     onRowClick={setSelectedStudent}
                     onRefresh={studentRefetch}
+                    onExport={exportStudents}
                   />
                 </div>
               )}
@@ -1945,6 +2179,8 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
       <StudentReturnSchoolDrawer record={selectedReturnSchool} onClose={() => setSelectedReturnSchool(null)} />
       <StudentSupportDrawer record={selectedSupport} onClose={() => setSelectedSupport(null)} />
       <HeartToHeartTalkDrawer record={selectedTalk} onClose={() => setSelectedTalk(null)} />
+      <ConsumeDrawer record={selectedConsume} onClose={() => setSelectedConsume(null)} />
+      <AccessDrawer record={selectedAccess} onClose={() => setSelectedAccess(null)} />
     </div>
   );
 }

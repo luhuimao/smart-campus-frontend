@@ -1,9 +1,11 @@
 "use client";
 
-import { ChevronDown, LayoutGrid, List, AlignLeft, RefreshCw, MoreHorizontal, Plus, Download, Trash2, Clock, Search, Filter } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo, useRef } from "react";
+import { ChevronDown, LayoutGrid, List, AlignLeft, RefreshCw, MoreHorizontal, Plus, Download, Trash2, Clock, Search, Filter, X } from "lucide-react";
 import { PageHeader } from "./PageHeader";
 import { DatePicker } from "./ui/DatePicker";
+import { StudentPicker } from "./ui/StudentPicker";
+import { useCourses, type StudentInfoRecord } from "@/hooks/use-research-dashboard";
 
 const teal = "#00b095";
 
@@ -18,52 +20,20 @@ const modeOptions: { value: Mode; label: string }[] = [
   { value: "all-permitted",  label: "全部有权限的数据" },
 ];
 
-function Field({ label, required, children }: {
-  label: string; required?: boolean; children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <label className="block text-base font-semibold" style={{ color: "#1d1d1f" }}>
-        {required && <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>}
-        {label}
-      </label>
-      {children}
-    </div>
-  );
+function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+  return (<div><label className="block text-base font-semibold mb-2" style={{ color: "#1d1d1f" }}>{required && <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>}{label}</label>{children}</div>);
 }
 
-function FSelect({ options, placeholder }: { options: string[]; placeholder?: string }) {
-  return (
-    <div className="relative">
-      <select
-        className="form-input appearance-none"
-        defaultValue=""
-        onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
-        onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
-      >
-        <option value="" disabled>{placeholder ?? ""}</option>
-        {options.map((o) => <option key={o}>{o}</option>)}
-      </select>
-      <ChevronDown className="w-4 h-4 absolute right-3.5 top-3 text-gray-400 pointer-events-none" />
-    </div>
-  );
+function FSelect({ value, onChange, options, placeholder }: { value: string; onChange: (v: string) => void; options: string[]; placeholder?: string }) {
+  return (<div className="relative"><select value={value} onChange={(e) => onChange(e.target.value)} className="form-input appearance-none" style={{ color: value ? "#1d1d1f" : "#9ca3af" }} onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)} onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}><option value="" disabled>{placeholder ?? ""}</option>{options.map((o) => <option key={o}>{o}</option>)}</select><ChevronDown className="w-4 h-4 absolute right-3.5 top-3 text-gray-400 pointer-events-none" /></div>);
 }
 
-function UploadField() {
-  return (
-    <div className="flex gap-2">
-      <div className="flex-1 border border-dashed border-gray-200 rounded-[10px] px-4 py-3 flex items-center justify-center bg-white hover:bg-gray-50 transition-colors cursor-pointer">
-        <p className="text-sm text-gray-400 text-center leading-relaxed">
-          <span className="font-semibold" style={{ color: teal }}>选择</span> 拖拽或单击后粘贴图片，单张20MB以内
-        </p>
-      </div>
-      <button className="w-12 border border-gray-200 rounded-[10px] flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-400">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 3v18"/>
-        </svg>
-      </button>
-    </div>
-  );
+function FileUpload({ files, onChange, accept, hint }: { files: File[]; onChange: (f: File[]) => void; accept: string; hint: string }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  return (<div>
+    <div className="flex items-center gap-2 mb-2"><div className="flex-1 border-2 border-dashed border-gray-200 rounded-xl py-3 px-3.5 flex items-center justify-center gap-1 cursor-pointer hover:border-emerald-300 hover:bg-emerald-50/30 transition-colors" onClick={() => inputRef.current?.click()}><span className="text-sm font-medium" style={{ color: teal }}>选择</span><span className="text-sm" style={{ color: "#9ca3af" }}>{hint}</span></div><input ref={inputRef} type="file" accept={accept} multiple className="hidden" onChange={(e) => { if (e.target.files) onChange([...files, ...Array.from(e.target.files)]); e.target.value = ""; }} /></div>
+    {files.length > 0 && (<div className="flex flex-wrap gap-2">{files.map((f, i) => (<div key={i} className="flex items-center gap-1.5 px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600"><span className="max-w-[160px] truncate">{f.name}</span><X className="w-3 h-3 cursor-pointer hover:text-red-500 flex-shrink-0" onClick={() => onChange(files.filter((_, j) => j !== i))} /></div>))}</div>)}
+  </div>);
 }
 
 function SectionHeader({ title }: { title: string }) {
@@ -256,7 +226,27 @@ function ModeSelector({ value, onChange }: { value: Mode; onChange: (v: Mode) =>
 
 export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [mode, setMode] = useState<Mode>("add-only");
+  const [cls, setCls] = useState("");
+  const [studentName, setStudentName] = useState("");
+  const [subject, setSubject] = useState("");
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [goodPhotos, setGoodPhotos] = useState<File[]>([]);
+  const [weakPhotos, setWeakPhotos] = useState<File[]>([]);
+  const [guidance, setGuidance] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
   const ownRecords = mockRecords.filter((r) => r.submitter === "张老师");
+
+  const { raw: courseList } = useCourses();
+  const subjectOptions = useMemo(() => [...new Set(courseList.map((c) => c.教研学科名 || c.科目).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh")), [courseList]);
+
+  const handleSelectStudent = (record: StudentInfoRecord | null) => {
+    if (record) setCls(record.班级名称 || "");
+    else setCls("");
+  };
+
+  const handleSubmit = () => { setSubmitted(true); if ([cls, studentName, subject, startDate, endDate, goodPhotos.length > 0, weakPhotos.length > 0, guidance].find((f) => !f)) window.scrollTo({ top: 0, behavior: "smooth" }); };
 
   return (
     <div className="flex flex-col h-full overflow-hidden" style={{ color: "#1d1d1f" }}>
@@ -269,52 +259,30 @@ export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => v
 
       {mode === "add-only" ? (
         <>
-          <div className="flex-1 overflow-y-auto bg-[#f5f5f7] pb-6">
+          <div className="flex-1 overflow-y-auto bg-[#f5f5f7] pb-24">
             <main className="max-w-5xl mx-auto mt-4 md:mt-10 px-3 md:px-6">
               <div className="rounded-2xl md:rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white p-5 md:p-10">
 
-                <SectionHeader title="南宁市宏德高级中学高一年级学情分析表" />
+                <SectionHeader title="南宁市宏德高级中学-学情分析表" />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 mt-8">
 
-                  <Field label="班级" required>
-                    <FSelect options={["高一(1)班", "高一(2)班", "高一(3)班"]} />
-                  </Field>
+                  <Field label="班级" required><input value={cls} onChange={(e) => setCls(e.target.value)} placeholder="请输入班级" className="form-input" onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)} onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)} />{submitted && !cls && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
 
-                  <Field label="学生姓名" required>
-                    <FSelect options={[]} />
-                  </Field>
+                  <Field label="学生姓名" required><StudentPicker value={studentName} onChange={setStudentName} onSelectRecord={handleSelectStudent} />{submitted && !studentName && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
 
-                  <Field label="学科" required>
-                    <FSelect options={["语文", "数学", "英语", "物理", "化学", "生物", "历史", "地理", "政治"]} />
-                  </Field>
+                  <Field label="学科" required><FSelect value={subject} onChange={setSubject} options={subjectOptions} />{submitted && !subject && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
 
-                  <Field label="学情分析开始时间" required>
-                    <DatePicker dateOnly />
-                  </Field>
+                  <Field label="学情分析开始时间" required><DatePicker value={startDate} onChange={setStartDate} dateOnly />{submitted && !startDate && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
 
-                  <Field label="学情分析结束时间" required>
-                    <DatePicker dateOnly />
-                  </Field>
+                  <Field label="学情分析结束时间" required><DatePicker value={endDate} onChange={setEndDate} dateOnly />{submitted && !endDate && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
 
-                  <Field label="掌握较好的知识点" required>
-                    <UploadField />
-                  </Field>
+                  <Field label="掌握较好的知识点" required><FileUpload files={goodPhotos} onChange={setGoodPhotos} accept="image/*" hint="拖拽或单击后粘贴图片，单张 20MB 以内" />{submitted && goodPhotos.length === 0 && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
 
-                  <Field label="掌握不足的知识点" required>
-                    <UploadField />
-                  </Field>
+                  <Field label="掌握不足的知识点" required><FileUpload files={weakPhotos} onChange={setWeakPhotos} accept="image/*" hint="拖拽或单击后粘贴图片，单张 20MB 以内" />{submitted && weakPhotos.length === 0 && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
 
                   <div className="md:col-start-2">
-                    <Field label="教师指导措施" required>
-                      <textarea
-                        rows={7}
-                        placeholder="根据薄弱知识点或题块给出具体指导措施"
-                        className="form-input resize-none"
-                        onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
-                        onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
-                      />
-                    </Field>
+                    <Field label="教师指导措施" required><textarea rows={7} value={guidance} onChange={(e) => setGuidance(e.target.value)} placeholder="根据薄弱知识点或题块给出具体指导措施" className="form-input resize-none" onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)} onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)} />{submitted && !guidance && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
                   </div>
 
                 </div>
@@ -323,12 +291,7 @@ export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => v
           </div>
 
           <div className="form-footer shrink-0 flex gap-3 px-6 md:px-10 py-4">
-            <button
-              className="px-8 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:translate-y-px"
-              style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}
-            >
-              提交
-            </button>
+            <button className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px" style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }} onClick={handleSubmit}>提交</button>
             <button className="btn-secondary">保存草稿</button>
           </div>
         </>

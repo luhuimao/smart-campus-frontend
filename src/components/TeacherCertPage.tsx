@@ -1,7 +1,10 @@
 "use client";
 
-import { Bell, ChevronDown, ChevronRight, Plus, Image, Calendar, ClipboardList, Menu } from "lucide-react";
-import { useState } from "react";
+import { Bell, ChevronDown, ChevronRight, Plus, Image, ClipboardList, Menu, Trash2 } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useCurrentUser } from "@/lib/user-context";
+import { StaffPicker } from "./ui/StaffPicker";
+import { useStaffDirectory, useCourses, type StaffDirectoryRecord } from "@/hooks/use-research-dashboard";
 import { PageHeader, FlowButton } from "./PageHeader";
 
 const teal = "#00b095";
@@ -24,11 +27,13 @@ function Field({ label, required, hint, children }: {
   );
 }
 
-function Input({ placeholder = "" }: { placeholder?: string }) {
+function Input({ placeholder = "", value, onChange }: { placeholder?: string; value?: string; onChange?: (v: string) => void }) {
   return (
     <input
       type="text"
       placeholder={placeholder}
+      value={value ?? ""}
+      onChange={(e) => onChange?.(e.target.value)}
       className="form-input"
       onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
       onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
@@ -37,8 +42,105 @@ function Input({ placeholder = "" }: { placeholder?: string }) {
 }
 
 export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
+  const currentUser = useCurrentUser();
+  const [teacherName, setTeacherName] = useState(currentUser?.name ?? "");
+  const [idCard, setIdCard] = useState("");
+  const [department, setDepartment] = useState("");
+  const [position, setPosition] = useState("");
+  const [positionType, setPositionType] = useState("");
+  const [partyJob, setPartyJob] = useState("");
+  const [phone, setPhone] = useState("");
+  const [subject, setSubject] = useState("");
   const [hasCert, setHasCert] = useState<"yes" | "no">("yes");
   const [submitted, setSubmitted] = useState(false);
+
+  const [certRows, setCertRows] = useState<{ id: number; certNumber: string; certType: string; teachingSubject: string; certImage: string | null; certDate: string }[]>([
+    { id: 1, certNumber: "", certType: "", teachingSubject: "", certImage: null, certDate: "" },
+  ]);
+  const [nextCertId, setNextCertId] = useState(2);
+
+  const updateCertRow = useCallback((id: number, field: string, value: string | null) => {
+    setCertRows((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
+  }, []);
+
+  const addCertRow = useCallback(() => {
+    setCertRows((prev) => [...prev, { id: nextCertId, certNumber: "", certType: "", teachingSubject: "", certImage: null, certDate: "" }]);
+    setNextCertId((n) => n + 1);
+  }, [nextCertId]);
+
+  const removeCertRow = useCallback((id: number) => {
+    setCertRows((prev) => (prev.length <= 1 ? prev : prev.filter((r) => r.id !== id)));
+  }, []);
+
+  const anyCertMissing = useMemo(
+    () => certRows.some((r) => !r.certNumber || !r.certType || !r.teachingSubject || !r.certImage || !r.certDate),
+    [certRows],
+  );
+
+  const { raw: staffList } = useStaffDirectory();
+  const { raw: courseList } = useCourses();
+
+  const courseOptions = useMemo(
+    () => [...new Set(courseList.map((c) => c.科目).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh")),
+    [courseList],
+  );
+
+  const handleSubmit = () => {
+    setSubmitted(true);
+    const required = [
+      { field: teacherName, name: "教师姓名" },
+      { field: idCard, name: "身份证号码" },
+      ...(hasCert === "yes"
+        ? [
+          { field: department, name: "部门" },
+          { field: position, name: "岗位" },
+          { field: positionType, name: "岗位类型" },
+          { field: partyJob, name: "党委/行政职务" },
+          { field: phone, name: "联系方式" },
+          { field: subject, name: "担任学科" },
+          { field: !anyCertMissing, name: "教资信息" },
+        ]
+        : []),
+    ];
+    const firstMissing = required.find((r) => !r.field);
+    if (firstMissing) {
+      // scroll to top of form
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  useEffect(() => {
+    if (teacherName && staffList.length > 0 && !idCard) {
+      const match = staffList.find((s) => s.教职工姓名 === teacherName);
+      if (match) {
+        setIdCard(match.身份证号);
+        setDepartment(match.部门);
+        setPosition(match.岗位);
+        setPositionType(match.岗位类型);
+        setPhone(match.手机号码);
+        setSubject(match.担任学科);
+      }
+    }
+  }, [teacherName, staffList, idCard]);
+
+  const handleSelectStaff = (record: StaffDirectoryRecord | null) => {
+    if (record) {
+      setIdCard(record.身份证号);
+      setDepartment(record.部门);
+      setPosition(record.岗位);
+      setPositionType(record.岗位类型);
+      setPhone(record.手机号码);
+      setSubject(record.担任学科);
+    } else {
+      setIdCard("");
+      setDepartment("");
+      setPosition("");
+      setPositionType("");
+      setPartyJob("");
+      setPhone("");
+      setSubject("");
+    }
+  };
 
   return (
     <div
@@ -80,16 +182,11 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
             {/* Row 1 — cream */}
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="教师姓名" required>
-                <button
-                  className="w-full border border-dashed border-gray-300 bg-white rounded-[10px] px-3.5 py-2.5 flex items-center justify-center gap-2 text-base text-gray-500 transition-all hover:border-[#00b095] hover:text-[#00b095]"
-                  style={{ minHeight: 44 }}
-                >
-                  <Plus className="w-4 h-4" /> 选择成员
-                </button>
-                {submitted && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
+                <StaffPicker value={teacherName} onChange={setTeacherName} onSelectRecord={handleSelectStaff} />
+                {submitted && !teacherName && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
               </Field>
               <Field label="身份证号码" required>
-                <Input />
+                <Input value={idCard} onChange={setIdCard} />
                 {submitted && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
               </Field>
             </div>
@@ -114,7 +211,7 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
               </Field>
               {hasCert === "yes" && (
                 <Field label="部门" required>
-                  <Input />
+                  <Input value={department} onChange={setDepartment} />
                   {submitted && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
                 </Field>
               )}
@@ -124,10 +221,12 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
             {hasCert === "yes" && (
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="岗位" required>
-                <Input />
+                <Input value={position} onChange={setPosition} />
+                {submitted && !position && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
               </Field>
               <Field label="岗位类型" hint="可填写任意一个：教学岗 教辅岗 行政岗 工勤岗 技能岗 管理岗" required>
-                <Input />
+                <Input value={positionType} onChange={setPositionType} />
+                {submitted && !positionType && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
               </Field>
             </div>
             )}
@@ -136,10 +235,11 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
             {hasCert === "yes" && (
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="党委/行政职务" required>
-                <Input />
+                <Input value={partyJob} onChange={setPartyJob} />
+                {submitted && !partyJob && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
               </Field>
               <Field label="联系方式" required>
-                <Input />
+                <Input value={phone} onChange={setPhone} />
                 {submitted && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
               </Field>
             </div>
@@ -150,7 +250,8 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
             <div className="p-8 bg-white">
               <div className="max-w-md">
                 <Field label="担任学科" required>
-                  <Input />
+                  <Input value={subject} onChange={setSubject} />
+                  {submitted && !subject && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
                 </Field>
               </div>
             </div>
@@ -166,72 +267,124 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
               {/* Grid table */}
               <div
                 className="w-full border border-gray-100 rounded-xl overflow-hidden text-sm"
-                style={{ display: "grid", gridTemplateColumns: "48px 1.3fr 1fr 1fr 1.1fr 1.1fr" }}
+                style={{ display: "grid", gridTemplateColumns: "48px 1.3fr 1fr 1fr 1.1fr 1.1fr 52px" }}
               >
                 {/* Header */}
-                {["", "教资证书编号", "教师资格种类", "任教科目", "教师资格证书图片", "获证时间"].map((h, i) => (
+                {["", "教资证书编号", "教师资格种类", "任教科目", "教师资格证书图片", "获证时间", ""].map((h, i) => (
                   <div key={i} className="px-3 py-3 bg-gray-50 text-sm font-semibold text-gray-600 border-b border-r border-gray-100 last:border-r-0">
-                    {i > 0 && i !== 3 && <span style={{ color: "#ff4d4f", marginRight: 3 }}>*</span>}
+                    {i > 0 && i !== 3 && i !== 6 && <span style={{ color: "#ff4d4f", marginRight: 3 }}>*</span>}
                     {h}
                   </div>
                 ))}
 
-                {/* Row 1 */}
-                <div className="px-3 py-2.5 bg-white border-b border-r border-gray-100 flex items-center justify-center text-sm font-bold text-gray-400">1</div>
-                <div className="px-2 py-2 bg-white border-b border-r border-gray-100">
-                  <input
-                    type="text"
-                    className="table-input"
-                    onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
-                    onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
-                  />
-                </div>
-                <div className="px-2 py-2 bg-white border-b border-r border-gray-100">
-                  <select
-                    className="table-input appearance-none"
-                    onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
-                    onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
-                  >
-                    <option value=""></option>
-                    <option>高中</option>
-                    <option>初中</option>
-                    <option>小学</option>
-                    <option>幼儿园</option>
-                  </select>
-                </div>
-                <div className="px-2 py-2 bg-white border-b border-r border-gray-100">
-                  <select
-                    className="table-input appearance-none"
-                    onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
-                    onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
-                  >
-                    <option value=""></option>
-                    <option>语文</option>
-                    <option>数学</option>
-                    <option>英语</option>
-                    <option>物理</option>
-                    <option>化学</option>
-                  </select>
-                </div>
-                <div className="px-2 py-2 bg-white border-b border-r border-gray-100">
-                  <div className="w-full h-8 border border-gray-200 rounded-lg flex items-center justify-center bg-gray-50 text-gray-300 cursor-pointer hover:bg-gray-100 transition-colors">
-                    <Image className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className="px-2 py-2 bg-white border-b border-gray-100">
-                  <div className="w-full h-8 border border-gray-200 rounded-lg flex items-center justify-between px-3 bg-gray-50 text-gray-400 cursor-pointer hover:bg-gray-100 transition-colors">
-                    <span className="text-[10px]">请选择</span>
-                    <Calendar className="w-3.5 h-3.5" />
-                  </div>
-                </div>
+                {certRows.map((row, idx) => (
+                  <>
+                    <div key={`num-${row.id}`} className="px-3 py-2.5 bg-white border-b border-r border-gray-100 flex items-center justify-center text-sm font-bold text-gray-400">
+                      {idx + 1}
+                    </div>
+                    <div key={`cn-${row.id}`} className="px-2 py-2 bg-white border-b border-r border-gray-100">
+                      <input
+                        type="text"
+                        value={row.certNumber}
+                        onChange={(e) => updateCertRow(row.id, "certNumber", e.target.value)}
+                        className="table-input"
+                        style={submitted && !row.certNumber ? { borderColor: "#ff4d4f" } : undefined}
+                        onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
+                        onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
+                      />
+                    </div>
+                    <div key={`ct-${row.id}`} className="px-2 py-2 bg-white border-b border-r border-gray-100">
+                      <select
+                        value={row.certType}
+                        onChange={(e) => updateCertRow(row.id, "certType", e.target.value)}
+                        className="table-input appearance-none"
+                        style={submitted && !row.certType ? { borderColor: "#ff4d4f" } : undefined}
+                        onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
+                        onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
+                      >
+                        <option value=""></option>
+                        <option>高等学校教师资格</option>
+                        <option>中等职业学校教师资格</option>
+                        <option>高中教师资格</option>
+                        <option>初中教师资格</option>
+                        <option>小学教师资格</option>
+                        <option>幼儿园教师资格</option>
+                      </select>
+                    </div>
+                    <div key={`ts-${row.id}`} className="px-2 py-2 bg-white border-b border-r border-gray-100">
+                      <select
+                        value={row.teachingSubject}
+                        onChange={(e) => updateCertRow(row.id, "teachingSubject", e.target.value)}
+                        className="table-input appearance-none"
+                        style={submitted && !row.teachingSubject ? { borderColor: "#ff4d4f" } : undefined}
+                        onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
+                        onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
+                      >
+                        <option value=""></option>
+                        {courseOptions.map((c) => (
+                          <option key={c}>{c}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div key={`img-${row.id}`} className="px-2 py-2 bg-white border-b border-r border-gray-100">
+                      <label className="w-full h-8 border rounded-lg flex items-center justify-center bg-gray-50 text-gray-300 cursor-pointer hover:bg-gray-100 transition-colors overflow-hidden"
+                        style={{ borderColor: submitted && !row.certImage ? "#ff4d4f" : "#e5e7eb" }}>
+                        {row.certImage ? (
+                          <img src={row.certImage} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <Image className="w-4 h-4" />
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) updateCertRow(row.id, "certImage", URL.createObjectURL(file));
+                          }}
+                        />
+                      </label>
+                    </div>
+                    <div key={`date-${row.id}`} className="px-2 py-2 bg-white border-b border-gray-100">
+                      <input
+                        type="date"
+                        value={row.certDate}
+                        onChange={(e) => updateCertRow(row.id, "certDate", e.target.value)}
+                        className="table-input w-full"
+                        style={{ color: row.certDate ? "#374151" : "#9ca3af", borderColor: submitted && !row.certDate ? "#ff4d4f" : undefined }}
+                        onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
+                        onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
+                      />
+                    </div>
+                    <div key={`del-${row.id}`} className="px-2 py-2 bg-white border-b border-gray-100 flex items-center justify-center">
+                      <button
+                        type="button"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        onClick={() => removeCertRow(row.id)}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </>
+                ))}
               </div>
+
+              {submitted && hasCert === "yes" && anyCertMissing && (
+                <div className="mt-3 space-y-0.5">
+                  {certRows.some((r) => !r.certNumber) && <p className="text-xs" style={{ color: "#ff4d4f" }}>教资证书编号为必填项</p>}
+                  {certRows.some((r) => !r.certType) && <p className="text-xs" style={{ color: "#ff4d4f" }}>教师资格种类为必填项</p>}
+                  {certRows.some((r) => !r.teachingSubject) && <p className="text-xs" style={{ color: "#ff4d4f" }}>任教科目为必填项</p>}
+                  {certRows.some((r) => !r.certImage) && <p className="text-xs" style={{ color: "#ff4d4f" }}>教师资格证书图片为必填项</p>}
+                  {certRows.some((r) => !r.certDate) && <p className="text-xs" style={{ color: "#ff4d4f" }}>获证时间为必填项</p>}
+                </div>
+              )}
 
               {/* Add / Quick fill */}
               <div className="flex items-center gap-8 mt-5">
-                <button className="flex items-center gap-1.5 text-base font-bold transition-colors" style={{ color: teal }}>
+                <button type="button" className="flex items-center gap-1.5 text-base font-bold transition-colors" style={{ color: teal }} onClick={addCertRow}>
                   <Plus className="w-4 h-4" /> 添加
                 </button>
-                <button className="flex items-center gap-1.5 text-base font-bold transition-colors" style={{ color: teal }}>
+                <button type="button" className="flex items-center gap-1.5 text-base font-bold transition-colors" style={{ color: teal }}>
                   <ClipboardList className="w-4 h-4" /> 快速填报
                 </button>
               </div>
@@ -249,7 +402,7 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
         <button
           className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px"
           style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}
-          onClick={() => setSubmitted(true)}
+          onClick={handleSubmit}
         >
           提交
         </button>

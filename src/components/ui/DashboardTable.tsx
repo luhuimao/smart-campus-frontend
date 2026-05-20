@@ -266,6 +266,7 @@ interface DashboardTableProps<T extends { _id: string }> {
   onPageSizeChange: (s: number) => void;
   onRowClick?: (row: T) => void;
   onRefresh?: () => Promise<unknown> | void;
+  onExport?: () => void;
   // offset-pagination mode
   page?: number;
   totalRows?: number;
@@ -295,6 +296,7 @@ export function DashboardTable<T extends { _id: string }>({
   onPageSizeChange,
   onRowClick,
   onRefresh,
+  onExport,
   hasPrev,
   hasNext,
   onPrev,
@@ -319,7 +321,7 @@ export function DashboardTable<T extends { _id: string }>({
       <div className="flex items-center justify-between" style={{ padding: "10px 16px", borderBottom: "1px solid #f3f4f6" }}>
         <h3 className="flex-1 min-w-0 truncate" style={{ fontSize: 15, fontWeight: 600, color: "#111827" }}>{title}</h3>
         <ActionBar show={hovered} actions={[
-          { Icon: Upload, tip: "导出" },
+          { Icon: Upload, tip: "导出", onClick: onExport },
           { Icon: RefreshCw, tip: "刷新", onClick: handleRefresh, spinning: isRefreshing },
           { Icon: ArrowUpDown, tip: sortAsc ? "时间升序（点击切换降序）" : "时间降序（点击切换升序）", onClick: onSortToggle, tipAlign: "right" },
           { Icon: Maximize2, tip: "放大", tipAlign: "right" },

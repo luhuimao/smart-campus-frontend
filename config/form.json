@@ -1,52 +1,94 @@
 {
   "widgets": [
     {
-      "name": "_widget_1775116425061",
-      "widgetName": "_widget_1775116425061",
+      "name": "term",
+      "widgetName": "_widget_1764752628114",
+      "label": "学期",
+      "type": "text"
+    },
+    {
+      "name": "name",
+      "widgetName": "_widget_1736756140202",
+      "label": "姓名",
+      "type": "text"
+    },
+    {
+      "name": "grade_name",
+      "widgetName": "_widget_1736756140204",
+      "label": "年级",
+      "type": "text"
+    },
+    {
+      "name": "grade_level",
+      "widgetName": "_widget_1770105002544",
+      "label": "级部",
+      "type": "text"
+    },
+    {
+      "name": "class_name",
+      "widgetName": "_widget_1736756140205",
       "label": "班级",
-      "type": "combo"
+      "type": "text"
     },
     {
-      "name": "_widget_1775116425063",
-      "widgetName": "_widget_1775116425063",
-      "label": "学生姓名",
-      "type": "combo"
+      "name": "code",
+      "widgetName": "_widget_1752744175187",
+      "label": "宏德学/工号",
+      "type": "text"
     },
     {
-      "name": "_widget_1775117349258",
-      "widgetName": "_widget_1775117349258",
-      "label": "学科",
-      "type": "combo"
+      "name": "type",
+      "widgetName": "_widget_1736756140203",
+      "label": "身份",
+      "type": "radiogroup"
     },
     {
-      "name": "_widget_1775117349247",
-      "widgetName": "_widget_1775117349247",
-      "label": "学情分析开始时间",
+      "name": "sn",
+      "widgetName": "_widget_1736756140209",
+      "label": "打卡设备",
+      "type": "text"
+    },
+    {
+      "name": "direction",
+      "widgetName": "_widget_1736756140207",
+      "label": "通行方向",
+      "type": "text"
+    },
+    {
+      "name": "pass_time",
+      "widgetName": "_widget_1752567075185",
+      "label": "通行时间",
       "type": "datetime"
     },
     {
-      "name": "_widget_1775117349248",
-      "widgetName": "_widget_1775117349248",
-      "label": "学情分析结束时间",
-      "type": "datetime"
+      "name": "location",
+      "widgetName": "_widget_1736756140208",
+      "label": "出入场所",
+      "type": "text"
     },
     {
-      "name": "_widget_1775117349249",
-      "widgetName": "_widget_1775117349249",
-      "label": "掌握较好的知识点",
-      "type": "image"
+      "name": "class_teacher",
+      "widgetName": "_widget_1752829877526",
+      "label": "班主任（文字）",
+      "type": "text"
     },
     {
-      "name": "_widget_1775117349250",
-      "widgetName": "_widget_1775117349250",
-      "label": "掌握不足的知识点",
-      "type": "image"
+      "name": "class_teacher_info",
+      "widgetName": "_widget_1770105002541",
+      "label": "班主任",
+      "type": "user"
     },
     {
-      "name": "_widget_1775117349251",
-      "widgetName": "_widget_1775117349251",
-      "label": "教师指导措施",
-      "type": "textarea"
+      "name": "grade_level_director_info",
+      "widgetName": "_widget_1770105002542",
+      "label": "级部主任",
+      "type": "user"
+    },
+    {
+      "name": "device_status",
+      "widgetName": "_widget_1765525622601",
+      "label": "设备状态",
+      "type": "text"
     }
   ],
   "sysWidgets": [
@@ -69,5 +111,5 @@
       "name": "deleteTime"
     }
   ],
-  "dataModifyTime": "2026-05-07T02:15:08.256Z"
+  "dataModifyTime": "2026-05-19T14:24:37.695Z"
 }
