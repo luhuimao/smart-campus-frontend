@@ -13,11 +13,24 @@ import { DashboardTable, PhotoList, ImageLightbox } from "./ui/DashboardTable";
 import type { ColumnDef } from "./ui/DashboardTable";
 
 // ── mock data ───────────────────────────────────────────────────
-const BUILDING_STATS = [
-  { label: "佳慧楼总扣分", value: 23, color: "#8b5cf6" },
-  { label: "自强楼总扣分", value: 17, color: "#6366f1" },
-  { label: "自立楼总扣分", value: 31, color: "#7c3aed" },
+const BUILDING_COLOR_MAP: Record<string, { bg: string; text: string }> = {
+  佳慧楼: { bg: "rgba(139,92,246,0.1)",  text: "#7c3aed" },
+  自强楼: { bg: "rgba(99,102,241,0.1)",  text: "#4f46e5" },
+  自立楼: { bg: "rgba(124,58,237,0.1)",  text: "#6d28d9" },
+};
+const FALLBACK_PAIRS = [
+  { bg: "rgba(236,72,153,0.1)",  text: "#db2777" },
+  { bg: "rgba(20,184,166,0.1)",  text: "#0d9488" },
+  { bg: "rgba(249,115,22,0.1)",  text: "#ea580c" },
+  { bg: "rgba(59,130,246,0.1)",  text: "#2563eb" },
 ];
+
+function getBuildingColor(name: string): { bg: string; text: string } {
+  if (BUILDING_COLOR_MAP[name]) return BUILDING_COLOR_MAP[name];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
+  return FALLBACK_PAIRS[Math.abs(hash) % FALLBACK_PAIRS.length];
+}
 
 const TIME_OPTIONS = ["本周", "本月", "本学期", "上学期", "自定义"];
 
@@ -81,8 +94,8 @@ function FilterBar({ defs, values, onChange, onClear }: {
           <select
             value={values[key] ?? ""}
             onChange={e => onChange(key, e.target.value)}
-            className="appearance-none bg-white/60 border border-gray-200/60 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-gray-700 outline-none cursor-pointer hover:bg-white/80 transition-colors"
-            style={filterBarSelectStyle}
+            className="appearance-none bg-white/60 border border-gray-200/60 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-gray-700 outline-none cursor-pointer hover:bg-white/80 transition-colors max-w-[150px]"
+            style={{ ...filterBarSelectStyle, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
           >
             <option value="">全部</option>
             {options.map(o => <option key={o} value={o}>{o}</option>)}
@@ -410,12 +423,20 @@ export function StudentHomePage({ onMenuOpen, onNavigate }: {
 
   const cols: ColumnDef<DormAttendanceRecord>[] = [
     { key: "宿舍号",     header: "宿舍号",     render: r => <span className="whitespace-nowrap font-semibold" style={{ fontSize: 15, color: "#374151" }}>{r.宿舍号 || "—"}</span> },
-    { key: "宿舍楼栋",   header: "宿舍楼栋",   render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.宿舍楼栋 || "—"}</span> },
+    { key: "宿舍楼栋",   header: "宿舍楼栋",   render: r => {
+      const { bg, text } = getBuildingColor(r.宿舍楼栋);
+      return (
+        <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
+          style={{ background: bg, color: text }}>
+          {r.宿舍楼栋 || "—"}
+        </span>
+      );
+    }},
     { key: "场景",       header: "场景",       render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.场景 || "—"}</span> },
     { key: "学生编号",   header: "学生编号",   render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.学生编号 || "—"}</span> },
     { key: "学生姓名",   header: "学生姓名",   render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.学生姓名 || "—"}</span> },
     { key: "检查项",     header: "检查项",     render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.检查项 || "—"}</span> },
-    { key: "扣分项",     header: "扣分项",     render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.扣分项 || "—"}</span> },
+    { key: "扣分项",     header: "扣分项",     minWidth: 120, render: r => <span style={{ fontSize: 15, color: r.扣分项 ? "#374151" : "#9ca3af", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }} title={r.扣分项 || undefined}>{r.扣分项 || "—"}</span> },
     { key: "扣分",       header: "扣分",       render: r => {
       const score = Math.abs(r.扣分);
       if (!score) return <span style={{ fontSize: 15, color: "#9ca3af" }}>—</span>;

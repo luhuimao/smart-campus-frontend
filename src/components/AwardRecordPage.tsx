@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useCurrentUser } from "@/lib/user-context";
 import { StaffPicker } from "./ui/StaffPicker";
 import { useStaffDirectory, type StaffDirectoryRecord } from "@/hooks/use-research-dashboard";
-import { PageHeader, FlowButton } from "./PageHeader";
+import { PageHeader } from "./PageHeader";
 
 const teal = "#00b095";
 const focusStyle = { borderColor: teal, boxShadow: "0 0 0 4px rgba(0,176,149,0.1)" };
@@ -166,7 +166,7 @@ export function AwardRecordPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
     >
       <PageHeader
         centered
-        left={<FlowButton />}
+       
         breadcrumbs={[{ label: "教师基础档案" }, { label: "获奖记录", active: true }]}
         onMenuOpen={onMenuOpen}
       />

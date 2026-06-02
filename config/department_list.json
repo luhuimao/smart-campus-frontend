@@ -1,0 +1,643 @@
+{
+  "departments": [
+    {
+      "dept_no": 5,
+      "name": "后勤服务处",
+      "parent_no": 1,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "5",
+      "seq": 4194955295
+    },
+    {
+      "dept_no": 8,
+      "name": "餐厅",
+      "parent_no": 1,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "8",
+      "seq": 4194959295
+    },
+    {
+      "dept_no": 12,
+      "name": "财务室",
+      "parent_no": 1,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "12",
+      "seq": 4194962295
+    },
+    {
+      "dept_no": 13,
+      "name": "小卖部",
+      "parent_no": 1,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "13",
+      "seq": 4194962795
+    },
+    {
+      "dept_no": 282162361,
+      "name": "宏德教师群",
+      "parent_no": 1,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162361",
+      "seq": 4194968295
+    },
+    {
+      "dept_no": 282162363,
+      "name": "课程教学处",
+      "parent_no": 1,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162363",
+      "seq": 4194971295
+    },
+    {
+      "dept_no": 282162365,
+      "name": "学生发展处",
+      "parent_no": 1,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162365",
+      "seq": 4194973295
+    },
+    {
+      "dept_no": 282162367,
+      "name": "安全办",
+      "parent_no": 1,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162367",
+      "seq": 4194975295
+    },
+    {
+      "dept_no": 282162368,
+      "name": "艺体办",
+      "parent_no": 1,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162368",
+      "seq": 4194976295
+    },
+    {
+      "dept_no": 282162373,
+      "name": "招宣部",
+      "parent_no": 1,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162373",
+      "seq": 4194981295
+    },
+    {
+      "dept_no": 282162374,
+      "name": "招生办公室",
+      "parent_no": 282162373,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162374",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162372,
+      "name": "党总支办公室",
+      "parent_no": 1,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162372",
+      "seq": 4194980295
+    },
+    {
+      "dept_no": 282162376,
+      "name": "学校办公室",
+      "parent_no": 1,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162376",
+      "seq": 4194982295
+    },
+    {
+      "dept_no": 282162377,
+      "name": "核心委",
+      "parent_no": 1,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162377",
+      "seq": 4194983295
+    },
+    {
+      "dept_no": 282162375,
+      "name": "宣传科",
+      "parent_no": 282162373,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162375",
+      "seq": 4194968295
+    },
+    {
+      "dept_no": 282162378,
+      "name": "班主任",
+      "parent_no": 282162365,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162378",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162379,
+      "name": "信息部",
+      "parent_no": 282162367,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162379",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162380,
+      "name": "保健室",
+      "parent_no": 282162367,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162380",
+      "seq": 4194968295
+    },
+    {
+      "dept_no": 282162381,
+      "name": "门卫室",
+      "parent_no": 282162367,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162381",
+      "seq": 4194969295
+    },
+    {
+      "dept_no": 282162382,
+      "name": "保洁室",
+      "parent_no": 282162367,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162382",
+      "seq": 4194970295
+    },
+    {
+      "dept_no": 282162383,
+      "name": "文印室",
+      "parent_no": 282162363,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162383",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162384,
+      "name": "科任教师",
+      "parent_no": 282162363,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162384",
+      "seq": 4194968295
+    },
+    {
+      "dept_no": 282162386,
+      "name": "学生发展处",
+      "parent_no": 282162385,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162386",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162385,
+      "name": "地理组",
+      "parent_no": 282162384,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162385",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162387,
+      "name": "班主任",
+      "parent_no": 282162386,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162387",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162388,
+      "name": "化学组",
+      "parent_no": 282162384,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162388",
+      "seq": 4194968295
+    },
+    {
+      "dept_no": 282162389,
+      "name": "学生发展处",
+      "parent_no": 282162388,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162389",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162391,
+      "name": "历史组",
+      "parent_no": 282162384,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162391",
+      "seq": 4194969295
+    },
+    {
+      "dept_no": 282162390,
+      "name": "班主任",
+      "parent_no": 282162389,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162390",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162392,
+      "name": "学生发展处",
+      "parent_no": 282162391,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162392",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162394,
+      "name": "美术组",
+      "parent_no": 282162384,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162394",
+      "seq": 4194970295
+    },
+    {
+      "dept_no": 282162393,
+      "name": "班主任",
+      "parent_no": 282162392,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162393",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162395,
+      "name": "艺体办",
+      "parent_no": 282162394,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162395",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162396,
+      "name": "学生发展处",
+      "parent_no": 282162394,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162396",
+      "seq": 4194968295
+    },
+    {
+      "dept_no": 282162397,
+      "name": "班主任",
+      "parent_no": 282162396,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162397",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162401,
+      "name": "教官队",
+      "parent_no": 282162365,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162401",
+      "seq": 4194968295
+    },
+    {
+      "dept_no": 282162403,
+      "name": "日语",
+      "parent_no": 282162402,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162403",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162402,
+      "name": "外语组",
+      "parent_no": 282162384,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162402",
+      "seq": 4194971295
+    },
+    {
+      "dept_no": 282162404,
+      "name": "生物组",
+      "parent_no": 282162384,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162404",
+      "seq": 4194972295
+    },
+    {
+      "dept_no": 282162406,
+      "name": "班主任",
+      "parent_no": 282162405,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162406",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162405,
+      "name": "学生发展处",
+      "parent_no": 282162404,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162405",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162407,
+      "name": "数学组",
+      "parent_no": 282162384,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162407",
+      "seq": 4194973295
+    },
+    {
+      "dept_no": 282162409,
+      "name": "班主任",
+      "parent_no": 282162408,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162409",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162408,
+      "name": "学生发展处",
+      "parent_no": 282162407,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162408",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162410,
+      "name": "体育组",
+      "parent_no": 282162384,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162410",
+      "seq": 4194974295
+    },
+    {
+      "dept_no": 282162411,
+      "name": "学生发展处",
+      "parent_no": 282162410,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162411",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162412,
+      "name": "班主任",
+      "parent_no": 282162411,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162412",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162413,
+      "name": "艺体办",
+      "parent_no": 282162410,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162413",
+      "seq": 4194968295
+    },
+    {
+      "dept_no": 282162415,
+      "name": "学生发展处",
+      "parent_no": 282162414,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162415",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162414,
+      "name": "物理组",
+      "parent_no": 282162384,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162414",
+      "seq": 4194975295
+    },
+    {
+      "dept_no": 282162416,
+      "name": "班主任",
+      "parent_no": 282162415,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162416",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162417,
+      "name": "心理健康组",
+      "parent_no": 282162384,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162417",
+      "seq": 4194976295
+    },
+    {
+      "dept_no": 282162418,
+      "name": "信息技术组",
+      "parent_no": 282162384,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162418",
+      "seq": 4194977295
+    },
+    {
+      "dept_no": 282162419,
+      "name": "音乐组",
+      "parent_no": 282162384,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162419",
+      "seq": 4194978295
+    },
+    {
+      "dept_no": 282162421,
+      "name": "英语",
+      "parent_no": 282162402,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162421",
+      "seq": 4194968295
+    },
+    {
+      "dept_no": 282162420,
+      "name": "艺体办",
+      "parent_no": 282162419,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162420",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162422,
+      "name": "学生发展处",
+      "parent_no": 282162421,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162422",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162423,
+      "name": "班主任",
+      "parent_no": 282162422,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162423",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162424,
+      "name": "语文组",
+      "parent_no": 282162384,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162424",
+      "seq": 4194979295
+    },
+    {
+      "dept_no": 282162425,
+      "name": "学生发展处",
+      "parent_no": 282162424,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162425",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162427,
+      "name": "政治组",
+      "parent_no": 282162384,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162427",
+      "seq": 4194980295
+    },
+    {
+      "dept_no": 282162426,
+      "name": "班主任",
+      "parent_no": 282162425,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162426",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162428,
+      "name": "学生发展处",
+      "parent_no": 282162427,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162428",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162429,
+      "name": "班主任",
+      "parent_no": 282162428,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162429",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162430,
+      "name": "校园智慧办",
+      "parent_no": 1,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162430",
+      "seq": 4194984295
+    },
+    {
+      "dept_no": 282162431,
+      "name": "外部人员-系统维护",
+      "parent_no": 282162430,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162431",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162432,
+      "name": "高一年级",
+      "parent_no": 282162361,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162432",
+      "seq": 4194967295
+    },
+    {
+      "dept_no": 282162434,
+      "name": "高三年级",
+      "parent_no": 282162361,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162434",
+      "seq": 4194969295
+    },
+    {
+      "dept_no": 282162433,
+      "name": "高二年级",
+      "parent_no": 282162361,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162433",
+      "seq": 4194968295
+    },
+    {
+      "dept_no": 282162435,
+      "name": "师资培养处",
+      "parent_no": 1,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162435",
+      "seq": 4194985295
+    },
+    {
+      "dept_no": 282162436,
+      "name": "外联人员",
+      "parent_no": 1,
+      "type": 0,
+      "status": 1,
+      "integrate_id": "282162436",
+      "seq": 4194986295
+    }
+  ]
+}

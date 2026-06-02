@@ -13,6 +13,22 @@ export const JDY_CONFIG = {
     app_id: "68008ff60d080d59b8b67223",
     entry_id: "69b7cbc947f0df05ec5cc7dc",
   },
+  STUDENT_AWARD_INFO: {//一生一案-学生获奖记录表 app ID，entry ID
+    app_id: "6788d444d1eefa169cf74ddc",
+    entry_id: "6879bd941cddc9db489e68e8",
+  },
+  GOOD_DEEDS_INFO: {//一生一案-好人好事记录 app ID，entry ID
+    app_id: "6788d444d1eefa169cf74ddc",
+    entry_id: "6879be7f66cb2a535cc5511c",
+  },
+  PHYSICAL_TEST_INFO: {//一生一案-体质检测录入 app ID，entry ID
+    app_id: "6788d444d1eefa169cf74ddc",
+    entry_id: "687778f90651ee78eefccde1",
+  },
+  STUDENT_CADREE_INFO: {//一生一案-学生干部 app ID，entry ID
+    app_id: "6788d444d1eefa169cf74ddc",
+    entry_id: "687779061935a6b02253f81f",
+  },
   CLASS_RANK: {//一师一案-教师评价-教师所带班级排名 app ID，entry ID
     app_id: "67fe190a3b9b96ddf443c3a2",
     entry_id: "695e2a0c03a46f3064d18fbb",
@@ -171,6 +187,8 @@ export const WIDGET_IDS = {
   附件: "_widget_1733213305520",
   学科部门: "_widget_1732691646464",
   教研参加次数: "_widget_1732691646465",
+	提交人: "creator",
+	提交时间: "createTime",
 } as const;
 //备课活动记录
 export const BEIKE_WIDGET_IDS = {
@@ -218,6 +236,9 @@ export const CLASS_RANK_WIDGET_IDS = {
   教师姓名: "_widget_1767779019989",
   学科: "_widget_1767778829296",
   班级排名: "_widget_1767778829297",
+  提交人: "creator",
+  提交时间: "createTime",
+  更新时间: "updateTime",
 } as const;
 //宿舍考勤记录
 export const DORM_ATTENDANCE_WIDGET_IDS = {
@@ -1113,4 +1134,95 @@ export async function jdyListAll(
   }
 
   return all;
+}
+
+// ── 写操作接口 ──────────────────────────────────────────────
+
+export interface JdyMutationResponse {
+  success: boolean;
+  message?: string;
+}
+
+export interface JdyCreateParams {
+  app_id: string;
+  entry_id: string;
+  data: Record<string, { value: unknown }>;
+  data_creator?: string;
+  is_start_workflow?: boolean;
+  is_start_trigger?: boolean;
+}
+
+export interface JdyBatchCreateParams {
+  app_id: string;
+  entry_id: string;
+  data_list: Array<Record<string, { value: unknown }>>;
+  data_creator?: string;
+  is_start_workflow?: boolean;
+  is_start_trigger?: boolean;
+}
+
+export interface JdyUpdateParams {
+  app_id: string;
+  entry_id: string;
+  data_id: string;
+  data: Record<string, { value: unknown }>;
+  data_creator?: string;
+  is_start_trigger?: boolean;
+}
+
+export interface JdyBatchUpdateParams {
+  app_id: string;
+  entry_id: string;
+  data_ids: string[];
+  data: Record<string, { value: unknown }>;
+}
+
+export interface JdyDeleteParams {
+  app_id: string;
+  entry_id: string;
+  data_id: string;
+  is_start_trigger?: boolean;
+}
+
+export interface JdyBatchDeleteParams {
+  app_id: string;
+  entry_id: string;
+  data_ids: string[];
+}
+
+async function jdyMutate(action: string, body: unknown): Promise<JdyMutationResponse> {
+  const res = await fetch(`/api/jdy/data/${action}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`JDY ${action} failed (${res.status}): ${text}`);
+  }
+  return res.json();
+}
+
+export function jdyCreate(params: JdyCreateParams): Promise<JdyMutationResponse> {
+  return scheduler.schedule(() => jdyMutate("create", params));
+}
+
+export function jdyBatchCreate(params: JdyBatchCreateParams): Promise<JdyMutationResponse> {
+  return scheduler.schedule(() => jdyMutate("batch-create", params));
+}
+
+export function jdyUpdate(params: JdyUpdateParams): Promise<JdyMutationResponse> {
+  return scheduler.schedule(() => jdyMutate("update", params));
+}
+
+export function jdyBatchUpdate(params: JdyBatchUpdateParams): Promise<JdyMutationResponse> {
+  return scheduler.schedule(() => jdyMutate("batch-update", params));
+}
+
+export function jdyDelete(params: JdyDeleteParams): Promise<JdyMutationResponse> {
+  return scheduler.schedule(() => jdyMutate("delete", params));
+}
+
+export function jdyBatchDelete(params: JdyBatchDeleteParams): Promise<JdyMutationResponse> {
+  return scheduler.schedule(() => jdyMutate("batch-delete", params));
 }

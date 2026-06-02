@@ -1,4 +1,30 @@
+# get all roles
+## POST API
+```
+https://api.jiandaoyun.com/api/v5/corp/role/list
+```
 
+## request header
+```
+Authorization*
+Bearer <key>
+
+content-type*
+application/json
+```
+
+## request body
+```
+{
+  "skip": 0,
+  "limit": 300,
+  "has_internal": true,
+  "has_sync": true
+}
+```
+
+## response 
+```json
 {
   "roles": [
     {
@@ -381,3 +407,67 @@
     }
   ]
 }
+```
+
+# get role member
+## POST API https://api.jiandaoyun.com/api/v5/corp/role/user/list
+
+## request header
+```
+Authorization*
+Bearer <key>
+
+content-type*
+application/json
+```
+
+## request body
+```
+{
+  "skip": 0,
+  "limit": 300,
+  "role_no": 74,
+  "has_manage_range": true
+}
+```
+
+## response 
+```josn
+{
+  "users": [
+    {
+      "username": "woxjrqDwAASEaqXoiy-SreAaWeByeptw",
+      "name": "袁剑英",
+      "departments": [
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAASEaqXoiy-SreAaWeByeptw"
+    },
+    {
+      "username": "woxjrqDwAAyiVQ8cEV0YsfxGkcQNSk1g",
+      "name": "庞淇方",
+      "departments": [
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAyiVQ8cEV0YsfxGkcQNSk1g"
+    },
+    {
+      "username": "woxjrqDwAACZRost-gkJyjCxm2CV2GDw",
+      "name": "庞凯莹",
+      "departments": [
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAACZRost-gkJyjCxm2CV2GDw"
+    }
+  ]
+}
+```

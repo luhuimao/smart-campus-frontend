@@ -23,6 +23,8 @@ export interface ResearchRecord {
   备注: string;
   照片: { name: string; url: string }[];
   附件: { name: string; url: string }[];
+  提交人: string;
+  提交时间: string;
 }
 
 export interface DashboardData {
@@ -98,7 +100,9 @@ function normalize(records: JdyRecord[]): ResearchRecord[] {
     备注: pickStr(r, WIDGET_IDS.备注),
     照片: pickFiles(r, WIDGET_IDS.照片),
     附件: pickFiles(r, WIDGET_IDS.附件),
-  }));
+	    提交人: pickStr(r, WIDGET_IDS.提交人),
+	    提交时间: pickStr(r, WIDGET_IDS.提交时间),
+  })).sort((a, b) => b.提交时间.localeCompare(a.提交时间));
 }
 
 function derive(records: ResearchRecord[]): DashboardData {
@@ -468,6 +472,9 @@ export interface ClassRankRecord {
   教师姓名: string;
   学科: string;
   班级排名: string;
+  提交人: string;
+  提交时间: string;
+  更新时间: string;
 }
 
 function normalizeClassRankRecord(r: JdyRecord, index: number): ClassRankRecord {
@@ -481,26 +488,31 @@ function normalizeClassRankRecord(r: JdyRecord, index: number): ClassRankRecord 
     教师姓名: pickStr(r, CLASS_RANK_WIDGET_IDS.教师姓名),
     学科: pickStr(r, CLASS_RANK_WIDGET_IDS.学科),
     班级排名: pickStr(r, CLASS_RANK_WIDGET_IDS.班级排名),
+    提交人: pickStr(r, CLASS_RANK_WIDGET_IDS.提交人),
+    提交时间: pickStr(r, CLASS_RANK_WIDGET_IDS.提交时间),
+    更新时间: pickStr(r, CLASS_RANK_WIDGET_IDS.更新时间),
   };
 }
 
 export function useClassRank() {
-  const { data: allRecords, isPending, isError, error, refetch } = useQuery({
+  const { data: allRecords, isPending, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["class-rank", "list"],
     queryFn: async () => {
       const records = await jdyListAll({
         app_id: JDY_CONFIG.CLASS_RANK.app_id,
         entry_id: JDY_CONFIG.CLASS_RANK.entry_id,
         pageSize: 100,
-        maxPages: 20,
+        maxPages: 50,
       });
-      return records.map((r, i) => normalizeClassRankRecord(r, i));
+      const normalized = records.map((r, i) => normalizeClassRankRecord(r, i));
+      normalized.sort((a, b) => b.提交时间.localeCompare(a.提交时间));
+      return normalized;
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: 60_000,
   });
 
-  return { raw: allRecords ?? [], isPending, isError, error, refetch };
+  return { raw: allRecords ?? [], isPending, isError, error, refetch, isFetching };
 }
 
 // ── 宿舍考勤 ──────────────────────────────────────────────
@@ -2023,4 +2035,33 @@ export function useGradeInfo() {
   });
 
   return { raw: allRecords ?? [], isPending, isError, error, refetch };
+}
+
+// ── 部门成员 ──────────────────────────────────────────────────
+
+export interface DeptMemberRecord {
+  username: string;
+  name: string;
+  departments: number[];
+  integrate_id: string;
+}
+
+export function useDepartmentMembers(deptNo = 1, hasChild = true) {
+  const { data: raw, isPending, isError, error, refetch } = useQuery({
+    queryKey: ["department-members", deptNo, hasChild],
+    queryFn: async () => {
+      const res = await fetch("/api/jdy/department/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dept_no: deptNo, has_child: hasChild }),
+      });
+      if (!res.ok) throw new Error(`Failed to fetch department members (${res.status})`);
+      const json = await res.json();
+      return (json.users ?? []) as DeptMemberRecord[];
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 60_000,
+  });
+
+  return { raw: raw ?? [], isPending, isError, error, refetch };
 }

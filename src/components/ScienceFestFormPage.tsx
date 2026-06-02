@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo, useEffect } from "react";
 import { Plus, X, Search, Upload, Menu } from "lucide-react";
 import { useStaffDirectory, useTeachingResearchGroups } from "@/hooks/use-research-dashboard";
-import { PageHeader, FlowButton } from "./PageHeader";
+import { PageHeader } from "./PageHeader";
 
 const teal = "#00b095";
 const focusStyle = { borderColor: teal, boxShadow: "0 0 0 4px rgba(0,176,149,0.1)" };

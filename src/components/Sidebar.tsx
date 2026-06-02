@@ -79,11 +79,35 @@ const PAGE_TO_LABEL: Partial<Record<PageKey, string>> = {
   "grade-config":              "年级",
 };
 
+// label → PageKey for menu permission filtering
+const LABEL_TO_PAGE: Record<string, PageKey> = {
+  "首页": "research-dashboard",
+  "教科研看板": "research-dashboard",
+  "教师资格证": "teacher-cert", "职称信息": "title-info", "荣誉称号": "honor-title",
+  "获奖记录": "award-record", "论文": "paper", "课题": "project", "著作": "works",
+  "教师培训": "teacher-training", "工作履历": "work-history", "教育经历": "education",
+  "教学兼职": "part-time", "教师所带班级排名": "class-rank",
+  "班主任所带文明班级": "civilized-class", "班主任所带文明宿舍": "civilized-dorm",
+  "教研活动数据分析": "research-activity-analysis", "教研活动记录": "research-activity-record",
+  "备课组活动记录": "lesson-prep-record", "备课活动数据分析": "lesson-prep-analysis",
+  "科技节活动看板": "science-fest-dashboard", "科技节活动登记": "science-fest-form",
+  "学生管理看板": "student-dashboard", "宿舍考勤看板": "student-home",
+  "学情分析表": "learning-analysis-table", "学生花名册": "student-roster",
+  "一生一案谈心谈话记录表": "talk-record", "学生获奖记录": "student-award",
+  "好人好事记录": "good-deeds", "体质检测录入": "physical-test",
+  "学生干部风采": "student-cadree", "返校登记表": "return-register",
+  "学生退/转/休学申请表": "withdrawal-form", "转科（班）申请表": "class-transfer",
+  "宿舍考勤记录": "dorm-attendance", "学情分析统计表": "learning-analysis-stats",
+  "学生成绩表": "student-score", "科目": "subject-config", "选考科目": "elective-subject",
+  "学期": "semester-config", "年级": "grade-config",
+};
+
 interface SidebarProps {
   onNavigate?: (page: PageKey) => void;
   activePage?: PageKey;
   mobileOpen?: boolean;
   onClose?: () => void;
+  allowedPages?: Set<PageKey>;
 }
 
 const sidebarBaseStyle: React.CSSProperties = {
@@ -95,7 +119,7 @@ const sidebarBaseStyle: React.CSSProperties = {
   fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif',
 };
 
-export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: SidebarProps) {
+export function Sidebar({ onNavigate, activePage, mobileOpen, onClose, allowedPages }: SidebarProps) {
   const [expanded,     setExpanded]    = useState<Record<string, boolean>>({ [PARENT_KEY]: true });
   const [activeParent, setActiveParent] = useState<string>(PARENT_KEY);
   const [activeLabel,  setActiveLabel] = useState<string>("首页");
@@ -116,6 +140,20 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
     setActiveLabel(label);
     onNavigate?.(page);
     onClose?.();
+  };
+
+  // Permission filtering — show item if allowedPages not set (backward compat) or page is allowed
+  const canShow = (label: string): boolean => {
+    if (!allowedPages) return true;
+    const pk = LABEL_TO_PAGE[label];
+    return pk ? allowedPages.has(pk) : false;
+  };
+  const hasVisibleChild = (children: (string | { label: string; children?: string[] })[] | undefined): boolean => {
+    if (!allowedPages || !children) return true;
+    return children.some(c => {
+      const l = typeof c === "string" ? c : c.label;
+      return canShow(l) || (typeof c !== "string" && hasVisibleChild(c.children));
+    });
   };
 
   const toggleParent = (key: string) => {
@@ -188,6 +226,7 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
             {expanded[PARENT_KEY] && (
               <div className="flex flex-col gap-0.5 mt-0.5" style={{ paddingLeft: 12 }}>
                 {treeItems.map(({ icon: Icon, label, iconColor, children }) => {
+                  if (!canShow(label) && !hasVisibleChild(children)) return null;
                   const isActive = activeLabel === label;
                   return (
                     <div key={label}>
@@ -212,6 +251,7 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
                           {children.map((child) => {
                             const childLabel   = typeof child === "string" ? child : child.label;
                             const grandChildren = typeof child === "string" ? undefined : child.children;
+                            if (allowedPages && !canShow(childLabel) && !hasVisibleChild(grandChildren)) return null;
                             const grandChildPageMap: Record<string, PageKey> = { "科技节活动看板": "science-fest-dashboard", "科技节活动登记": "science-fest-form" };
                             const childPageMap: Record<string, PageKey> = {
                               "教师资格证": "teacher-cert", "职称信息": "title-info", "荣誉称号": "honor-title",
@@ -292,6 +332,7 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
             {expanded["一生一案"] && (
               <div className="flex flex-col gap-0.5 mt-0.5" style={{ paddingLeft: 12 }}>
                 {yishengItems.map(({ icon: Icon, label, iconColor, children }) => {
+                  if (!canShow(label) && !hasVisibleChild(children)) return null;
                   const isActive = activeLabel === label;
                   return (
                     <div key={label}>
@@ -315,6 +356,7 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose }: Sidebar
                       {children && expanded[label] && (
                         <div className="flex flex-col gap-0.5 mt-0.5 mb-0.5" style={{ paddingLeft: 14 }}>
                           {children.map(({ label: childLabel, children: grandChildren }) => {
+                            if (allowedPages && !canShow(childLabel)) return null;
                             const yishengChildPageMap: Record<string, PageKey> = { "学情分析表": "learning-analysis-table", "学生花名册": "student-roster", "一生一案谈心谈话记录表": "talk-record", "学生获奖记录": "student-award", "好人好事记录": "good-deeds", "体质检测录入": "physical-test", "学生干部风采": "student-cadree", "返校登记表": "return-register", "学生退/转/休学申请表": "withdrawal-form", "转科（班）申请表": "class-transfer", "学情分析统计表": "learning-analysis-stats", "科目": "subject-config", "选考科目": "elective-subject", "学期": "semester-config", "年级": "grade-config" };
                             const childPage   = yishengChildPageMap[childLabel];
                             const childActive = activeLabel === childLabel;

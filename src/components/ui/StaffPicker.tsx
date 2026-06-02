@@ -2,27 +2,30 @@
 
 import { Plus, X, Search } from "lucide-react";
 import { useState, useMemo, useEffect, useRef } from "react";
-import { useStaffDirectory, type StaffDirectoryRecord } from "@/hooks/use-research-dashboard";
+import { useDepartmentMembers, useStaffDirectory, type StaffDirectoryRecord } from "@/hooks/use-research-dashboard";
+import type { DeptMemberRecord } from "@/hooks/use-research-dashboard";
 
 interface StaffPickerProps {
   value: string;
   onChange: (name: string) => void;
   onSelectRecord?: (record: StaffDirectoryRecord | null) => void;
+  onSelectMember?: (record: DeptMemberRecord | null) => void;
 }
 
-export function StaffPicker({ value, onChange, onSelectRecord }: StaffPickerProps) {
+export function StaffPicker({ value, onChange, onSelectRecord, onSelectMember }: StaffPickerProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { raw: staffList } = useStaffDirectory();
+  const { raw: staffList } = useDepartmentMembers();
+  const { raw: fullStaffList } = useStaffDirectory();
 
   const filtered = useMemo(() => {
     if (!staffList.length) return [];
     if (!query.trim()) return staffList.slice(0, 30);
     const q = query.trim();
-    return staffList.filter((s) => s.教职工姓名.includes(q)).slice(0, 30);
+    return staffList.filter((s) => s.name.includes(q)).slice(0, 30);
   }, [staffList, query]);
 
   useEffect(() => {
@@ -51,15 +54,18 @@ export function StaffPicker({ value, onChange, onSelectRecord }: StaffPickerProp
     };
   }, [open]);
 
-  const handleSelect = (record: StaffDirectoryRecord) => {
-    onChange(record.教职工姓名);
-    onSelectRecord?.(record);
+  const handleSelect = (record: DeptMemberRecord) => {
+    onChange(record.name);
+    const full = onSelectRecord ? (fullStaffList.find(s => s.教职工姓名 === record.name) ?? null) : null;
+    onSelectRecord?.(full);
+    onSelectMember?.(record);
     setOpen(false);
   };
 
   const handleClear = () => {
     onChange("");
     onSelectRecord?.(null);
+    onSelectMember?.(null);
   };
 
   const initial = value ? value.slice(0, 1) : "?";
@@ -118,23 +124,20 @@ export function StaffPicker({ value, onChange, onSelectRecord }: StaffPickerProp
             ) : (
               filtered.map((s) => (
                 <button
-                  key={s._id}
+                  key={s.username}
                   type="button"
                   className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left"
                   onClick={() => handleSelect(s)}
                 >
                   <div className="w-8 h-8 rounded-full bg-rose-500 text-white flex items-center justify-center text-xs font-bold shrink-0">
-                    {s.教职工姓名.slice(0, 1)}
+                    {s.name.slice(0, 1)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-base font-medium text-gray-800 truncate">{s.教职工姓名}</p>
-                    <p className="text-xs text-gray-400 truncate">
-                      {[s.部门, s.担任学科].filter(Boolean).join(" · ") || "—"}
-                    </p>
+                    <p className="text-base font-medium text-gray-800 truncate">{s.name}</p>
                   </div>
                 </button>
-              ))
-            )}
+              )))
+            }
           </div>
 
           {filtered.length > 0 && (

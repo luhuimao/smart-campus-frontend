@@ -1,0 +1,3522 @@
+{
+  "users": [
+    {
+      "username": "woxjrqDwAAE-KGzWHg4IoJWhvDERDlPg",
+      "name": "孙有璋",
+      "departments": [
+        282162434,
+        282162365,
+        282162378,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAE-KGzWHg4IoJWhvDERDlPg"
+    },
+    {
+      "username": "woxjrqDwAADJpYHPFgbo52s5TNkdbsfg",
+      "name": "农泽华",
+      "departments": [
+        282162381,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAADJpYHPFgbo52s5TNkdbsfg"
+    },
+    {
+      "username": "woxjrqDwAAqx4H81tywiIOJNSJQcI66g",
+      "name": "甘育攀",
+      "departments": [
+        282162434,
+        282162378,
+        1,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAqx4H81tywiIOJNSJQcI66g"
+    },
+    {
+      "username": "woxjrqDwAAcmhzgOvKYukwsRDE3h2xIw",
+      "name": "廖永会",
+      "departments": [
+        282162434,
+        282162378,
+        1,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAcmhzgOvKYukwsRDE3h2xIw"
+    },
+    {
+      "username": "woxjrqDwAAQiFRUopGEmyTvurh9Z3uog",
+      "name": "覃雯雯",
+      "departments": [
+        282162432,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAQiFRUopGEmyTvurh9Z3uog"
+    },
+    {
+      "username": "woxjrqDwAAW8zwL8HWFxl-u--qf6tqMA",
+      "name": "吴志芳",
+      "departments": [
+        282162434,
+        282162365,
+        1,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAW8zwL8HWFxl-u--qf6tqMA"
+    },
+    {
+      "username": "woxjrqDwAAyN2IN1Hw4-ylO84Z-98taw",
+      "name": "张嘉男",
+      "departments": [
+        282162432,
+        282162361,
+        282162430,
+        282162435,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAyN2IN1Hw4-ylO84Z-98taw"
+    },
+    {
+      "username": "woxjrqDwAA_dkb2KewUuh9GgpSEFB2kQ",
+      "name": "张倚源",
+      "departments": [
+        282162434,
+        282162378,
+        1,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA_dkb2KewUuh9GgpSEFB2kQ"
+    },
+    {
+      "username": "woxjrqDwAASEaqXoiy-SreAaWeByeptw",
+      "name": "袁剑英",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAASEaqXoiy-SreAaWeByeptw"
+    },
+    {
+      "username": "woxjrqDwAAq-AllSBA7XwOZW4p_qfngA",
+      "name": "黄舒佩",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAq-AllSBA7XwOZW4p_qfngA"
+    },
+    {
+      "username": "woxjrqDwAAOUoRdi0GmU4iFgHRAMM4EQ",
+      "name": "陈小妤",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAOUoRdi0GmU4iFgHRAMM4EQ"
+    },
+    {
+      "username": "woxjrqDwAAR1ZgvEyYErkGzRRcCTzoKw",
+      "name": "韦晓明",
+      "departments": [
+        282162401,
+        282162365,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAR1ZgvEyYErkGzRRcCTzoKw"
+    },
+    {
+      "username": "woxjrqDwAAwHHjbE83gCCNiyFP7OTNyA",
+      "name": "陆家玉",
+      "departments": [
+        1,
+        282162380
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAwHHjbE83gCCNiyFP7OTNyA"
+    },
+    {
+      "username": "woxjrqDwAAGPFs9mce7JwlzIARdGYl0A",
+      "name": "陈清詝",
+      "departments": [
+        282162434,
+        282162378,
+        282162365,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAGPFs9mce7JwlzIARdGYl0A"
+    },
+    {
+      "username": "woxjrqDwAA4S0MfLcXC1c1jJqTsyiVRg",
+      "name": "韦国德",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA4S0MfLcXC1c1jJqTsyiVRg"
+    },
+    {
+      "username": "woxjrqDwAApyw4lGV2E_Lq9SlGEwPMRg",
+      "name": "韦春荣",
+      "departments": [
+        282162433,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAApyw4lGV2E_Lq9SlGEwPMRg"
+    },
+    {
+      "username": "woxjrqDwAAypmczwLX4USMYevjnWhUiA",
+      "name": "贤芸彤",
+      "departments": [
+        282162433,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAypmczwLX4USMYevjnWhUiA"
+    },
+    {
+      "username": "woxjrqDwAAa3aXb1nDyfoY7iTHUQHVZA",
+      "name": "王人永",
+      "departments": [
+        282162434,
+        1,
+        282162365,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAa3aXb1nDyfoY7iTHUQHVZA"
+    },
+    {
+      "username": "woxjrqDwAA97rA7BN3liOVLe8OJ0L9Tw",
+      "name": "陈柏君",
+      "departments": [
+        282162433,
+        282162365,
+        1,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA97rA7BN3liOVLe8OJ0L9Tw"
+    },
+    {
+      "username": "woxjrqDwAACTA8PN_A3XS3VPiplB1d_g",
+      "name": "关胜军",
+      "departments": [
+        1,
+        282162365,
+        282162401
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAACTA8PN_A3XS3VPiplB1d_g"
+    },
+    {
+      "username": "woxjrqDwAADfJfQ2R9hNZpluTi9JSPZA",
+      "name": "符澳慧",
+      "departments": [
+        282162433,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAADfJfQ2R9hNZpluTi9JSPZA"
+    },
+    {
+      "username": "woxjrqDwAAsj_9HAQkwv5mN8OaUXuaLg",
+      "name": "韦嘉丽",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAsj_9HAQkwv5mN8OaUXuaLg"
+    },
+    {
+      "username": "woxjrqDwAAp25Rmnac2kTTmoqJSuqbcw",
+      "name": "罗登倬",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAp25Rmnac2kTTmoqJSuqbcw"
+    },
+    {
+      "username": "woxjrqDwAAlWfUiQT2Y020ZtwNuZHyNA",
+      "name": "潘凤平",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAlWfUiQT2Y020ZtwNuZHyNA"
+    },
+    {
+      "username": "woxjrqDwAAO64_vwp9i73rM1_vmGH72A",
+      "name": "梁梅娟",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAO64_vwp9i73rM1_vmGH72A"
+    },
+    {
+      "username": "woxjrqDwAA6SfKKAtg2zUg2Gt-2W02ig",
+      "name": "韦小园",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA6SfKKAtg2zUg2Gt-2W02ig"
+    },
+    {
+      "username": "woxjrqDwAARGsR3Dnpeyf93GqI7PMRgQ",
+      "name": "梁国柱",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAARGsR3Dnpeyf93GqI7PMRgQ"
+    },
+    {
+      "username": "woxjrqDwAAO-LUh0Fwpb2f18l4PMwHfg",
+      "name": "祁利红",
+      "departments": [
+        1,
+        8
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAO-LUh0Fwpb2f18l4PMwHfg"
+    },
+    {
+      "username": "woxjrqDwAAZKsmnS1Pdo1TGmIMtQxW4w",
+      "name": "农海华",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAZKsmnS1Pdo1TGmIMtQxW4w"
+    },
+    {
+      "username": "woxjrqDwAA76vchMajZjFXh9b_yS5WDA",
+      "name": "陈丽萍",
+      "departments": [
+        282162432,
+        282162365,
+        1,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA76vchMajZjFXh9b_yS5WDA"
+    },
+    {
+      "username": "woxjrqDwAAbra7XtBsUFHdKif-crfV-g",
+      "name": "李玉",
+      "departments": [
+        282162365,
+        1,
+        282162401
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAbra7XtBsUFHdKif-crfV-g"
+    },
+    {
+      "username": "woxjrqDwAAFxUufcIfskYOB6XzJuhVow",
+      "name": "韦文静",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAFxUufcIfskYOB6XzJuhVow"
+    },
+    {
+      "username": "woxjrqDwAAMMqtJo7botQVwtZ2jWvnGA",
+      "name": "梁春浩",
+      "departments": [
+        282162379,
+        282162367,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAMMqtJo7botQVwtZ2jWvnGA"
+    },
+    {
+      "username": "woxjrqDwAAr93eYQxs8DQNWj1SK7eIRQ",
+      "name": "谭小娇",
+      "departments": [
+        13,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAr93eYQxs8DQNWj1SK7eIRQ"
+    },
+    {
+      "username": "woxjrqDwAAZ5C8D6zZvFc9zkd__m0ulA",
+      "name": "刘翠玲",
+      "departments": [
+        1,
+        13
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAZ5C8D6zZvFc9zkd__m0ulA"
+    },
+    {
+      "username": "woxjrqDwAA7KyRmA7WsUfo4RW-YpIPzw",
+      "name": "何艳玲",
+      "departments": [
+        1,
+        13
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA7KyRmA7WsUfo4RW-YpIPzw"
+    },
+    {
+      "username": "woxjrqDwAAMJuoBP7oG1BEi5WCj6OltQ",
+      "name": "邓彩珍",
+      "departments": [
+        1,
+        13
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAMJuoBP7oG1BEi5WCj6OltQ"
+    },
+    {
+      "username": "woxjrqDwAAHCk5SZUTvm6kjrohbHw7rg",
+      "name": "陈圆圆",
+      "departments": [
+        1,
+        13
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAHCk5SZUTvm6kjrohbHw7rg"
+    },
+    {
+      "username": "woxjrqDwAA2S97CJz3f55CO3GpcLFogA",
+      "name": "曾君瑜",
+      "departments": [
+        12,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA2S97CJz3f55CO3GpcLFogA"
+    },
+    {
+      "username": "woxjrqDwAA2kYgzcoX6ToGEfBwPq0oRw",
+      "name": "黄雅芳",
+      "departments": [
+        1,
+        12
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA2kYgzcoX6ToGEfBwPq0oRw"
+    },
+    {
+      "username": "woxjrqDwAALXDiGiX4HzwZLBB0KFdWlQ",
+      "name": "杨冬萍",
+      "departments": [
+        282162383,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAALXDiGiX4HzwZLBB0KFdWlQ"
+    },
+    {
+      "username": "woxjrqDwAAAzfhb8ZcD8dRDOHzu783oQ",
+      "name": "叶珍",
+      "departments": [
+        1,
+        282162383
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAAzfhb8ZcD8dRDOHzu783oQ"
+    },
+    {
+      "username": "woxjrqDwAAzeWB5oiE9wlO8OCd8op1wg",
+      "name": "蒙思跃",
+      "departments": [
+        282162383,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAzeWB5oiE9wlO8OCd8op1wg"
+    },
+    {
+      "username": "woxjrqDwAAqbziUwmMFDwrvgrB75e1Jg",
+      "name": "蒙妮丹",
+      "departments": [
+        282162380,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAqbziUwmMFDwrvgrB75e1Jg"
+    },
+    {
+      "username": "woxjrqDwAAgvCYEkePJrzPGsr_FhMRkQ",
+      "name": "李小妹",
+      "departments": [
+        282162380,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAgvCYEkePJrzPGsr_FhMRkQ"
+    },
+    {
+      "username": "woxjrqDwAAfir7T3mVNiNXTxvNhpa6ZQ",
+      "name": "黄飞红",
+      "departments": [
+        282162380,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAfir7T3mVNiNXTxvNhpa6ZQ"
+    },
+    {
+      "username": "woxjrqDwAAxOUWV9A-GF92-suRfsawng",
+      "name": "左聪连",
+      "departments": [
+        282162401,
+        282162365,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAxOUWV9A-GF92-suRfsawng"
+    },
+    {
+      "username": "woxjrqDwAA21fQav3j1AZoU_7kaKZW9w",
+      "name": "吴旗华",
+      "departments": [
+        1,
+        282162401,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA21fQav3j1AZoU_7kaKZW9w"
+    },
+    {
+      "username": "woxjrqDwAAJgB9iDkRHCy7gPw9ugV4DA",
+      "name": "张彩明",
+      "departments": [
+        282162401,
+        1,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAJgB9iDkRHCy7gPw9ugV4DA"
+    },
+    {
+      "username": "woxjrqDwAAHG0OuKQCej-jLPgi8k9AsQ",
+      "name": "曾玉枚",
+      "departments": [
+        1,
+        282162401,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAHG0OuKQCej-jLPgi8k9AsQ"
+    },
+    {
+      "username": "woxjrqDwAAx8jLaWvKAOVLrW2b16HifA",
+      "name": "刘凤桃",
+      "departments": [
+        282162401,
+        282162365,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAx8jLaWvKAOVLrW2b16HifA"
+    },
+    {
+      "username": "woxjrqDwAAG3Mri-a7vlvof3UHO0Te1w",
+      "name": "王树锦",
+      "departments": [
+        1,
+        282162401,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAG3Mri-a7vlvof3UHO0Te1w"
+    },
+    {
+      "username": "woxjrqDwAAJU5SuXu7ZVdMc-y6rWqGmw",
+      "name": "李洪专",
+      "departments": [
+        282162401,
+        282162365,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAJU5SuXu7ZVdMc-y6rWqGmw"
+    },
+    {
+      "username": "woxjrqDwAA63S5-ksFYtfltXsDIDIa1w",
+      "name": "黄柳英",
+      "departments": [
+        1,
+        282162401,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA63S5-ksFYtfltXsDIDIa1w"
+    },
+    {
+      "username": "woxjrqDwAAvZ9oxbsFSWG5RHP3TNLIeQ",
+      "name": "陆广珍",
+      "departments": [
+        282162401,
+        282162365,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAvZ9oxbsFSWG5RHP3TNLIeQ"
+    },
+    {
+      "username": "woxjrqDwAADFfSHSsu_u1tw823WkCdaw",
+      "name": "赵敏",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAADFfSHSsu_u1tw823WkCdaw"
+    },
+    {
+      "username": "woxjrqDwAAP7P_4sa_VdmzyqXv1xYv1w",
+      "name": "曾永婴",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAP7P_4sa_VdmzyqXv1xYv1w"
+    },
+    {
+      "username": "woxjrqDwAAiAOvW09YYzAqnwUi8DeQyQ",
+      "name": "张丽弯",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAiAOvW09YYzAqnwUi8DeQyQ"
+    },
+    {
+      "username": "woxjrqDwAAbj3TheRDYTU6zhKu2A8UNA",
+      "name": "曾磷",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAbj3TheRDYTU6zhKu2A8UNA"
+    },
+    {
+      "username": "woxjrqDwAADRRAC6560YxlA4HlEdhYig",
+      "name": "徐仁丽",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAADRRAC6560YxlA4HlEdhYig"
+    },
+    {
+      "username": "woxjrqDwAAWJOLDl2cBTG5aizBAoqHag",
+      "name": "徐宾来",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAWJOLDl2cBTG5aizBAoqHag"
+    },
+    {
+      "username": "woxjrqDwAAlhEyXRuRC4G4BZG77xjNDA",
+      "name": "韦小英",
+      "departments": [
+        1,
+        8
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAlhEyXRuRC4G4BZG77xjNDA"
+    },
+    {
+      "username": "woxjrqDwAAV5VZf2cusC8uO2K5nzfNxw",
+      "name": "韦璐",
+      "departments": [
+        1,
+        8
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAV5VZf2cusC8uO2K5nzfNxw"
+    },
+    {
+      "username": "woxjrqDwAAfC03F7hv8Tc0RLitqA-vAQ",
+      "name": "吴小勤",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAfC03F7hv8Tc0RLitqA-vAQ"
+    },
+    {
+      "username": "woxjrqDwAAmNoGxX2WF2tisQ8y3rpBpQ",
+      "name": "韦金前",
+      "departments": [
+        1,
+        8
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAmNoGxX2WF2tisQ8y3rpBpQ"
+    },
+    {
+      "username": "woxjrqDwAAPSYvYhdHtZEMvZGRGMnaFg",
+      "name": "韦环",
+      "departments": [
+        1,
+        8
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAPSYvYhdHtZEMvZGRGMnaFg"
+    },
+    {
+      "username": "woxjrqDwAAmFc_ifwTz70o-4mTlXfn4w",
+      "name": "苏善堂",
+      "departments": [
+        1,
+        8
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAmFc_ifwTz70o-4mTlXfn4w"
+    },
+    {
+      "username": "woxjrqDwAAmS3ATzOyvpr5c6Y2YNnBVA",
+      "name": "潘秀禄",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAmS3ATzOyvpr5c6Y2YNnBVA"
+    },
+    {
+      "username": "woxjrqDwAASShM7I8hEVTkhAZREq8NKQ",
+      "name": "潘则奇",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAASShM7I8hEVTkhAZREq8NKQ"
+    },
+    {
+      "username": "woxjrqDwAAxA5SyohKoxpYxA6mVlG_qw",
+      "name": "黎东海",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAxA5SyohKoxpYxA6mVlG_qw"
+    },
+    {
+      "username": "woxjrqDwAAC8phXnAIEhRuYILUMUeOHw",
+      "name": "李鲜花",
+      "departments": [
+        1,
+        8
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAC8phXnAIEhRuYILUMUeOHw"
+    },
+    {
+      "username": "woxjrqDwAAhJPbarrzjN3FQ1CmZxScPg",
+      "name": "李海燕",
+      "departments": [
+        1,
+        8
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAhJPbarrzjN3FQ1CmZxScPg"
+    },
+    {
+      "username": "woxjrqDwAAmTlnlvzAb5ItwhpPFQrIBA",
+      "name": "陆友祥",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAmTlnlvzAb5ItwhpPFQrIBA"
+    },
+    {
+      "username": "woxjrqDwAAtS2Slpsk5H1gr88gW3cTEA",
+      "name": "蓝春妮",
+      "departments": [
+        1,
+        8
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAtS2Slpsk5H1gr88gW3cTEA"
+    },
+    {
+      "username": "woxjrqDwAAORhkURAQTx7LstYTUFQGPQ",
+      "name": "陈进峰",
+      "departments": [
+        1,
+        8
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAORhkURAQTx7LstYTUFQGPQ"
+    },
+    {
+      "username": "woxjrqDwAAA1lSxCRMqQgLeWWqr1ZVUw",
+      "name": "陈桂容",
+      "departments": [
+        1,
+        8
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAA1lSxCRMqQgLeWWqr1ZVUw"
+    },
+    {
+      "username": "woxjrqDwAA-SCiQDqWAuilPOCFkvWEYQ",
+      "name": "闭芳丽",
+      "departments": [
+        1,
+        8
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA-SCiQDqWAuilPOCFkvWEYQ"
+    },
+    {
+      "username": "woxjrqDwAAAM3xXCW56ZWNI_gxtZl6JA",
+      "name": "徐中韬",
+      "departments": [
+        1,
+        8
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAAM3xXCW56ZWNI_gxtZl6JA"
+    },
+    {
+      "username": "woxjrqDwAAZJcUmmsWSuOpMclsfA2hNg",
+      "name": "蓝小花",
+      "departments": [
+        1,
+        8
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAZJcUmmsWSuOpMclsfA2hNg"
+    },
+    {
+      "username": "woxjrqDwAAe1ts-BXc9ER-PojHhUCjGQ",
+      "name": "吴美清",
+      "departments": [
+        1,
+        282162381
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAe1ts-BXc9ER-PojHhUCjGQ"
+    },
+    {
+      "username": "woxjrqDwAAR0PjAk0vrYZCQ6IFu018yg",
+      "name": "祁德平",
+      "departments": [
+        1,
+        282162381
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAR0PjAk0vrYZCQ6IFu018yg"
+    },
+    {
+      "username": "woxjrqDwAAuoAQcjIFSjqUFarlRxzkWw",
+      "name": "彭建新",
+      "departments": [
+        1,
+        282162381
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAuoAQcjIFSjqUFarlRxzkWw"
+    },
+    {
+      "username": "woxjrqDwAARyOelDuqVenHunEv5DWU0g",
+      "name": "韦红英",
+      "departments": [
+        282162382,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAARyOelDuqVenHunEv5DWU0g"
+    },
+    {
+      "username": "woxjrqDwAAq9tn5GJ-OmJVslyMDIe10Q",
+      "name": "覃玉兰",
+      "departments": [
+        282162382,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAq9tn5GJ-OmJVslyMDIe10Q"
+    },
+    {
+      "username": "woxjrqDwAA_0rdenDtbeAq_GbqKXhvUw",
+      "name": "罗敏艳",
+      "departments": [
+        1,
+        282162382
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA_0rdenDtbeAq_GbqKXhvUw"
+    },
+    {
+      "username": "woxjrqDwAAgWjaOxe02CTW30Fu-NOLiQ",
+      "name": "钟明",
+      "departments": [
+        5,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAgWjaOxe02CTW30Fu-NOLiQ"
+    },
+    {
+      "username": "woxjrqDwAA3IG9iTwxDNPQtg951WtNSQ",
+      "name": "覃春利",
+      "departments": [
+        1,
+        282162382
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA3IG9iTwxDNPQtg951WtNSQ"
+    },
+    {
+      "username": "woxjrqDwAAVDR1FbKeiZYBvRYuqZJdHw",
+      "name": "胡新",
+      "departments": [
+        1,
+        5
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAVDR1FbKeiZYBvRYuqZJdHw"
+    },
+    {
+      "username": "woxjrqDwAA95ZP-twyBevFEQ0wOiQ_mg",
+      "name": "许浩德",
+      "departments": [
+        1,
+        5
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA95ZP-twyBevFEQ0wOiQ_mg"
+    },
+    {
+      "username": "woxjrqDwAAyf202LcQY05Cmy1WAuZxfg",
+      "name": "揭育超",
+      "departments": [
+        1,
+        5
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAyf202LcQY05Cmy1WAuZxfg"
+    },
+    {
+      "username": "woxjrqDwAAtzv7URyaL_fHG4I3078hEw",
+      "name": "曹万明",
+      "departments": [
+        5,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAtzv7URyaL_fHG4I3078hEw"
+    },
+    {
+      "username": "woxjrqDwAA6cxN9PwE5wkr9JeB059DHw",
+      "name": "张彩文",
+      "departments": [
+        5,
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA6cxN9PwE5wkr9JeB059DHw"
+    },
+    {
+      "username": "woxjrqDwAAFwpsi1PcVRKOy-YiuYJvFA",
+      "name": "周宏婷",
+      "departments": [
+        282162432,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAFwpsi1PcVRKOy-YiuYJvFA"
+    },
+    {
+      "username": "woxjrqDwAA5IdMGQF-KaQGeFC0JN1gRg",
+      "name": "钟景娇",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA5IdMGQF-KaQGeFC0JN1gRg"
+    },
+    {
+      "username": "woxjrqDwAAGwCeKjlsZ5oZhdE3kU5MMQ",
+      "name": "钟海樱",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAGwCeKjlsZ5oZhdE3kU5MMQ"
+    },
+    {
+      "username": "woxjrqDwAAcMweXXl2cA8WCA4qxzgVEA",
+      "name": "郑苗",
+      "departments": [
+        282162432,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAcMweXXl2cA8WCA4qxzgVEA"
+    },
+    {
+      "username": "woxjrqDwAAWNm0iLLZ62xyxzAYDK-BgQ",
+      "name": "张卓华",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAWNm0iLLZ62xyxzAYDK-BgQ"
+    },
+    {
+      "username": "woxjrqDwAAJU20t74Fea7xrUiaL8KGUg",
+      "name": "张丽燕",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAJU20t74Fea7xrUiaL8KGUg"
+    },
+    {
+      "username": "woxjrqDwAACjwQSGKpQSR3_I57yx00KQ",
+      "name": "张广书",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAACjwQSGKpQSR3_I57yx00KQ"
+    },
+    {
+      "username": "woxjrqDwAAegAywyq8b-SIzWC2UUVjGg",
+      "name": "张莉",
+      "departments": [
+        282162432,
+        282162378,
+        1,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAegAywyq8b-SIzWC2UUVjGg"
+    },
+    {
+      "username": "woxjrqDwAAVDS6t1ejwAqE6kqdMA8n9g",
+      "name": "叶海燕",
+      "departments": [
+        282162433,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAVDS6t1ejwAqE6kqdMA8n9g"
+    },
+    {
+      "username": "woxjrqDwAApHbmT93VbCDhBd-3C3H66g",
+      "name": "杨玉月",
+      "departments": [
+        282162432,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAApHbmT93VbCDhBd-3C3H66g"
+    },
+    {
+      "username": "woxjrqDwAAWjjWs_Vzkc98DiMlAY5SnQ",
+      "name": "杨子昕",
+      "departments": [
+        282162432,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAWjjWs_Vzkc98DiMlAY5SnQ"
+    },
+    {
+      "username": "woxjrqDwAAY2opbhY6-qqJtxK8uFJ-HQ",
+      "name": "杨艳春",
+      "departments": [
+        282162432,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAY2opbhY6-qqJtxK8uFJ-HQ"
+    },
+    {
+      "username": "woxjrqDwAAN1nS7TgjGUGmqnGzbtpkMw",
+      "name": "徐志伟",
+      "departments": [
+        282162433,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAN1nS7TgjGUGmqnGzbtpkMw"
+    },
+    {
+      "username": "woxjrqDwAAwBVnszWZcJkGdBu0OnlGeg",
+      "name": "许连师",
+      "departments": [
+        282162432,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAwBVnszWZcJkGdBu0OnlGeg"
+    },
+    {
+      "username": "woxjrqDwAANUOYJNzH2MldOnhcyjD0cQ",
+      "name": "谢艳香",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAANUOYJNzH2MldOnhcyjD0cQ"
+    },
+    {
+      "username": "woxjrqDwAAePPb8bkoFBU5E1hHtsCDmw",
+      "name": "吴怡",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAePPb8bkoFBU5E1hHtsCDmw"
+    },
+    {
+      "username": "woxjrqDwAAKnHKxwLNP9-j-AbJUBgveg",
+      "name": "谢丽梅",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAKnHKxwLNP9-j-AbJUBgveg"
+    },
+    {
+      "username": "woxjrqDwAA_uRUcGb-_cVcIQbQBYA3rA",
+      "name": "韦颜汐",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA_uRUcGb-_cVcIQbQBYA3rA"
+    },
+    {
+      "username": "woxjrqDwAAH6h40rqDQoZgobYu1H2UgQ",
+      "name": "韦莎莉",
+      "departments": [
+        282162432,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAH6h40rqDQoZgobYu1H2UgQ"
+    },
+    {
+      "username": "woxjrqDwAA_hPkN7ZawH1rVE6PuOEvbg",
+      "name": "韦日昭",
+      "departments": [
+        282162432,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA_hPkN7ZawH1rVE6PuOEvbg"
+    },
+    {
+      "username": "woxjrqDwAALd5J5lUeFRDzhPZbt5wJBQ",
+      "name": "韦玲",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAALd5J5lUeFRDzhPZbt5wJBQ"
+    },
+    {
+      "username": "woxjrqDwAAwKLhcJMJAxOva_6auyEmXQ",
+      "name": "韦日炎",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAwKLhcJMJAxOva_6auyEmXQ"
+    },
+    {
+      "username": "woxjrqDwAAZVZy-stn0B-DOwnUECwJVA",
+      "name": "韦国森",
+      "departments": [
+        282162433,
+        282162378,
+        1,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAZVZy-stn0B-DOwnUECwJVA"
+    },
+    {
+      "username": "woxjrqDwAAoR6EJjRRnjX4mr7LAYiPdg",
+      "name": "韦成海",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAoR6EJjRRnjX4mr7LAYiPdg"
+    },
+    {
+      "username": "woxjrqDwAAyMAJ1UXCL-V-fOmgcunekQ",
+      "name": "王抒慧",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAyMAJ1UXCL-V-fOmgcunekQ"
+    },
+    {
+      "username": "woxjrqDwAAujmY51wDPstVVEevVjHDqw",
+      "name": "田志凤",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAujmY51wDPstVVEevVjHDqw"
+    },
+    {
+      "username": "woxjrqDwAA0sBMMN8A0sXJHHk3ml0A7g",
+      "name": "覃小莲",
+      "departments": [
+        282162433,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA0sBMMN8A0sXJHHk3ml0A7g"
+    },
+    {
+      "username": "woxjrqDwAA3E6s5-IsM8WD6oX3Wdw2Uw",
+      "name": "唐秀树",
+      "departments": [
+        282162433,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA3E6s5-IsM8WD6oX3Wdw2Uw"
+    },
+    {
+      "username": "woxjrqDwAAfEhLW26h13gqQpz3HREs8w",
+      "name": "覃春梅",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAfEhLW26h13gqQpz3HREs8w"
+    },
+    {
+      "username": "woxjrqDwAAnKCxmFttzwqjwj-9IAqyNA",
+      "name": "唐韦剑",
+      "departments": [
+        282162433,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAnKCxmFttzwqjwj-9IAqyNA"
+    },
+    {
+      "username": "woxjrqDwAAqlTXQbZt_x8gAWGT5A3qDg",
+      "name": "渠丽霞",
+      "departments": [
+        282162433,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAqlTXQbZt_x8gAWGT5A3qDg"
+    },
+    {
+      "username": "woxjrqDwAALtS0rJB4JKHc2pU1bDqtdQ",
+      "name": "沈敏",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAALtS0rJB4JKHc2pU1bDqtdQ"
+    },
+    {
+      "username": "woxjrqDwAADHxcl-OgI_IL066eH62d1A",
+      "name": "秦文萍",
+      "departments": [
+        282162433,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAADHxcl-OgI_IL066eH62d1A"
+    },
+    {
+      "username": "woxjrqDwAAp-q3pBbyCnFNdx9V9Ro15w",
+      "name": "庞婷婷",
+      "departments": [
+        282162433,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAp-q3pBbyCnFNdx9V9Ro15w"
+    },
+    {
+      "username": "woxjrqDwAA-uUrYktYEv12B94LtK3FcQ",
+      "name": "潘晋帮",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA-uUrYktYEv12B94LtK3FcQ"
+    },
+    {
+      "username": "woxjrqDwAAyiVQ8cEV0YsfxGkcQNSk1g",
+      "name": "庞淇方",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAyiVQ8cEV0YsfxGkcQNSk1g"
+    },
+    {
+      "username": "woxjrqDwAABTrMVDvQygB2AQAXVzlJtg",
+      "name": "农家将",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAABTrMVDvQygB2AQAXVzlJtg"
+    },
+    {
+      "username": "woxjrqDwAAIf2SrxrAqrDQ54Kx5x2eug",
+      "name": "莫燕",
+      "departments": [
+        282162432,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAIf2SrxrAqrDQ54Kx5x2eug"
+    },
+    {
+      "username": "woxjrqDwAALR2LT0-fkFxTTBSOcMtYCA",
+      "name": "莫彩云",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAALR2LT0-fkFxTTBSOcMtYCA"
+    },
+    {
+      "username": "woxjrqDwAA8EPlOivCIEd55nPW-WJwNg",
+      "name": "蒙明超",
+      "departments": [
+        282162433,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA8EPlOivCIEd55nPW-WJwNg"
+    },
+    {
+      "username": "woxjrqDwAAuGYLJv4aBw3UuV8UrVBpxw",
+      "name": "马漠",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAuGYLJv4aBw3UuV8UrVBpxw"
+    },
+    {
+      "username": "woxjrqDwAAHLGVU_c3Qb9ukwxCxtR0cg",
+      "name": "马志登",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAHLGVU_c3Qb9ukwxCxtR0cg"
+    },
+    {
+      "username": "woxjrqDwAA1jQcG37WqUxu2KY_wS4iHw",
+      "name": "麦菊玲",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA1jQcG37WqUxu2KY_wS4iHw"
+    },
+    {
+      "username": "woxjrqDwAA1Yz0-fUCFeJOiVluoNp0IA",
+      "name": "麦菊芬",
+      "departments": [
+        282162434,
+        282162365,
+        1,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA1Yz0-fUCFeJOiVluoNp0IA"
+    },
+    {
+      "username": "woxjrqDwAAhilOFVQnUK7IVkmJs7kQhA",
+      "name": "卢秋平",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAhilOFVQnUK7IVkmJs7kQhA"
+    },
+    {
+      "username": "woxjrqDwAABvNPWQkEBn9pB7joZKqyHQ",
+      "name": "卢健诗",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAABvNPWQkEBn9pB7joZKqyHQ"
+    },
+    {
+      "username": "woxjrqDwAAj6785IZ7IStl0bvl5LSmAQ",
+      "name": "李枝芳",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAj6785IZ7IStl0bvl5LSmAQ"
+    },
+    {
+      "username": "woxjrqDwAAOupghySaWo0ZDLc6BIVgxQ",
+      "name": "隆晶晶",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAOupghySaWo0ZDLc6BIVgxQ"
+    },
+    {
+      "username": "woxjrqDwAAhK4aOKz5DnlYRLsVGHenLQ",
+      "name": "黎燕媚",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAhK4aOKz5DnlYRLsVGHenLQ"
+    },
+    {
+      "username": "woxjrqDwAAGDDPtxnE9bfAXOGusRZ3bA",
+      "name": "李雪霞",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAGDDPtxnE9bfAXOGusRZ3bA"
+    },
+    {
+      "username": "woxjrqDwAA9X--s5GK1EVhMZxTnLKkDQ",
+      "name": "黎小玲",
+      "departments": [
+        282162434,
+        1,
+        282162365,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA9X--s5GK1EVhMZxTnLKkDQ"
+    },
+    {
+      "username": "woxjrqDwAARWw10AeghWJtYB4h-fJeQw",
+      "name": "李鲜妹",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAARWw10AeghWJtYB4h-fJeQw"
+    },
+    {
+      "username": "woxjrqDwAALu5uVTDf4pDP7XfjzK2ipQ",
+      "name": "刘小婷",
+      "departments": [
+        282162432,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAALu5uVTDf4pDP7XfjzK2ipQ"
+    },
+    {
+      "username": "woxjrqDwAAYfIAwbabh12U3XE6xX1_AA",
+      "name": "刘凤珍",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAYfIAwbabh12U3XE6xX1_AA"
+    },
+    {
+      "username": "woxjrqDwAA5iMm9If3M6fB8io1cBGcNA",
+      "name": "李春旋",
+      "departments": [
+        282162434,
+        282162365,
+        282162378,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA5iMm9If3M6fB8io1cBGcNA"
+    },
+    {
+      "username": "woxjrqDwAACx7C4OUlDf6rJuV3Ds5lUQ",
+      "name": "廖静",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAACx7C4OUlDf6rJuV3Ds5lUQ"
+    },
+    {
+      "username": "woxjrqDwAA24cWUg5CZpYyykwQJDDDZA",
+      "name": "刘文连",
+      "departments": [
+        282162433,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA24cWUg5CZpYyykwQJDDDZA"
+    },
+    {
+      "username": "woxjrqDwAAnukrjYasQvGoqgylHEidGQ",
+      "name": "利丽莹",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAnukrjYasQvGoqgylHEidGQ"
+    },
+    {
+      "username": "woxjrqDwAA-0jgwtH8JM4co5ANngGQhA",
+      "name": "梁艳梅",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA-0jgwtH8JM4co5ANngGQhA"
+    },
+    {
+      "username": "woxjrqDwAAZxPN4uDya7Q5G2wRObzCtw",
+      "name": "李金月",
+      "departments": [
+        282162432,
+        282162365,
+        1,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAZxPN4uDya7Q5G2wRObzCtw"
+    },
+    {
+      "username": "woxjrqDwAANdH54FogfxOXkINX6iQFlQ",
+      "name": "李如心",
+      "departments": [
+        282162432,
+        282162365,
+        282162378,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAANdH54FogfxOXkINX6iQFlQ"
+    },
+    {
+      "username": "woxjrqDwAAgGnBApnW4Tff4fIDF3F8mA",
+      "name": "梁月昭",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAgGnBApnW4Tff4fIDF3F8mA"
+    },
+    {
+      "username": "woxjrqDwAARuOhjclDH4u2WIDKwuNmvQ",
+      "name": "刘丽苹",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAARuOhjclDH4u2WIDKwuNmvQ"
+    },
+    {
+      "username": "woxjrqDwAAi0RFcxMrYhN11XBg4Ntknw",
+      "name": "黎春君",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAi0RFcxMrYhN11XBg4Ntknw"
+    },
+    {
+      "username": "woxjrqDwAATGI7I9uDQVkZq0EL6LLgRg",
+      "name": "李芳菲",
+      "departments": [
+        282162434,
+        1,
+        282162384,
+        282162376
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAATGI7I9uDQVkZq0EL6LLgRg"
+    },
+    {
+      "username": "woxjrqDwAAGFCPGzGVWw8KRAMADhatmQ",
+      "name": "廖春燕",
+      "departments": [
+        282162434,
+        282162365,
+        282162378,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAGFCPGzGVWw8KRAMADhatmQ"
+    },
+    {
+      "username": "woxjrqDwAA8tDRy9q1k0gBW56Q4ttPvg",
+      "name": "梁小华",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA8tDRy9q1k0gBW56Q4ttPvg"
+    },
+    {
+      "username": "woxjrqDwAAdwK7jHgave51iHpSQIYk1w",
+      "name": "梁夏",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAdwK7jHgave51iHpSQIYk1w"
+    },
+    {
+      "username": "woxjrqDwAA9JRBzTQNHdcSRHB-fnUgkw",
+      "name": "梁萍",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA9JRBzTQNHdcSRHB-fnUgkw"
+    },
+    {
+      "username": "woxjrqDwAA0JsjL_aE9q7sgWJ49aktDg",
+      "name": "梁春燕",
+      "departments": [
+        282162432,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA0JsjL_aE9q7sgWJ49aktDg"
+    },
+    {
+      "username": "woxjrqDwAAp15hjXR_VcrK8qRxO4x7jg",
+      "name": "梁冰",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAp15hjXR_VcrK8qRxO4x7jg"
+    },
+    {
+      "username": "woxjrqDwAA2s_ETYmFt50NQJx6DtUfiw",
+      "name": "黄卓妮",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA2s_ETYmFt50NQJx6DtUfiw"
+    },
+    {
+      "username": "woxjrqDwAAAwNMT0ABVUtbZqio3JS4NA",
+      "name": "黄小芳",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAAwNMT0ABVUtbZqio3JS4NA"
+    },
+    {
+      "username": "woxjrqDwAArhEJoY9T1s3zlGicTKWDZA",
+      "name": "黄美玲",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAArhEJoY9T1s3zlGicTKWDZA"
+    },
+    {
+      "username": "woxjrqDwAAOI6sF4CBlEL59BpSgR2S9Q",
+      "name": "黄睦洋",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAOI6sF4CBlEL59BpSgR2S9Q"
+    },
+    {
+      "username": "woxjrqDwAAUsmpHo7OfWiXKeZXLzizAw",
+      "name": "黄凤",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAUsmpHo7OfWiXKeZXLzizAw"
+    },
+    {
+      "username": "woxjrqDwAA-RTO85kakyGNRbq-8GJ-jA",
+      "name": "黄春玲",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA-RTO85kakyGNRbq-8GJ-jA"
+    },
+    {
+      "username": "woxjrqDwAAXUfPON_tQpZ1DqdIt1cQhg",
+      "name": "范新婧",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAXUfPON_tQpZ1DqdIt1cQhg"
+    },
+    {
+      "username": "woxjrqDwAAX_XkIQZ_MKVPKpbvsmJR2Q",
+      "name": "何春柳",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAX_XkIQZ_MKVPKpbvsmJR2Q"
+    },
+    {
+      "username": "woxjrqDwAAkM1GU2puVg97yn5oiVzYxQ",
+      "name": "韩宇",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAkM1GU2puVg97yn5oiVzYxQ"
+    },
+    {
+      "username": "woxjrqDwAAU3PykD6VetSCGpbZ4aPTEw",
+      "name": "丁婷敏",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAU3PykD6VetSCGpbZ4aPTEw"
+    },
+    {
+      "username": "woxjrqDwAAErMwpB5wmhRlh7YuHsNaFQ",
+      "name": "邓婷婷",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAErMwpB5wmhRlh7YuHsNaFQ"
+    },
+    {
+      "username": "woxjrqDwAATnucXGDAZuMME5HxD64UmQ",
+      "name": "邓绍秋",
+      "departments": [
+        282162434,
+        282162378,
+        282162365,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAATnucXGDAZuMME5HxD64UmQ"
+    },
+    {
+      "username": "woxjrqDwAALvo29g_qNKnvrY4ZeVk6Ww",
+      "name": "邓利琴",
+      "departments": [
+        282162434,
+        282162365,
+        282162378,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAALvo29g_qNKnvrY4ZeVk6Ww"
+    },
+    {
+      "username": "woxjrqDwAAc23K5FsF1dc8WK__ynWIyg",
+      "name": "陈乃森",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAc23K5FsF1dc8WK__ynWIyg"
+    },
+    {
+      "username": "woxjrqDwAASTuOtu92Un0yMF78PBql6A",
+      "name": "陈艺玲",
+      "departments": [
+        282162432,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAASTuOtu92Un0yMF78PBql6A"
+    },
+    {
+      "username": "woxjrqDwAAMgZLy6OIJGVBsmaAV9Ey6Q",
+      "name": "陈凌苹",
+      "departments": [
+        282162434,
+        282162378,
+        1,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAMgZLy6OIJGVBsmaAV9Ey6Q"
+    },
+    {
+      "username": "woxjrqDwAAL0oVqbduRnni-_vfdTMISw",
+      "name": "陈苗",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAL0oVqbduRnni-_vfdTMISw"
+    },
+    {
+      "username": "woxjrqDwAA7kjpf4ivtLLedlhf1wOT0A",
+      "name": "刘珊珊",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA7kjpf4ivtLLedlhf1wOT0A"
+    },
+    {
+      "username": "woxjrqDwAAXmuhpam1FxZjsIBe2Zhahw",
+      "name": "黄华彩",
+      "departments": [
+        282162434,
+        282162384,
+        282162376,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAXmuhpam1FxZjsIBe2Zhahw"
+    },
+    {
+      "username": "woxjrqDwAAoxBo9XvNYFTq22vx3XdpRw",
+      "name": "左玉虹",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAoxBo9XvNYFTq22vx3XdpRw"
+    },
+    {
+      "username": "woxjrqDwAAbjtffHKWRUpToLZ1d_FVAg",
+      "name": "邹玉兰",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAbjtffHKWRUpToLZ1d_FVAg"
+    },
+    {
+      "username": "woxjrqDwAAiZ0A-tgFvq1SIzY6OgLO6Q",
+      "name": "赵凯",
+      "departments": [
+        282162432,
+        282162378,
+        282162376,
+        282162377,
+        1,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAiZ0A-tgFvq1SIzY6OgLO6Q"
+    },
+    {
+      "username": "woxjrqDwAA1Q5tRxf9w1wrXNs-h3F5qg",
+      "name": "曾建美",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA1Q5tRxf9w1wrXNs-h3F5qg"
+    },
+    {
+      "username": "woxjrqDwAAAi7iNAlIVIUCbmBwBcKYcQ",
+      "name": "严福乾",
+      "departments": [
+        282162434,
+        1,
+        282162378,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAAi7iNAlIVIUCbmBwBcKYcQ"
+    },
+    {
+      "username": "woxjrqDwAAPK0H7RWZLgkFkkxqHL01-A",
+      "name": "杨帆",
+      "departments": [
+        282162432,
+        1,
+        282162365,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAPK0H7RWZLgkFkkxqHL01-A"
+    },
+    {
+      "username": "woxjrqDwAAaYGN5Y-77mGifQQBhPLkNg",
+      "name": "杨光锦",
+      "departments": [
+        282162433,
+        1,
+        282162365,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAaYGN5Y-77mGifQQBhPLkNg"
+    },
+    {
+      "username": "woxjrqDwAAfY5R2m3q3XJwZhJBw--1GA",
+      "name": "徐佳",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAfY5R2m3q3XJwZhJBw--1GA"
+    },
+    {
+      "username": "woxjrqDwAAs4d0ZvfriTICD_TzV1ZK_w",
+      "name": "许世伟",
+      "departments": [
+        282162433,
+        1,
+        282162365,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAs4d0ZvfriTICD_TzV1ZK_w"
+    },
+    {
+      "username": "woxjrqDwAAf1nH_m0DJPQHdVIhe1VgZw",
+      "name": "谢宇",
+      "departments": [
+        282162432,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAf1nH_m0DJPQHdVIhe1VgZw"
+    },
+    {
+      "username": "woxjrqDwAAAy4lGGiJ2yvT7OSPqksyiA",
+      "name": "文武",
+      "departments": [
+        282162432,
+        1,
+        282162365,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAAy4lGGiJ2yvT7OSPqksyiA"
+    },
+    {
+      "username": "woxjrqDwAA2dV1XEytV2lQ272CeRlaBg",
+      "name": "韦永稳",
+      "departments": [
+        282162434,
+        282162378,
+        1,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA2dV1XEytV2lQ272CeRlaBg"
+    },
+    {
+      "username": "woxjrqDwAAn62NDjjFsae8Kll-SLV8bg",
+      "name": "韦惠苹",
+      "departments": [
+        282162434,
+        282162378,
+        1,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAn62NDjjFsae8Kll-SLV8bg"
+    },
+    {
+      "username": "woxjrqDwAAaPFO_TacHxkLYYlBX0g6OQ",
+      "name": "韦爱娟",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAaPFO_TacHxkLYYlBX0g6OQ"
+    },
+    {
+      "username": "woxjrqDwAAJheACSbUCYMe1ChKB55aUA",
+      "name": "王海荣",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAJheACSbUCYMe1ChKB55aUA"
+    },
+    {
+      "username": "woxjrqDwAA5-EQzqKJ_MCbi5RzS52D_Q",
+      "name": "唐华里",
+      "departments": [
+        282162434,
+        1,
+        282162378,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA5-EQzqKJ_MCbi5RzS52D_Q"
+    },
+    {
+      "username": "woxjrqDwAAAubu13Xi7co2Z56y2CKfVQ",
+      "name": "沈太何",
+      "departments": [
+        282162434,
+        282162365,
+        1,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAAubu13Xi7co2Z56y2CKfVQ"
+    },
+    {
+      "username": "woxjrqDwAAO1TUyUoj0666YTKbImJ6BA",
+      "name": "潘柳利",
+      "departments": [
+        282162434,
+        282162365,
+        1,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAO1TUyUoj0666YTKbImJ6BA"
+    },
+    {
+      "username": "woxjrqDwAACZRost-gkJyjCxm2CV2GDw",
+      "name": "庞凯莹",
+      "departments": [
+        282162432,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAACZRost-gkJyjCxm2CV2GDw"
+    },
+    {
+      "username": "woxjrqDwAAm2wTbtaXeIm8L5hOiPsz6Q",
+      "name": "庞利萍",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAm2wTbtaXeIm8L5hOiPsz6Q"
+    },
+    {
+      "username": "woxjrqDwAA6oKAOMw7_tVu-j4vKciNuA",
+      "name": "农兆年",
+      "departments": [
+        282162434,
+        1,
+        282162365,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA6oKAOMw7_tVu-j4vKciNuA"
+    },
+    {
+      "username": "woxjrqDwAAyOH2L1kg2uvGxZn0W2XdFg",
+      "name": "蒙锦早",
+      "departments": [
+        282162432,
+        282162365,
+        282162378,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAyOH2L1kg2uvGxZn0W2XdFg"
+    },
+    {
+      "username": "woxjrqDwAA26buxkRCwmz6YUpJji0OoQ",
+      "name": "马光祥",
+      "departments": [
+        282162433,
+        1,
+        282162365,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA26buxkRCwmz6YUpJji0OoQ"
+    },
+    {
+      "username": "woxjrqDwAATApvdHXSEd9tkb3q3dZYwg",
+      "name": "罗正鸿",
+      "departments": [
+        282162432,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAATApvdHXSEd9tkb3q3dZYwg"
+    },
+    {
+      "username": "woxjrqDwAAgzbZkCTKRHxYCOTGENEGeQ",
+      "name": "罗彩莹",
+      "departments": [
+        282162433,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAgzbZkCTKRHxYCOTGENEGeQ"
+    },
+    {
+      "username": "woxjrqDwAA5ayjWtKFalz4UQYAI0EZSg",
+      "name": "陆康明",
+      "departments": [
+        282162432,
+        282162365,
+        282162378,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA5ayjWtKFalz4UQYAI0EZSg"
+    },
+    {
+      "username": "woxjrqDwAAKXhbNRkl3uXAo1tkLI79yQ",
+      "name": "龙倩",
+      "departments": [
+        282162433,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAKXhbNRkl3uXAo1tkLI79yQ"
+    },
+    {
+      "username": "woxjrqDwAAX5RTTBPpW9ww2fQ4dbgzmQ",
+      "name": "卢功力",
+      "departments": [
+        282162433,
+        282162365,
+        282162378,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAX5RTTBPpW9ww2fQ4dbgzmQ"
+    },
+    {
+      "username": "woxjrqDwAATdEr0bw6EvKEKjN81HFgTg",
+      "name": "刘丰",
+      "departments": [
+        282162433,
+        282162365,
+        282162373,
+        282162374,
+        282162375,
+        1,
+        282162378,
+        282162377
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAATdEr0bw6EvKEKjN81HFgTg"
+    },
+    {
+      "username": "woxjrqDwAAqwqCxWFNpzXYtAl0llchoA",
+      "name": "李天成",
+      "departments": [
+        282162433,
+        282162365,
+        1,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAqwqCxWFNpzXYtAl0llchoA"
+    },
+    {
+      "username": "woxjrqDwAA0mRpdw7IKM_SK7nFZVoNsw",
+      "name": "黎承忠",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA0mRpdw7IKM_SK7nFZVoNsw"
+    },
+    {
+      "username": "woxjrqDwAAUFjVLTziQsXyv5Kfubgryg",
+      "name": "梁剑财",
+      "departments": [
+        282162434,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAUFjVLTziQsXyv5Kfubgryg"
+    },
+    {
+      "username": "woxjrqDwAADNYp0E6tFTH5tG_sGqm5ow",
+      "name": "梁成宗",
+      "departments": [
+        282162434,
+        282162378,
+        282162365,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAADNYp0E6tFTH5tG_sGqm5ow"
+    },
+    {
+      "username": "woxjrqDwAArOaWzQuzKkSoBCFwq2Y2jw",
+      "name": "兰国伟",
+      "departments": [
+        282162433,
+        282162365,
+        1,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAArOaWzQuzKkSoBCFwq2Y2jw"
+    },
+    {
+      "username": "woxjrqDwAABH6VUbRLyGVQB6AFfN-7Kw",
+      "name": "雷泽玉",
+      "departments": [
+        282162433,
+        282162378,
+        282162365,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAABH6VUbRLyGVQB6AFfN-7Kw"
+    },
+    {
+      "username": "woxjrqDwAA14PnNqsk6Qr9__iSu3TWVg",
+      "name": "蒋海翔",
+      "departments": [
+        282162433,
+        282162378,
+        1,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA14PnNqsk6Qr9__iSu3TWVg"
+    },
+    {
+      "username": "woxjrqDwAAXchhQp1cl4PVvcOHw95ZhQ",
+      "name": "黄小蒙",
+      "departments": [
+        282162434,
+        282162365,
+        1,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAXchhQp1cl4PVvcOHw95ZhQ"
+    },
+    {
+      "username": "woxjrqDwAALU8HoL0ffYpfIRG8CXtFFQ",
+      "name": "黄庆珍",
+      "departments": [
+        282162432,
+        1,
+        282162365,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAALU8HoL0ffYpfIRG8CXtFFQ"
+    },
+    {
+      "username": "woxjrqDwAAzCXdZZRDc6gUtKkqAyv-ng",
+      "name": "黄敔",
+      "departments": [
+        282162433,
+        282162378,
+        1,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAzCXdZZRDc6gUtKkqAyv-ng"
+    },
+    {
+      "username": "woxjrqDwAA0A3Q2x7_hzVCxtpwvOy8dg",
+      "name": "黄文艳",
+      "departments": [
+        282162434,
+        282162378,
+        1,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA0A3Q2x7_hzVCxtpwvOy8dg"
+    },
+    {
+      "username": "woxjrqDwAApuPEQJ74zt3uAiXqRz58Yw",
+      "name": "黄景民",
+      "departments": [
+        282162433,
+        282162365,
+        282162378,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAApuPEQJ74zt3uAiXqRz58Yw"
+    },
+    {
+      "username": "woxjrqDwAAoNwmAwPIjcPvO6yPs2Uz0Q",
+      "name": "黄丽婷",
+      "departments": [
+        282162433,
+        282162365,
+        1,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAoNwmAwPIjcPvO6yPs2Uz0Q"
+    },
+    {
+      "username": "woxjrqDwAAIy1_TLmZy8j93yqPiqRveg",
+      "name": "何之伦",
+      "departments": [
+        282162432,
+        282162365,
+        282162378,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAIy1_TLmZy8j93yqPiqRveg"
+    },
+    {
+      "username": "woxjrqDwAAN-dj2OMAUNfsYpXQYg8dew",
+      "name": "何廷春",
+      "departments": [
+        282162432,
+        282162365,
+        1,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAN-dj2OMAUNfsYpXQYg8dew"
+    },
+    {
+      "username": "woxjrqDwAAaEWv6CSTxvdZRo5jxlxkng",
+      "name": "方世雅",
+      "departments": [
+        282162433,
+        282162365,
+        1,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAaEWv6CSTxvdZRo5jxlxkng"
+    },
+    {
+      "username": "woxjrqDwAAvHb6TAFxIuIbh9U81t8_bw",
+      "name": "陈盛捷",
+      "departments": [
+        282162432,
+        282162378,
+        1,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAvHb6TAFxIuIbh9U81t8_bw"
+    },
+    {
+      "username": "woxjrqDwAAEM_cl4GBu6DKWy7W-3ijpw",
+      "name": "徐中龙",
+      "departments": [
+        282162434,
+        282162378,
+        282162377,
+        1,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAEM_cl4GBu6DKWy7W-3ijpw"
+    },
+    {
+      "username": "woxjrqDwAATKULaJxfeubWUTE77nLm3w",
+      "name": "李善术",
+      "departments": [
+        282162432,
+        1,
+        282162365,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAATKULaJxfeubWUTE77nLm3w"
+    },
+    {
+      "username": "woxjrqDwAA8vgnCnkzG154yW6irNImug",
+      "name": "李双文",
+      "departments": [
+        282162377,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA8vgnCnkzG154yW6irNImug"
+    },
+    {
+      "username": "woxjrqDwAA2N4QnsDtu5g6oA6HDnYe_A",
+      "name": "黄叶飞",
+      "departments": [
+        1,
+        282162372
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA2N4QnsDtu5g6oA6HDnYe_A"
+    },
+    {
+      "username": "woxjrqDwAAV2YwbBeMZ0tMLchEusLWtw",
+      "name": "李谦",
+      "departments": [
+        282162434,
+        1,
+        282162378,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAV2YwbBeMZ0tMLchEusLWtw"
+    },
+    {
+      "username": "woxjrqDwAA0KeSxjwZShbr-wtzavrYPg",
+      "name": "韦小玲",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA0KeSxjwZShbr-wtzavrYPg"
+    },
+    {
+      "username": "woxjrqDwAAo7Xv_GrnOcDtY7QTibZF2A",
+      "name": "车梅坤",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAo7Xv_GrnOcDtY7QTibZF2A"
+    },
+    {
+      "username": "woxjrqDwAAQ0MpAt9FHbKtWaWtN88ahQ",
+      "name": "陈壮玲",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAQ0MpAt9FHbKtWaWtN88ahQ"
+    },
+    {
+      "username": "woxjrqDwAAqyTMCjhbg4cJU3Gzm3wrMQ",
+      "name": "黎英辉",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAqyTMCjhbg4cJU3Gzm3wrMQ"
+    },
+    {
+      "username": "woxjrqDwAASQj4UAOWZbl6fi3FQrs3BQ",
+      "name": "谢青贤",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAASQj4UAOWZbl6fi3FQrs3BQ"
+    },
+    {
+      "username": "woxjrqDwAAQVvoyHTV_z6lR9ugfyqpGw",
+      "name": "韦桂艳",
+      "departments": [
+        12,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAQVvoyHTV_z6lR9ugfyqpGw"
+    },
+    {
+      "username": "woxjrqDwAA_b3kuznMMjmOcY_5qDoOxQ",
+      "name": "吴承宾",
+      "departments": [
+        282162433,
+        282162378,
+        282162365,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA_b3kuznMMjmOcY_5qDoOxQ"
+    },
+    {
+      "username": "woxjrqDwAAfOhYNF6EnKKR7JThE-YHnA",
+      "name": "钟秋杏",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAfOhYNF6EnKKR7JThE-YHnA"
+    },
+    {
+      "username": "woxjrqDwAAvs6kxg_odDffbw2MicNzWg",
+      "name": "邓小兰",
+      "departments": [
+        282162433,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAvs6kxg_odDffbw2MicNzWg"
+    },
+    {
+      "username": "woxjrqDwAArYITpFnOBA4hLNW6Uh-WDw",
+      "name": "赵童",
+      "departments": [
+        282162433,
+        282162378,
+        1,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAArYITpFnOBA4hLNW6Uh-WDw"
+    },
+    {
+      "username": "woxjrqDwAAYDryFBfR2_17Pnsa-N1FEQ",
+      "name": "邓贵",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAYDryFBfR2_17Pnsa-N1FEQ"
+    },
+    {
+      "username": "woxjrqDwAA07yHd40T9aSq9I_o8zKtBg",
+      "name": "黄秀",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA07yHd40T9aSq9I_o8zKtBg"
+    },
+    {
+      "username": "woxjrqDwAAEGxLm2-b5_wIxglGjsvnmw",
+      "name": "韦莲",
+      "departments": [
+        1,
+        8
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAEGxLm2-b5_wIxglGjsvnmw"
+    },
+    {
+      "username": "woxjrqDwAAEBc-wDCz62WmJGoV0Nc_Ng",
+      "name": "张荣",
+      "departments": [
+        1,
+        8
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAEBc-wDCz62WmJGoV0Nc_Ng"
+    },
+    {
+      "username": "woxjrqDwAA-6sScGVxtDdqZIuc5T7jCg",
+      "name": "江莲",
+      "departments": [
+        1,
+        8
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA-6sScGVxtDdqZIuc5T7jCg"
+    },
+    {
+      "username": "woxjrqDwAA3r2YaCRVoT2dPy2R6Xyf0A",
+      "name": "卢秀丽",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA3r2YaCRVoT2dPy2R6Xyf0A"
+    },
+    {
+      "username": "woxjrqDwAAzduTguENq7_Y3sSg7JV38A",
+      "name": "杨敏",
+      "departments": [
+        282162434,
+        1,
+        282162384,
+        282162377
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAzduTguENq7_Y3sSg7JV38A"
+    },
+    {
+      "username": "woxjrqDwAAz3DfLdbcGFCWOs7RjCS4oA",
+      "name": "赵沛爱",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAz3DfLdbcGFCWOs7RjCS4oA"
+    },
+    {
+      "username": "woxjrqDwAAoq218Jne8TOX5GoAR1H_8A",
+      "name": "费利萍",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAoq218Jne8TOX5GoAR1H_8A"
+    },
+    {
+      "username": "woxjrqDwAA8kzo5gMQuMONeZKeevZA6A",
+      "name": "陈艳梅",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA8kzo5gMQuMONeZKeevZA6A"
+    },
+    {
+      "username": "woxjrqDwAAW0mSojIGXBiy1dpHkSAxDQ",
+      "name": "黄金梅",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAW0mSojIGXBiy1dpHkSAxDQ"
+    },
+    {
+      "username": "woxjrqDwAALbCbCS973AbFcQx_FNj_Lg",
+      "name": "王锦华",
+      "departments": [
+        282162365,
+        282162401,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAALbCbCS973AbFcQx_FNj_Lg"
+    },
+    {
+      "username": "woxjrqDwAAJSKa46db-oGnMgOhusdvcg",
+      "name": "张书军",
+      "departments": [
+        1,
+        282162381
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAJSKa46db-oGnMgOhusdvcg"
+    },
+    {
+      "username": "woxjrqDwAANToGBcHzzLMj86mcGtZVfA",
+      "name": "陈燕灵",
+      "departments": [
+        282162434,
+        1,
+        282162365,
+        282162378
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAANToGBcHzzLMj86mcGtZVfA"
+    },
+    {
+      "username": "woxjrqDwAA2VcwkOAD589sj3HF745sqg",
+      "name": "胡冰冰",
+      "departments": [
+        282162434,
+        1,
+        282162384,
+        282162373,
+        282162374
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA2VcwkOAD589sj3HF745sqg"
+    },
+    {
+      "username": "woxjrqDwAAXWOKDAHFvkMUs4S1BrG94w",
+      "name": "何宜孙",
+      "departments": [
+        282162365,
+        1,
+        282162401
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAXWOKDAHFvkMUs4S1BrG94w"
+    },
+    {
+      "username": "woxjrqDwAAQtjf9ar0gyNKgFroSFhIBw",
+      "name": "农显快",
+      "departments": [
+        282162433,
+        282162384,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAQtjf9ar0gyNKgFroSFhIBw"
+    },
+    {
+      "username": "woxjrqDwAAmah342fCK7DGtzcjYdzmmg",
+      "name": "杨芳瑜",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAmah342fCK7DGtzcjYdzmmg"
+    },
+    {
+      "username": "woxjrqDwAAGaMTC2e9jhQYxD9vAKecsQ",
+      "name": "莫浚榆",
+      "departments": [
+        282162433,
+        282162378,
+        282162365,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAGaMTC2e9jhQYxD9vAKecsQ"
+    },
+    {
+      "username": "woxjrqDwAAOaBloJCD2e1OAWk8KX7Yzg",
+      "name": "蓝青葵",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAOaBloJCD2e1OAWk8KX7Yzg"
+    },
+    {
+      "username": "woxjrqDwAA-9p1c0prof0IyI6qghFP3g",
+      "name": "龙志晖",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA-9p1c0prof0IyI6qghFP3g"
+    },
+    {
+      "username": "woxjrqDwAAD0FTbzdYmuUtvrNWaHR4Vw",
+      "name": "黄美珍",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAD0FTbzdYmuUtvrNWaHR4Vw"
+    },
+    {
+      "username": "woxjrqDwAAzoqPy306As29-nqb-CEwBQ",
+      "name": "刘成贵",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAzoqPy306As29-nqb-CEwBQ"
+    },
+    {
+      "username": "woxjrqDwAA90CtEhDZCYHJzVdm0lNmAQ",
+      "name": "黄翠芳",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA90CtEhDZCYHJzVdm0lNmAQ"
+    },
+    {
+      "username": "woxjrqDwAATU8CjjYDpO4UxrWaz12CcQ",
+      "name": "张敏",
+      "departments": [
+        282162432,
+        1,
+        282162378,
+        282162365
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAATU8CjjYDpO4UxrWaz12CcQ"
+    },
+    {
+      "username": "woxjrqDwAAkE85McCf-iB15XgFFG8EOQ",
+      "name": "薛静雯",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAkE85McCf-iB15XgFFG8EOQ"
+    },
+    {
+      "username": "woxjrqDwAAg0u__ZaTUGXko2Kmc4qgFg",
+      "name": "刘晟麟",
+      "departments": [
+        8,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAg0u__ZaTUGXko2Kmc4qgFg"
+    },
+    {
+      "username": "woxjrqDwAApVdM-fdVAenR9WH1uJTm3g",
+      "name": "杨瑞玉",
+      "departments": [
+        282162433,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAApVdM-fdVAenR9WH1uJTm3g"
+    },
+    {
+      "username": "woxjrqDwAAvv68vDROF_T8RaQ6kTlSvA",
+      "name": "许焕海",
+      "departments": [
+        1,
+        282162381
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAvv68vDROF_T8RaQ6kTlSvA"
+    },
+    {
+      "username": "woxjrqDwAAxsf9zOl0SlHyxnvUz5VoRQ",
+      "name": "汤忠",
+      "departments": [
+        282162432,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAxsf9zOl0SlHyxnvUz5VoRQ"
+    },
+    {
+      "username": "woxjrqDwAAI411fss6v7sGIIRzuI4NCQ",
+      "name": "毛秀英",
+      "departments": [
+        282162434,
+        1,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAI411fss6v7sGIIRzuI4NCQ"
+    },
+    {
+      "username": "woxjrqDwAA3DRrCgPMItGL4KuiSFxdTA",
+      "name": "罗爱宁",
+      "departments": [
+        282162372,
+        282162376,
+        1,
+        282162377
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA3DRrCgPMItGL4KuiSFxdTA"
+    },
+    {
+      "username": "woxjrqDwAAl6PfF7c1bE9ME-6yFviXoA",
+      "name": "黎洪宏",
+      "departments": [
+        282162374,
+        1,
+        282162373
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAl6PfF7c1bE9ME-6yFviXoA"
+    },
+    {
+      "username": "woxjrqDwAApxtEmHaAoiu2cQVtgxjJWQ",
+      "name": "许金媚",
+      "departments": [
+        1,
+        282162372
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAApxtEmHaAoiu2cQVtgxjJWQ"
+    },
+    {
+      "username": "woxjrqDwAA7WxIHBJYelGO1Df0D3TM0Q",
+      "name": "陈云霞",
+      "departments": [
+        282162375,
+        282162373,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA7WxIHBJYelGO1Df0D3TM0Q"
+    },
+    {
+      "username": "woxjrqDwAATDtbz3rQSlYj2W4x_kOSfg",
+      "name": "吴再思",
+      "departments": [
+        1,
+        282162373,
+        282162374
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAATDtbz3rQSlYj2W4x_kOSfg"
+    },
+    {
+      "username": "woxjrqDwAA_pOLJ-KJVkNyv377bRRMhg",
+      "name": "黄飞职",
+      "departments": [
+        1,
+        282162373,
+        282162375
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA_pOLJ-KJVkNyv377bRRMhg"
+    },
+    {
+      "username": "woxjrqDwAAmbzI0fj63xqrSLspDZISmQ",
+      "name": "苏智凯",
+      "departments": [
+        1,
+        282162375,
+        282162373
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAmbzI0fj63xqrSLspDZISmQ"
+    },
+    {
+      "username": "woxjrqDwAAKBv3ReF65H36Lx0ip_L_dQ",
+      "name": "汪培宏",
+      "departments": [
+        12,
+        282162377,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAKBv3ReF65H36Lx0ip_L_dQ"
+    },
+    {
+      "username": "woxjrqDwAABZkHCekohZVHg7peJ2HSUQ",
+      "name": "汪周宇",
+      "departments": [
+        1,
+        282162377
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAABZkHCekohZVHg7peJ2HSUQ"
+    },
+    {
+      "username": "woxjrqDwAAMlE13wAnPLFgB6WyATJV6A",
+      "name": "潘建兴",
+      "departments": [
+        282162376,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAMlE13wAnPLFgB6WyATJV6A"
+    },
+    {
+      "username": "woxjrqDwAAYvDuvH4pkILarmzXWUjBDg",
+      "name": "雷诺",
+      "departments": [
+        282162432,
+        1,
+        282162384,
+        282162427
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAYvDuvH4pkILarmzXWUjBDg"
+    },
+    {
+      "username": "woxjrqDwAAxk1q0Z05getjVu_BxIobcg",
+      "name": "廖巍巍",
+      "departments": [
+        282162436,
+        1
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAxk1q0Z05getjVu_BxIobcg"
+    },
+    {
+      "username": "woxjrqDwAAuSlYaiE5Kyv3Otc5KYmw8g",
+      "name": "姚宇鹏",
+      "departments": [
+        5
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAuSlYaiE5Kyv3Otc5KYmw8g"
+    },
+    {
+      "username": "woxjrqDwAARtx7f-4UdkGPVNqNns9l8Q",
+      "name": "周艮华",
+      "departments": [
+        13
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAARtx7f-4UdkGPVNqNns9l8Q"
+    },
+    {
+      "username": "woxjrqDwAAoS2FFBBJ5DcAB3g-5WKNhA",
+      "name": "梁兰俐",
+      "departments": [
+        282162375,
+        282162373
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAoS2FFBBJ5DcAB3g-5WKNhA"
+    },
+    {
+      "username": "woxjrqDwAA6a03a0OTzB7rAjnLfNYF-w",
+      "name": "孙锦铱",
+      "departments": [
+        282162434,
+        282162384
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA6a03a0OTzB7rAjnLfNYF-w"
+    },
+    {
+      "username": "woxjrqDwAArjfDgw4NJ8M5Q_XAxf8YHg",
+      "name": "简道云-梁媛媛",
+      "departments": [
+        282162431
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAArjfDgw4NJ8M5Q_XAxf8YHg"
+    },
+    {
+      "username": "woxjrqDwAAOniqA89hfBLGbBVTHdcGAA",
+      "name": "简道云-周磊",
+      "departments": [
+        282162431
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAOniqA89hfBLGbBVTHdcGAA"
+    },
+    {
+      "username": "woxjrqDwAAWXM45ZSY0L7oiySOFvZmqw",
+      "name": "卢辉茂",
+      "departments": [
+        282162431
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAAWXM45ZSY0L7oiySOFvZmqw"
+    },
+    {
+      "username": "woxjrqDwAA0qqdWRRCkD4jgUBKTp_4-w",
+      "name": "智慧校园闫伟",
+      "departments": [
+        282162431
+      ],
+      "type": 0,
+      "status": 1,
+      "integrate_id": "woxjrqDwAA0qqdWRRCkD4jgUBKTp_4-w"
+    }
+  ]
+}

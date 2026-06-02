@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useCurrentUser } from "@/lib/user-context";
 import { StaffPicker } from "./ui/StaffPicker";
 import { useStaffDirectory, type StaffDirectoryRecord } from "@/hooks/use-research-dashboard";
-import { PageHeader, FlowButton } from "./PageHeader";
+import { PageHeader } from "./PageHeader";
 
 const teal = "#00b095";
 const focusStyle = { borderColor: teal, boxShadow: "0 0 0 4px rgba(0,176,149,0.1)" };
@@ -53,7 +53,7 @@ export function ProjectPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const handleSubmit = () => { setSubmitted(true); if ([{ f: teacherName }, { f: idCard }, ...(hasProject === "yes" ? [{ f: department }, { f: position }, { f: positionType }, { f: partyJob }, { f: phone }, { f: subject }, { f: !anyMissing }] : [])].find((x) => !x.f)) window.scrollTo({ top: 0, behavior: "smooth" }); };
 
   return (<div className="flex flex-col h-full overflow-hidden" style={{ color: "#1d1d1f" }}>
-    <PageHeader centered left={<FlowButton />} breadcrumbs={[{ label: "教师基础档案" }, { label: "课题", active: true }]} onMenuOpen={onMenuOpen} />
+    <PageHeader centered breadcrumbs={[{ label: "教师基础档案" }, { label: "课题", active: true }]} onMenuOpen={onMenuOpen} />
     <div className="flex-1 overflow-y-auto bg-[#f5f5f7] pb-24"><main className="max-w-6xl mx-auto mt-4 md:mt-10 px-3 md:px-6">
       <div className="flex items-center justify-center gap-5 mb-12"><div className="h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} /><div className="flex items-center gap-3 px-12 py-2 text-white text-base font-semibold tracking-[0.2em]" style={{ backgroundColor: teal, clipPath: "polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%)", boxShadow: "0 4px 12px rgba(0,176,149,0.2)" }}><span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" />课题<span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" /></div><div className="h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} /></div>
       <div className="rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white">

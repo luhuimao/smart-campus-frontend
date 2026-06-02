@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { ResearchDashboard } from "@/components/ResearchDashboard";
 import { StudentDashboard } from "@/components/StudentDashboard";
@@ -49,7 +49,15 @@ import { UserProvider } from "@/lib/user-context";
 export function HomeClient({ currentUser }: { currentUser: WecomUser | null }) {
   const [activePage, setActivePage] = useState<PageKey>("research-dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [allowedPages, setAllowedPages] = useState<Set<PageKey>>();
   const onMenuOpen = () => setMobileMenuOpen(true);
+
+  useEffect(() => {
+    fetch("/api/user/permissions")
+      .then(r => r.json())
+      .then(d => { if (d.allowedPages) setAllowedPages(new Set(d.allowedPages)); })
+      .catch(() => {}); // silently fail — show all menus if API fails
+  }, []);
 
   return (
     <UserProvider value={currentUser}>
@@ -68,6 +76,7 @@ export function HomeClient({ currentUser }: { currentUser: WecomUser | null }) {
         activePage={activePage}
         mobileOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
+        allowedPages={allowedPages}
       />
 
       <div style={{ flex: 1, height: "100vh", overflow: "hidden" }}>

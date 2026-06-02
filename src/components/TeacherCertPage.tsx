@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useCurrentUser } from "@/lib/user-context";
 import { StaffPicker } from "./ui/StaffPicker";
 import { useStaffDirectory, useCourses, type StaffDirectoryRecord } from "@/hooks/use-research-dashboard";
-import { PageHeader, FlowButton } from "./PageHeader";
+import { PageHeader } from "./PageHeader";
 
 const teal = "#00b095";
 
@@ -149,7 +149,7 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
     >
       <PageHeader
         centered
-        left={<FlowButton />}
+       
         breadcrumbs={[{ label: "教师基础档案" }, { label: "教师资格证", active: true }]}
         onMenuOpen={onMenuOpen}
       />

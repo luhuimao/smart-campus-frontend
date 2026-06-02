@@ -1,472 +1,109 @@
 {
   "widgets": [
     {
-      "name": "student_status",
-      "widgetName": "_widget_1685607891805",
-      "label": "学籍状态-教务",
+      "name": "_widget_1554886545886",
+      "widgetName": "_widget_1554886545886",
+      "label": "当前学期",
+      "type": "text"
+    },
+    {
+      "name": "_widget_1554886545922",
+      "widgetName": "_widget_1554886545922",
+      "label": "录入学期",
+      "type": "text"
+    },
+    {
+      "name": "_widget_1753067742280",
+      "widgetName": "_widget_1753067742280",
+      "label": "年级",
       "type": "combo"
     },
     {
-      "name": "student_status_two",
-      "widgetName": "_widget_1760522400809",
-      "label": "学籍状态-运营",
-      "type": "combo"
-    },
-    {
-      "name": "id_photo",
-      "widgetName": "_widget_1685608417054",
-      "label": "证件照",
-      "type": "image"
-    },
-    {
-      "name": "life_phone",
-      "widgetName": "_widget_1685608417055",
-      "label": "生活照",
-      "type": "image"
-    },
-    {
-      "name": "name",
-      "widgetName": "_widget_1685607891771",
-      "label": "姓名",
-      "type": "text"
-    },
-    {
-      "name": "former_name",
-      "widgetName": "_widget_1727413053295",
-      "label": "曾用名",
-      "type": "text"
-    },
-    {
-      "name": "id_card",
-      "widgetName": "_widget_1685607891773",
-      "label": "身份证号",
-      "type": "text"
-    },
-    {
-      "name": "code",
-      "widgetName": "_widget_1694484546943",
-      "label": "宏德学号",
-      "type": "sn"
-    },
-    {
-      "name": "country_card",
-      "widgetName": "_widget_1685607891774",
-      "label": "全国学籍号",
-      "type": "text"
-    },
-    {
-      "name": "nationality",
-      "widgetName": "_widget_1685607891775",
-      "label": "民族",
-      "type": "combo"
-    },
-    {
-      "name": "sex",
-      "widgetName": "_widget_1685607891772",
-      "label": "性别",
-      "type": "text"
-    },
-    {
-      "name": "birth_date",
-      "widgetName": "_widget_1685610299927",
-      "label": "出生日期",
-      "type": "datetime"
-    },
-    {
-      "name": "age",
-      "widgetName": "_widget_1685611322343",
-      "label": "年龄",
-      "type": "number"
-    },
-    {
-      "name": "political",
-      "widgetName": "_widget_1685607891778",
-      "label": "政治面貌",
-      "type": "combo"
-    },
-    {
-      "name": "_widget_1737427680777",
-      "widgetName": "_widget_1737427680777",
-      "label": "户籍地址（备注）",
-      "type": "textarea"
-    },
-    {
-      "name": "_widget_1737427680806",
-      "widgetName": "_widget_1737427680806",
-      "label": "现居地址（备注）",
-      "type": "textarea"
-    },
-    {
-      "name": "_widget_1737086434571",
-      "widgetName": "_widget_1737086434571",
-      "label": "户籍地（ 省-市-县/市/区）",
-      "type": "address"
-    },
-    {
-      "name": "_widget_1737086434572",
-      "widgetName": "_widget_1737086434572",
-      "label": "现居地址（具体到门牌号）",
-      "type": "address"
-    },
-    {
-      "name": "_widget_1752634932869",
-      "widgetName": "_widget_1752634932869",
-      "label": "户籍地址",
-      "type": "textarea"
-    },
-    {
-      "name": "_widget_1752634932870",
-      "widgetName": "_widget_1752634932870",
-      "label": "现居地址",
-      "type": "textarea"
-    },
-    {
-      "name": "_widget_1750661660100",
-      "widgetName": "_widget_1750661660100",
-      "label": "学生本人电话",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1685607891791",
-      "widgetName": "_widget_1685607891791",
-      "label": "监护人1姓名",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1685607891792",
-      "widgetName": "_widget_1685607891792",
-      "label": "监护人1角色",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1750738819987",
-      "widgetName": "_widget_1750738819987",
-      "label": "监护人1电话",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1750738452874",
-      "widgetName": "_widget_1750738452874",
-      "label": "监护人1联系",
-      "type": "phone"
-    },
-    {
-      "name": "_widget_1685628423400",
-      "widgetName": "_widget_1685628423400",
-      "label": "监护人1工作单位",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1685607891794",
-      "widgetName": "_widget_1685607891794",
-      "label": "监护人2姓名",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1685607891795",
-      "widgetName": "_widget_1685607891795",
-      "label": "监护人2角色",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1750738820002",
-      "widgetName": "_widget_1750738820002",
-      "label": "监护人2电话",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1750738452875",
-      "widgetName": "_widget_1750738452875",
-      "label": "监护人2联系",
-      "type": "phone"
-    },
-    {
-      "name": "_widget_1685628423401",
-      "widgetName": "_widget_1685628423401",
-      "label": "监护人2工作单位",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1685607891797",
-      "widgetName": "_widget_1685607891797",
-      "label": "就读学校",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1757907681438",
-      "widgetName": "_widget_1757907681438",
-      "label": "校区",
-      "type": "radiogroup"
-    },
-    {
-      "name": "grade_name",
-      "widgetName": "_widget_1691030786921",
-      "label": "年级别名",
-      "type": "combo"
-    },
-    {
-      "name": "grade_alias",
-      "widgetName": "_widget_1685607891798",
-      "label": "年级名称",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1750663017517",
-      "widgetName": "_widget_1750663017517",
-      "label": "校区年级编号（生成学号）",
-      "type": "text"
-    },
-    {
-      "name": "class_name",
-      "widgetName": "_widget_1685607891799",
+      "name": "_widget_1753067742283",
+      "widgetName": "_widget_1753067742283",
       "label": "班级名称",
       "type": "combo"
     },
     {
-      "name": "_widget_1756380561714",
-      "widgetName": "_widget_1756380561714",
-      "label": "班级号",
-      "type": "number"
-    },
-    {
-      "name": "class",
-      "widgetName": "_widget_1737098844958",
-      "label": "班级",
-      "type": "number"
-    },
-    {
-      "name": "class_teacher",
-      "widgetName": "_widget_1685607891800",
-      "label": "班主任",
-      "type": "text"
-    },
-    {
-      "name": "class_teacher_info",
-      "widgetName": "_widget_1686466574963",
-      "label": "班主任-企微",
-      "type": "user"
-    },
-    {
-      "name": "grade_level",
-      "widgetName": "_widget_1755242351843",
+      "name": "_widget_1769153103518",
+      "widgetName": "_widget_1769153103518",
       "label": "级部",
       "type": "text"
     },
     {
-      "name": "grade_level_director_info",
-      "widgetName": "_widget_1697708751793",
-      "label": "级部主任-企微",
+      "name": "_widget_1553656302237",
+      "widgetName": "_widget_1553656302237",
+      "label": "姓名",
+      "type": "combo"
+    },
+    {
+      "name": "_widget_1753069588655",
+      "widgetName": "_widget_1753069588655",
+      "label": "学号",
+      "type": "text"
+    },
+    {
+      "name": "_widget_1553656302556",
+      "widgetName": "_widget_1553656302556",
+      "label": "职务",
+      "type": "text"
+    },
+    {
+      "name": "_widget_1553656302571",
+      "widgetName": "_widget_1553656302571",
+      "label": "自我介绍",
+      "type": "text"
+    },
+    {
+      "name": "_widget_1553656302586",
+      "widgetName": "_widget_1553656302586",
+      "label": "任职宣言",
+      "type": "text"
+    },
+    {
+      "name": "_widget_1553656302601",
+      "widgetName": "_widget_1553656302601",
+      "label": "家长寄语",
+      "type": "text"
+    },
+    {
+      "name": "_widget_1553656302616",
+      "widgetName": "_widget_1553656302616",
+      "label": "德育处评价",
+      "type": "text"
+    },
+    {
+      "name": "_widget_1553656302631",
+      "widgetName": "_widget_1553656302631",
+      "label": "学生照片",
+      "type": "image"
+    },
+    {
+      "name": "_widget_1753070292855",
+      "widgetName": "_widget_1753070292855",
+      "label": "任职开始时间",
+      "type": "datetime"
+    },
+    {
+      "name": "_widget_1753070292856",
+      "widgetName": "_widget_1753070292856",
+      "label": "任职结束时间",
+      "type": "datetime"
+    },
+    {
+      "name": "_widget_1769153103519",
+      "widgetName": "_widget_1769153103519",
+      "label": "班主任",
       "type": "user"
     },
     {
-      "name": "_widget_1685799678640",
-      "widgetName": "_widget_1685799678640",
-      "label": "学籍状态开始时间",
-      "type": "datetime"
-    },
-    {
-      "name": "_widget_1685799678641",
-      "widgetName": "_widget_1685799678641",
-      "label": "学籍状态结束时间",
-      "type": "datetime"
-    },
-    {
-      "name": "_widget_1685607891808",
-      "widgetName": "_widget_1685607891808",
-      "label": "学生类型",
-      "type": "combo"
-    },
-    {
-      "name": "_widget_1685607891809",
-      "widgetName": "_widget_1685607891809",
-      "label": "毕业学校",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1685607891811",
-      "widgetName": "_widget_1685607891811",
-      "label": "毕业学校识别码",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1685607891812",
-      "widgetName": "_widget_1685607891812",
-      "label": "既往病史",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1685607891813",
-      "widgetName": "_widget_1685607891813",
-      "label": "是否残疾",
-      "type": "combo"
-    },
-    {
-      "name": "_widget_1685607891814",
-      "widgetName": "_widget_1685607891814",
-      "label": "享受寄宿生生活补助金额（元）",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1685607891815",
-      "widgetName": "_widget_1685607891815",
-      "label": "享受营养改善计划补助金额（元）",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1685607891816",
-      "widgetName": "_widget_1685607891816",
-      "label": "是建档立卡贫困户",
-      "type": "combo"
-    },
-    {
-      "name": "_widget_1723637371700",
-      "widgetName": "_widget_1723637371700",
-      "label": "建档立卡脱贫户子女",
-      "type": "combo"
-    },
-    {
-      "name": "_widget_1685607891817",
-      "widgetName": "_widget_1685607891817",
-      "label": "随迁子女入",
-      "type": "combo"
-    },
-    {
-      "name": "_widget_1685607891818",
-      "widgetName": "_widget_1685607891818",
-      "label": "在校（园）农村留守儿童",
-      "type": "combo"
-    },
-    {
-      "name": "_widget_1685607891819",
-      "widgetName": "_widget_1685607891819",
-      "label": "备注",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1685607891804",
-      "widgetName": "_widget_1685607891804",
-      "label": "宿舍入住状态",
-      "type": "combo"
-    },
-    {
-      "name": "_widget_1750663017603",
-      "widgetName": "_widget_1750663017603",
-      "label": "宿舍楼号",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1756380561743",
-      "widgetName": "_widget_1756380561743",
-      "label": "宿舍楼栋",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1750663017604",
-      "widgetName": "_widget_1750663017604",
-      "label": "宿舍号",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1756380561758",
-      "widgetName": "_widget_1756380561758",
-      "label": "床位",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1685607891820",
-      "widgetName": "_widget_1685607891820",
-      "label": "选科科目",
-      "type": "combo"
-    },
-    {
-      "name": "_widget_1685607891821",
-      "widgetName": "_widget_1685607891821",
-      "label": "选科方向",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1685607891822",
-      "widgetName": "_widget_1685607891822",
-      "label": "选科1",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1685607891823",
-      "widgetName": "_widget_1685607891823",
-      "label": "选科2",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1685607891824",
-      "widgetName": "_widget_1685607891824",
-      "label": "外语选科",
-      "type": "combo"
-    },
-    {
-      "name": "_widget_1755144210366",
-      "widgetName": "_widget_1755144210366",
-      "label": "是否流失",
-      "type": "number"
-    },
-    {
-      "name": "_widget_1755148193479",
-      "widgetName": "_widget_1755148193479",
-      "label": "流失日期-教务处系统回填",
-      "type": "datetime"
-    },
-    {
-      "name": "_widget_1755148193430",
-      "widgetName": "_widget_1755148193430",
-      "label": "班级2025秋季学期人数",
-      "type": "number"
-    },
-    {
-      "name": "_widget_1755148193446",
-      "widgetName": "_widget_1755148193446",
-      "label": "班级2025秋季学期-9月人数",
-      "type": "number"
-    },
-    {
-      "name": "_widget_1755148193447",
-      "widgetName": "_widget_1755148193447",
-      "label": "班级2025秋季学期-10月人数",
-      "type": "number"
-    },
-    {
-      "name": "_widget_1755148193448",
-      "widgetName": "_widget_1755148193448",
-      "label": "班级2025秋季学期-11月人数",
-      "type": "number"
-    },
-    {
-      "name": "_widget_1755148193449",
-      "widgetName": "_widget_1755148193449",
-      "label": "班级2025秋季学期-12月人数",
-      "type": "number"
-    },
-    {
-      "name": "_widget_1755148193450",
-      "widgetName": "_widget_1755148193450",
-      "label": "班级2025秋季学期-2026年1月人数",
-      "type": "number"
-    },
-    {
-      "name": "_widget_1766052179114",
-      "widgetName": "_widget_1766052179114",
-      "label": "考号",
-      "type": "text"
-    },
-    {
-      "name": "_widget_1766064060389",
-      "widgetName": "_widget_1766064060389",
-      "label": "更新标识",
-      "type": "text"
+      "name": "_widget_1769153103520",
+      "widgetName": "_widget_1769153103520",
+      "label": "级部主任",
+      "type": "user"
     }
   ],
   "sysWidgets": [
-    {
-      "name": "wx_open_id"
-    },
     {
       "name": "creator"
     },
@@ -475,9 +112,6 @@
     },
     {
       "name": "deleter"
-    },
-    {
-      "name": "ext"
     },
     {
       "name": "createTime"
@@ -489,5 +123,5 @@
       "name": "deleteTime"
     }
   ],
-  "dataModifyTime": "2026-05-14T14:36:10.942Z"
+  "dataModifyTime": "2019-04-10T09:00:57.001Z"
 }

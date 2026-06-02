@@ -94,8 +94,38 @@
 ## 新建单条数据接口
 ### 示列
 ```js
-const axios = require('axios');
-let data = JSON.stringify({
+var https = require('follow-redirects').https;
+var fs = require('fs');
+
+var options = {
+   'method': 'POST',
+   'hostname': 'api.jiandaoyun.com',
+   'path': '/api/v5/app/entry/data/create',
+   'headers': {
+      'Authorization': 'Bearer <your key>',
+      'Content-Type': 'application/json'
+   },
+   'maxRedirects': 20
+};
+
+var req = https.request(options, function (res) {
+   var chunks = [];
+
+   res.on("data", function (chunk) {
+      chunks.push(chunk);
+   });
+
+   res.on("end", function (chunk) {
+      var body = Buffer.concat(chunks);
+      console.log(body.toString());
+   });
+
+   res.on("error", function (error) {
+      console.error(error);
+   });
+});
+
+var postData = JSON.stringify({
    "app_id": "59264073a2a60c0c08e20bfb",
    "entry_id": "59264073a2a60c0c08e20bfd",
    "data": {
@@ -203,32 +233,47 @@ let data = JSON.stringify({
    "transaction_id": "87cd7d71-c6df-4281-9927-469094395677"
 });
 
-let config = {
-   method: 'post',
-   maxBodyLength: Infinity,
-   url: 'https://api.jiandaoyun.com/api/v5/app/entry/data/create',
-   headers: { 
-      'Authorization': 'Bearer <your key>', 
-      'Content-Type': 'application/json'
-   },
-   data : data
-};
+req.write(postData);
 
-axios.request(config)
-.then((response) => {
-   console.log(JSON.stringify(response.data));
-})
-.catch((error) => {
-   console.log(error);
-});
+req.end();
 
 ```
 
 ## 新建多条数据接口
 ### 示列
 ```js
-const axios = require('axios');
-let data = JSON.stringify({
+var https = require('follow-redirects').https;
+var fs = require('fs');
+
+var options = {
+   'method': 'POST',
+   'hostname': 'api.jiandaoyun.com',
+   'path': '/api/v5/app/entry/data/batch_create',
+   'headers': {
+      'Authorization': 'Bearer <your key>',
+      'Content-Type': 'application/json'
+   },
+   'maxRedirects': 20
+};
+
+var req = https.request(options, function (res) {
+   var chunks = [];
+
+   res.on("data", function (chunk) {
+      chunks.push(chunk);
+   });
+
+   res.on("end", function (chunk) {
+      var body = Buffer.concat(chunks);
+      console.log(body.toString());
+   });
+
+   res.on("error", function (error) {
+      console.error(error);
+   });
+});
+
+var postData = JSON.stringify({
    "app_id": "59264073a2a60c0c08e20bfb",
    "entry_id": "59264073a2a60c0c08e20bfd",
    "data_list": [
@@ -306,24 +351,9 @@ let data = JSON.stringify({
    "is_start_workflow": true
 });
 
-let config = {
-   method: 'post',
-   maxBodyLength: Infinity,
-   url: 'https://api.jiandaoyun.com/api/v5/app/entry/data/batch_create',
-   headers: { 
-      'Authorization': 'Bearer <your key>', 
-      'Content-Type': 'application/json'
-   },
-   data : data
-};
+req.write(postData);
 
-axios.request(config)
-.then((response) => {
-   console.log(JSON.stringify(response.data));
-})
-.catch((error) => {
-   console.log(error);
-});
+req.end();
 ```
 
 ## 修改单条数据接口

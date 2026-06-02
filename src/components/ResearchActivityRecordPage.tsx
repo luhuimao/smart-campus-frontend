@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useRef, useMemo, useEffect } from "react";
-import { Plus, X, Search, Upload, Image as ImageIcon, FileText, Menu } from "lucide-react";
-import { useStaffDirectory, useCourses, useTeachingResearchGroups } from "@/hooks/use-research-dashboard";
-import { PageHeader, FlowButton } from "./PageHeader";
+import { Plus, X, Search, Upload, Image as ImageIcon, FileText, Menu, ChevronDown } from "lucide-react";
+import { useStaffDirectory, useCourses, useTeachingResearchGroups, useResearchDashboard, type ResearchRecord } from "@/hooks/use-research-dashboard";
+import { useCurrentUser } from "@/lib/user-context";
+import { DataTable, type ColDef } from "./DataTable";
+import { PageHeader } from "./PageHeader";
 
 const teal = "#00b095";
 const focusStyle = { borderColor: teal, boxShadow: "0 0 0 4px rgba(0,176,149,0.1)" };
@@ -150,7 +152,52 @@ function FileUpload({ files, onChange, accept, hint }: { files: File[]; onChange
   </div>);
 }
 
+const RESEARCH_COLUMNS: ColDef<ResearchRecord>[] = [
+  { key: "学期", label: "学期", minWidth: 80 },
+  { key: "教研主题", label: "教研主题", minWidth: 160 },
+  { key: "教研学科", label: "教研学科", minWidth: 80 },
+  { key: "教研组", label: "教研组", minWidth: 120 },
+  { key: "教研组长", label: "教研组长", minWidth: 80 },
+  { key: "主持人", label: "主持人", minWidth: 80 },
+  { key: "时间", label: "时间", minWidth: 140 },
+  { key: "地点", label: "地点", minWidth: 100 },
+  { key: "提交人", label: "提交人", minWidth: 80 },
+];
+
+const DATA_MODES = ["添加数据", "管理本人创建数据", "组长管理本组数据", "全部有权限数据"] as const;
+
 export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
+  const [dataMode, setDataMode] = useState<string>("管理本人创建数据");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const currentUser = useCurrentUser();
+  const { raw, isPending, isError } = useResearchDashboard();
+  const { raw: allGroups } = useTeachingResearchGroups();
+
+  const isGroupLeader = useMemo(() => {
+    if (!currentUser) return false;
+    return allGroups.some(g => g.教研组长 === currentUser.name);
+  }, [allGroups, currentUser]);
+
+  const leaderGroups = useMemo(() => {
+    if (!currentUser) return [];
+    return allGroups.filter(g => g.教研组长 === currentUser.name).map(g => g.教研组);
+  }, [allGroups, currentUser]);
+
+  const tableData = useMemo(() => {
+    if (dataMode === DATA_MODES[1]) return raw.filter((r: ResearchRecord) => r.提交人 === currentUser?.name);
+    if (dataMode === DATA_MODES[2]) return raw.filter((r: ResearchRecord) => leaderGroups.includes(r.教研组));
+    if (dataMode === DATA_MODES[3]) return raw;
+    return raw;
+  }, [raw, dataMode, currentUser, leaderGroups]);
+
+  useEffect(() => {
+    if (!dropdownOpen) return;
+    function h(e: MouseEvent) { if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setDropdownOpen(false); }
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [dropdownOpen]);
+
   const [topic, setTopic] = useState("");
   const [subject, setSubject] = useState("");
   const [date, setDate] = useState("");
@@ -184,44 +231,104 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
   const handleSubmit = () => { setSubmitted(true); if ([topic, subject, date, week, location, group, groupLeader, host, recorder, participants.length > 0, expectedCount, actualCount, absentNote, contentRecord].find((f) => !f)) window.scrollTo({ top: 0, behavior: "smooth" }); };
 
   return (<div className="flex flex-col h-full overflow-hidden" style={{ color: "#1d1d1f" }}>
-    <PageHeader centered left={<FlowButton />} breadcrumbs={[{ label: "教研活动" }, { label: "教研活动记录", active: true }]} onMenuOpen={onMenuOpen} />
-    <div className="flex-1 overflow-y-auto bg-[#f5f5f7] pb-24"><main className="max-w-6xl mx-auto mt-4 md:mt-10 px-3 md:px-6">
-      <div className="flex items-center justify-center gap-5 mb-10"><div className="relative h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} /><div className="flex items-center gap-3 px-12 py-2 text-white text-base font-semibold tracking-[0.2em]" style={{ backgroundColor: teal, clipPath: "polygon(10% 0,90% 0,100% 50%,90% 100%,10% 100%,0 50%)", boxShadow: "0 4px 12px rgba(0,176,149,0.2)" }}><span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" />教研活动记录<span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" /></div><div className="relative h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} /></div>
-      <div className="rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white">
-        <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
-          <Field label="教研主题" required error={submitted && !topic ? "此项为必填项" : undefined}><Input value={topic} onChange={setTopic} /></Field>
-          <Field label="教研学科" required error={submitted && !subject ? "此项为必填项" : undefined}><SelectField value={subject} onChange={setSubject} options={courseOptions} loading={courseLoading} /></Field>
-        </div>
-        <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
-          <Field label="时间" required error={submitted && !date ? "此项为必填项" : undefined}><DateTimePicker value={date} onChange={setDate} /></Field>
-          <Field label="周次" required error={submitted && !week ? "此项为必填项" : undefined}><WeekInput value={week} onChange={setWeek} /></Field>
-        </div>
-        <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
-          <Field label="地点" required error={submitted && !location ? "此项为必填项" : undefined}><Input value={location} onChange={setLocation} /></Field>
-          <Field label="教研组" required error={submitted && !group ? "此项为必填项" : undefined}><SelectField value={group} onChange={handleGroupChange} options={groupOptions} loading={groupLoading} /></Field>
-        </div>
-        <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
-          <Field label="教研组长" required error={submitted && !groupLeader ? "此项为必填项" : undefined}><MiniStaffPicker value={groupLeader} onChange={setGroupLeader} /></Field>
-          <Field label="主持人" required error={submitted && !host ? "此项为必填项" : undefined}><MiniStaffPicker value={host} onChange={setHost} /></Field>
-        </div>
-        <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
-          <Field label="记录人" required error={submitted && !recorder ? "此项为必填项" : undefined}><MiniStaffPicker value={recorder} onChange={setRecorder} /></Field>
-          <Field label="参与人员" required error={submitted && participants.length === 0 ? "此项为必填项" : undefined}><MultiStaffPicker selected={participants} onChange={setParticipants} /></Field>
-        </div>
-        <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
-          <Field label="应到人数" required error={submitted && !expectedCount ? "此项为必填项" : undefined}><Input value={expectedCount} onChange={setExpectedCount} /></Field>
-          <Field label="实到人数" required error={submitted && !actualCount ? "此项为必填项" : undefined}><Input value={actualCount} onChange={setActualCount} /></Field>
-        </div>
-        <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
-          <Field label="未到场人员情况说明" required error={submitted && !absentNote ? "此项为必填项" : undefined}><Textarea value={absentNote} onChange={setAbsentNote} rows={6} /></Field>
-          <Field label="内容记录" required error={submitted && !contentRecord ? "此项为必填项" : undefined}><Textarea value={contentRecord} onChange={setContentRecord} rows={6} /></Field>
-        </div>
-        <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
-          <Field label="照片" required hint="请上传现场照片"><FileUpload files={photos} onChange={setPhotos} accept="image/*" hint="拖拽或单击后粘贴图片，单张 20MB 以内" /></Field>
-          <Field label="其他附件" hint="其他文件"><FileUpload files={attachments} onChange={setAttachments} accept="*" hint="拖拽或单击后粘贴文件，单个 500MB 以内" /></Field>
+    <PageHeader centered breadcrumbs={[{ label: "教研活动" }, { label: "教研活动记录", active: true }]} onMenuOpen={onMenuOpen} />
+    <div className="flex-1 overflow-y-auto bg-[#f5f5f7]">
+      {/* 模式选择下拉框 */}
+      <div className="max-w-6xl mx-auto mt-4 md:mt-10 px-3 md:px-6">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="relative shrink-0" ref={dropdownRef}>
+            <button
+              onClick={() => setDropdownOpen(v => !v)}
+              className="flex items-center gap-2 h-9 px-4 text-[15px] font-semibold rounded-xl transition-all duration-150 shrink-0"
+              style={{
+                minWidth: 200,
+                background: "white",
+                color: "#374151",
+                border: "1px solid rgba(0,0,0,0.1)",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+              }}
+            >
+              <span className="flex-1 text-left">{dataMode}</span>
+              <ChevronDown className="w-4 h-4 shrink-0 transition-transform duration-200" style={{ color: "#9ca3af", transform: dropdownOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
+            </button>
+            {dropdownOpen && (
+              <div className="absolute left-0 top-full mt-2 rounded-2xl overflow-hidden z-50" style={{ minWidth: 200, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 12px 32px rgba(0,0,0,0.12)" }}>
+                {DATA_MODES.map((opt, i) => {
+                  const disabled = opt === DATA_MODES[2] && !isGroupLeader;
+                  return (
+                    <button
+                      key={opt}
+                      onClick={() => { if (!disabled) { setDataMode(opt); setDropdownOpen(false); } }}
+                      className="w-full text-left px-4 h-11 text-[15px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      disabled={disabled}
+                      style={{
+                        color: dataMode === opt ? teal : "#374151",
+                        background: dataMode === opt ? "rgba(0,176,149,0.06)" : "transparent",
+                        borderTop: i > 0 ? "1px solid rgba(0,0,0,0.04)" : "none",
+                      }}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </main></div>
-    <div className="form-footer shrink-0 flex gap-3 px-6 md:px-10 py-4"><button className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px" style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }} onClick={handleSubmit}>提交</button><button className="btn-secondary">保存草稿</button></div>
+
+      {dataMode === DATA_MODES[0] ? (
+        <main className="max-w-6xl mx-auto px-3 md:px-6 pb-24">
+          <div className="flex items-center justify-center gap-5 mb-10"><div className="relative h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} /><div className="flex items-center gap-3 px-12 py-2 text-white text-base font-semibold tracking-[0.2em]" style={{ backgroundColor: teal, clipPath: "polygon(10% 0,90% 0,100% 50%,90% 100%,10% 100%,0 50%)", boxShadow: "0 4px 12px rgba(0,176,149,0.2)" }}><span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" />教研活动记录<span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" /></div><div className="relative h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} /></div>
+          <div className="rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white">
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
+              <Field label="教研主题" required error={submitted && !topic ? "此项为必填项" : undefined}><Input value={topic} onChange={setTopic} /></Field>
+              <Field label="教研学科" required error={submitted && !subject ? "此项为必填项" : undefined}><SelectField value={subject} onChange={setSubject} options={courseOptions} loading={courseLoading} /></Field>
+            </div>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
+              <Field label="时间" required error={submitted && !date ? "此项为必填项" : undefined}><DateTimePicker value={date} onChange={setDate} /></Field>
+              <Field label="周次" required error={submitted && !week ? "此项为必填项" : undefined}><WeekInput value={week} onChange={setWeek} /></Field>
+            </div>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
+              <Field label="地点" required error={submitted && !location ? "此项为必填项" : undefined}><Input value={location} onChange={setLocation} /></Field>
+              <Field label="教研组" required error={submitted && !group ? "此项为必填项" : undefined}><SelectField value={group} onChange={handleGroupChange} options={groupOptions} loading={groupLoading} /></Field>
+            </div>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
+              <Field label="教研组长" required error={submitted && !groupLeader ? "此项为必填项" : undefined}><MiniStaffPicker value={groupLeader} onChange={setGroupLeader} /></Field>
+              <Field label="主持人" required error={submitted && !host ? "此项为必填项" : undefined}><MiniStaffPicker value={host} onChange={setHost} /></Field>
+            </div>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
+              <Field label="记录人" required error={submitted && !recorder ? "此项为必填项" : undefined}><MiniStaffPicker value={recorder} onChange={setRecorder} /></Field>
+              <Field label="参与人员" required error={submitted && participants.length === 0 ? "此项为必填项" : undefined}><MultiStaffPicker selected={participants} onChange={setParticipants} /></Field>
+            </div>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
+              <Field label="应到人数" required error={submitted && !expectedCount ? "此项为必填项" : undefined}><Input value={expectedCount} onChange={setExpectedCount} /></Field>
+              <Field label="实到人数" required error={submitted && !actualCount ? "此项为必填项" : undefined}><Input value={actualCount} onChange={setActualCount} /></Field>
+            </div>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
+              <Field label="未到场人员情况说明" required error={submitted && !absentNote ? "此项为必填项" : undefined}><Textarea value={absentNote} onChange={setAbsentNote} rows={6} /></Field>
+              <Field label="内容记录" required error={submitted && !contentRecord ? "此项为必填项" : undefined}><Textarea value={contentRecord} onChange={setContentRecord} rows={6} /></Field>
+            </div>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
+              <Field label="照片" required hint="请上传现场照片"><FileUpload files={photos} onChange={setPhotos} accept="image/*" hint="拖拽或单击后粘贴图片，单张 20MB 以内" /></Field>
+              <Field label="其他附件" hint="其他文件"><FileUpload files={attachments} onChange={setAttachments} accept="*" hint="拖拽或单击后粘贴文件，单个 500MB 以内" /></Field>
+            </div>
+          </div>
+          <div className="form-footer shrink-0 flex gap-3 px-6 md:px-10 py-4 mt-4 rounded-[28px]"><button className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px" style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }} onClick={handleSubmit}>提交</button><button className="btn-secondary">保存草稿</button></div>
+        </main>
+      ) : (
+        <div className="max-w-7xl mx-auto px-3 md:px-6 pb-24">
+          <div className="glass rounded-[32px] overflow-hidden flex flex-col shadow-sm" style={{ minHeight: 400 }}>
+            {isPending ? (
+              <div className="flex items-center justify-center py-20 text-sm text-gray-400">加载中...</div>
+            ) : isError ? (
+              <div className="flex items-center justify-center py-20 text-sm text-red-400">加载失败，请稍后重试</div>
+            ) : (
+              <DataTable columns={RESEARCH_COLUMNS} rows={tableData.map((r, i) => ({ ...r, id: i + 1 }))} minWidth={1000} />
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   </div>);
 }

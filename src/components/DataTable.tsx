@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const teal = "#00b095";
 
@@ -28,6 +28,10 @@ interface DataTableProps<T extends { id: number }> {
   minWidth?: number;
   /** 每页条数，默认 20 */
   pageSize?: number;
+  /** 行点击回调，传入后行可点击并 hover 显示编辑图标 */
+  onRowClick?: (row: T) => void;
+  /** 选中行变化回调，传入当前选中行的 id 数组 */
+  onSelectionChange?: (ids: number[]) => void;
 }
 
 // ── 空状态插图 ────────────────────────────────────────────────────────────────
@@ -55,13 +59,51 @@ export function DataTable<T extends { id: number }>({
   columns,
   rows,
   minWidth = 800,
-  pageSize = 20,
+  pageSize: defaultPageSize = 20,
+  onRowClick,
+  onSelectionChange,
 }: DataTableProps<T>) {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [page, setPage] = useState(1);
+  const [size, setSize] = useState(defaultPageSize);
 
-  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
-  const paginated = rows.slice((page - 1) * pageSize, page * pageSize);
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const tableScrollRef = useRef<HTMLDivElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const syncingRef = useRef(false);
+  const [topSpacerWidth, setTopSpacerWidth] = useState(minWidth);
+
+  useEffect(() => {
+    const el = tableRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      setTopSpacerWidth(el.scrollWidth);
+    });
+    ro.observe(el);
+    setTopSpacerWidth(el.scrollWidth);
+    return () => ro.disconnect();
+  }, [rows, columns]);
+
+  const syncScroll = useCallback((source: "top" | "bottom") => {
+    if (syncingRef.current) return;
+    syncingRef.current = true;
+    const topEl = topScrollRef.current;
+    const tableEl = tableScrollRef.current;
+    if (!topEl || !tableEl) { syncingRef.current = false; return; }
+    if (source === "top") {
+      tableEl.scrollLeft = topEl.scrollLeft;
+    } else {
+      topEl.scrollLeft = tableEl.scrollLeft;
+    }
+    requestAnimationFrame(() => { syncingRef.current = false; });
+  }, []);
+
+  useEffect(() => {
+    onSelectionChange?.(Array.from(selected));
+  }, [selected, onSelectionChange]);
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / size));
+  const paginated = rows.slice((page - 1) * size, page * size);
 
   const allSelected = paginated.length > 0 && paginated.every(r => selected.has(r.id));
 
@@ -89,9 +131,19 @@ export function DataTable<T extends { id: number }>({
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
 
+      {/* 顶部横向滚动条 */}
+      <div
+        ref={topScrollRef}
+        className="overflow-x-auto"
+        style={{ overflowY: "hidden" }}
+        onScroll={() => syncScroll("top")}
+      >
+        <div style={{ height: 1, width: topSpacerWidth }} />
+      </div>
+
       {/* 表格主体 */}
-      <div className="overflow-x-auto flex-1">
-        <table className="w-full text-left" style={{ minWidth }}>
+      <div ref={tableScrollRef} className="overflow-x-auto flex-1" onScroll={() => syncScroll("bottom")}>
+        <table ref={tableRef} className="w-full text-left" style={{ minWidth }}>
           <thead>
             <tr style={{ background: "#eff6ff" }}>
               <th className="w-10 px-3 py-3 border-b border-r border-gray-100">
@@ -112,16 +164,18 @@ export function DataTable<T extends { id: number }>({
                   {col.label}
                 </th>
               ))}
+              {onRowClick && <th className="w-10 px-3 py-3 border-b border-r border-gray-100" />}
             </tr>
           </thead>
           <tbody>
             {paginated.map(row => (
               <tr
                 key={row.id}
-                className="border-t border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
-                style={{ background: selected.has(row.id) ? "rgba(0,176,149,0.04)" : undefined }}
+                className="border-t border-gray-50 hover:bg-gray-50 transition-colors group"
+                style={{ background: selected.has(row.id) ? "rgba(0,176,149,0.04)" : undefined, cursor: onRowClick ? "pointer" : undefined }}
+                onClick={() => onRowClick?.(row)}
               >
-                <td className="px-3 py-3 border-r border-gray-50">
+                <td className="px-3 py-3 border-r border-gray-50" onClick={e => e.stopPropagation()}>
                   <input
                     type="checkbox"
                     checked={selected.has(row.id)}
@@ -139,6 +193,17 @@ export function DataTable<T extends { id: number }>({
                     {col.render ? col.render(row) : getValue(row, col.key)}
                   </td>
                 ))}
+                {onRowClick && (
+                  <td className="px-3 py-3 border-r border-gray-50">
+                    <div className="w-6 h-6 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ color: "#9ca3af" }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -162,10 +227,14 @@ export function DataTable<T extends { id: number }>({
             </svg>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="flex items-center gap-1 border border-gray-200 rounded-lg px-2 py-1 cursor-pointer hover:border-gray-300 transition-colors text-xs">
-              <span style={{ color: "#374151" }}>{pageSize} 条/页</span>
-              <ChevronDown className="w-3 h-3" style={{ color: "#9ca3af" }} />
-            </div>
+            <select
+              value={size}
+              onChange={e => { setSize(Number(e.target.value)); setPage(1); }}
+              className="border border-gray-200 rounded-lg px-2 py-1 text-xs outline-none appearance-none cursor-pointer"
+              style={{ color: "#374151", paddingRight: 20 }}
+            >
+              {[10, 20, 50, 100].map(n => <option key={n} value={n}>{n} 条/页</option>)}
+            </select>
             <span className="text-xs" style={{ color: "#6b7280" }}>共 {rows.length} 条</span>
           </div>
         </div>
