@@ -15,14 +15,15 @@ export interface ResearchRecord {
   学科部门: string;
   教研组长: string;
   主持人: string;
+  记录人: string;
   应到人数: number;
   实到人数: number;
   地点: string;
   参与人员: string;
   内容记录: string;
   备注: string;
-  照片: { name: string; url: string }[];
-  附件: { name: string; url: string }[];
+  照片: { name: string; url: string; key?: string }[];
+  附件: { name: string; url: string; key?: string }[];
   提交人: string;
   提交时间: string;
 }
@@ -72,12 +73,12 @@ function pickNum(record: JdyRecord, widgetId: string): number {
   return 0;
 }
 
-function pickFiles(record: JdyRecord, widgetId: string): { name: string; url: string }[] {
+function pickFiles(record: JdyRecord, widgetId: string): { name: string; url: string; key?: string }[] {
   const v = record[widgetId];
   if (!Array.isArray(v)) return [];
   return v
-    .map((x) => ({ name: (x as { name?: string }).name ?? "", url: (x as { url?: string }).url ?? "" }))
-    .filter((f) => f.url);
+    .map((x) => ({ name: (x as { name?: string }).name ?? "", url: (x as { url?: string }).url ?? "", key: (x as { key?: string }).key }))
+    .filter((f) => f.url || f.key);
 }
 
 function normalize(records: JdyRecord[]): ResearchRecord[] {
@@ -92,6 +93,7 @@ function normalize(records: JdyRecord[]): ResearchRecord[] {
     学科部门: pickStr(r, WIDGET_IDS.学科部门),
     教研组长: pickStr(r, WIDGET_IDS.教研组长),
     主持人: pickStr(r, WIDGET_IDS.主持人),
+	    记录人: pickStr(r, WIDGET_IDS.记录人),
     应到人数: pickNum(r, WIDGET_IDS.应到人数),
     实到人数: pickNum(r, WIDGET_IDS.实到人数),
     地点: pickStr(r, WIDGET_IDS.地点),
@@ -176,7 +178,7 @@ function unique(arr: string[]): string[] {
 }
 
 export function useResearchDashboard(filters?: ActiveFilters) {
-  const { data: allRecords, isPending, isError, error, refetch } = useQuery({
+  const { data: allRecords, isPending, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["research-dashboard", "activity-list"],
     queryFn: async () => {
       const records = await jdyListAll({
@@ -216,7 +218,7 @@ export function useResearchDashboard(filters?: ActiveFilters) {
     [allRecords, filtered],
   );
 
-  return { data: derived, filterOptions, raw: filtered, isPending, isError, error, refetch };
+  return { data: derived, filterOptions, raw: filtered, isPending, isError, error, refetch, isFetching };
 }
 
 // ── 备课活动 ──────────────────────────────────────────────
@@ -238,8 +240,11 @@ export interface BeikeRecord {
   参与人员: string;
   内容记录: string;
   备注: string;
-  照片: { name: string; url: string }[];
-  附件: { name: string; url: string }[];
+  照片: { name: string; url: string; key?: string }[];
+  附件: { name: string; url: string; key?: string }[];
+  提交人: string;
+  提交时间: string;
+  记录人: string;
 }
 
 export interface BeikeFilterOptions {
@@ -274,6 +279,9 @@ function normalizeBeikeRecord(r: JdyRecord): BeikeRecord {
     备注: pickStr(r, BEIKE_WIDGET_IDS.备注),
     照片: pickFiles(r, BEIKE_WIDGET_IDS.照片),
     附件: pickFiles(r, BEIKE_WIDGET_IDS.附件),
+    提交人: pickStr(r, BEIKE_WIDGET_IDS.提交人),
+    提交时间: pickStr(r, BEIKE_WIDGET_IDS.提交时间),
+    记录人: pickStr(r, BEIKE_WIDGET_IDS.记录人),
   };
 }
 
@@ -341,7 +349,7 @@ function deriveBeike(records: BeikeRecord[]): DashboardData {
 }
 
 export function useBeikeDashboard(filters?: BeikeActiveFilters) {
-  const { data: allRecords, isPending, isError, error, refetch } = useQuery({
+  const { data: allRecords, isPending, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["beike-dashboard", "activity-list"],
     queryFn: async () => {
       const records = await jdyListAll({
@@ -350,7 +358,9 @@ export function useBeikeDashboard(filters?: BeikeActiveFilters) {
         pageSize: 100,
         maxPages: 20,
       });
-      return records.map(normalizeBeikeRecord);
+      const normalized = records.map(normalizeBeikeRecord);
+      normalized.sort((a, b) => b.提交时间.localeCompare(a.提交时间));
+      return normalized;
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: 60_000,
@@ -380,7 +390,7 @@ export function useBeikeDashboard(filters?: BeikeActiveFilters) {
     [allRecords, filtered],
   );
 
-  return { data: derived, filterOptions, raw: filtered, isPending, isError, error, refetch };
+  return { data: derived, filterOptions, raw: filtered, isPending, isError, error, refetch, isFetching };
 }
 
 // ── 科技节活动 ──────────────────────────────────────────────
@@ -399,6 +409,8 @@ export interface ScienceFestRecord {
   活动视频: { name: string; url: string }[];
   更多图片: { name: string; url: string }[];
   备注: string;
+  提交人: string;
+  提交时间: string;
 }
 
 function normalizeScienceFestRecord(r: JdyRecord): ScienceFestRecord {
@@ -416,6 +428,8 @@ function normalizeScienceFestRecord(r: JdyRecord): ScienceFestRecord {
     活动视频: pickFiles(r, SCIENTCE_FEST_WIDGET_IDS.活动视频),
     更多图片: pickFiles(r, SCIENTCE_FEST_WIDGET_IDS.更多图片),
     备注: pickStr(r, SCIENTCE_FEST_WIDGET_IDS.备注),
+    提交人: pickStr(r, SCIENTCE_FEST_WIDGET_IDS.提交人),
+    提交时间: pickStr(r, SCIENTCE_FEST_WIDGET_IDS.提交时间),
   };
 }
 
@@ -425,7 +439,7 @@ export interface ScienceFestFilters {
 }
 
 export function useScienceFestDashboard(filters?: ScienceFestFilters) {
-  const { data: allRecords, isPending, isError, error, refetch } = useQuery({
+  const { data: allRecords, isPending, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["science-fest", "activity-list"],
     queryFn: async () => {
       const records = await jdyListAll({
@@ -434,7 +448,9 @@ export function useScienceFestDashboard(filters?: ScienceFestFilters) {
         pageSize: 100,
         maxPages: 20,
       });
-      return records.map(normalizeScienceFestRecord);
+      const normalized = records.map(normalizeScienceFestRecord);
+      normalized.sort((a, b) => b.提交时间.localeCompare(a.提交时间));
+      return normalized;
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: 60_000,
@@ -457,7 +473,7 @@ export function useScienceFestDashboard(filters?: ScienceFestFilters) {
     });
   }, [allRecords, filters?.group, filters?.teacher]);
 
-  return { raw, filterOptions, isPending, isError, error, refetch };
+  return { raw, filterOptions, isPending, isError, error, refetch, isFetching };
 }
 
 // ── 班级排名 ──────────────────────────────────────────────

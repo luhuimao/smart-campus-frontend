@@ -1,8 +1,12 @@
 "use client";
 
 import { useState, useRef, useMemo, useEffect } from "react";
-import { Plus, X, Search, Upload, Image as ImageIcon, FileText, Menu, ChevronDown } from "lucide-react";
-import { useStaffDirectory, useCourses, useTeachingResearchGroups, useResearchDashboard, type ResearchRecord } from "@/hooks/use-research-dashboard";
+import { Plus, X, Search, Upload, Image as ImageIcon, FileText, Menu, ChevronDown, Trash2, Clock } from "lucide-react";
+import * as XLSX from "xlsx";
+import { useStaffDirectory, useCourses, useTeachingResearchGroups, useTermInfo, useResearchDashboard, useDepartmentMembers, type ResearchRecord, type DeptMemberRecord } from "@/hooks/use-research-dashboard";
+import { useFormPermissions } from "@/hooks/use-form-permissions";
+import { JDY_CONFIG, WIDGET_IDS, jdyCreate, jdyUpdate, jdyDelete, jdyBatchDelete, jdyUploadFiles } from "@/lib/jdy-api";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCurrentUser } from "@/lib/user-context";
 import { DataTable, type ColDef } from "./DataTable";
 import { PageHeader } from "./PageHeader";
@@ -10,6 +14,54 @@ import { PageHeader } from "./PageHeader";
 const teal = "#00b095";
 const focusStyle = { borderColor: teal, boxShadow: "0 0 0 4px rgba(0,176,149,0.1)" };
 const blurStyle  = { borderColor: "#e5e7eb", boxShadow: "none" };
+
+function Tooltip({ text, disabled, children }: { text: string; disabled?: boolean; children: React.ReactNode }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="relative flex items-center justify-center" onMouseEnter={() => setVisible(true)} onMouseLeave={() => setVisible(false)}>
+      {children}
+      {visible && !disabled && (
+        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs text-white px-2.5 py-1.5 rounded-md pointer-events-none z-50" style={{ background: "rgba(30,30,30,0.88)", backdropFilter: "blur(4px)", boxShadow: "0 4px 12px rgba(0,0,0,0.18)" }}>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent" style={{ borderBottomColor: "rgba(30,30,30,0.88)" }} />
+          {text}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function IconDropdown({ icon, tooltip, options, onSelect, disabledOptions }: {
+  icon: React.ReactNode; tooltip: string; options: string[]; onSelect?: (o: string) => void; disabledOptions?: string[];
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const disabledSet = new Set(disabledOptions ?? []);
+  useEffect(() => { if (!open) return; function h(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); } document.addEventListener("mousedown", h); return () => document.removeEventListener("mousedown", h); }, [open]);
+  return (
+    <div className="relative" ref={ref}>
+      <Tooltip text={tooltip} disabled={open}>
+        <button onClick={() => setOpen(v => !v)} className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:bg-black/[0.05]" style={{ color: "#8c8c8c" }}>{icon}</button>
+      </Tooltip>
+      {open && (
+        <div className="absolute left-0 top-full mt-1 rounded-xl overflow-hidden z-50" style={{ minWidth: 148, background: "white", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid rgba(0,0,0,0.06)" }}>
+          {options.map(opt => { const d = disabledSet.has(opt); return (<button key={opt} onClick={() => { if (!d) { setOpen(false); onSelect?.(opt); } }} className="w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-black/[0.04] disabled:opacity-40 disabled:cursor-not-allowed" style={{ color: "#374151" }} disabled={d}>{opt}</button>); })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SearchBox2({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [expanded, setExpanded] = useState(false); const inputRef = useRef<HTMLInputElement>(null);
+  function expand() { setExpanded(true); setTimeout(() => inputRef.current?.focus(), 50); }
+  function collapse() { if (!value) setExpanded(false); }
+  return (
+    <div className="flex items-center rounded-lg border transition-all duration-200 bg-white overflow-hidden" style={{ width: expanded ? 200 : 32, height: 32, borderColor: expanded ? "#d1d5db" : "transparent", background: expanded ? "white" : "transparent" }}>
+      <button onClick={expand} className="flex items-center justify-center w-8 h-8 shrink-0 transition-colors" style={{ color: expanded ? teal : "#8c8c8c" }}><Search className="w-4 h-4" /></button>
+      {expanded && <input ref={inputRef} type="text" placeholder="搜索数据" value={value} onChange={e => onChange(e.target.value)} onBlur={collapse} className="outline-none text-sm bg-transparent pr-2 w-full" style={{ color: "#374151" }} />}
+    </div>
+  );
+}
 
 function Field({ label, required, hint, error, children }: { label: string; required?: boolean; hint?: string; error?: string; children: React.ReactNode }) {
   return (<div style={{ background: error ? "#fffbe6" : "transparent", borderRadius: 8, padding: error ? "10px 12px" : 0 }}><label className="block text-base font-semibold mb-2" style={{ color: "#1d1d1f" }}>{required && <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>}{label}</label>{hint && <p className="text-[11px] text-gray-400 mb-2">{hint}</p>}{children}{error && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{error}</p>}</div>);
@@ -119,6 +171,30 @@ function MiniStaffPicker({ value, onChange }: { value: string; onChange: (v: str
   </div>);
 }
 
+function RecorderPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false); const [query, setQuery] = useState(""); const containerRef = useRef<HTMLDivElement>(null);
+  const { raw: members } = useDepartmentMembers();
+  const filtered = useMemo(() => { const q = query.trim(); const list = q ? members.filter(m => m.name.includes(q)) : members; return list.slice(0, 30); }, [members, query]);
+  const initial = value ? value.slice(0, 1) : "?";
+  return (<div ref={containerRef} className="relative">
+    {value ? (<div className="border border-dashed border-gray-300 bg-white rounded-[10px] px-3 py-2 min-h-[44px] flex items-center flex-wrap gap-2"><div className="flex items-center bg-blue-50 text-blue-600 px-2 py-1 rounded-lg text-sm border border-blue-100 gap-1.5"><div className="w-5 h-5 bg-blue-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">{initial}</div>{value}<X className="w-3.5 h-3.5 opacity-50 hover:opacity-100 cursor-pointer transition-opacity" onClick={() => onChange("")} /></div></div>) : (<button type="button" className="w-full border border-dashed border-gray-300 bg-white rounded-[10px] px-3.5 py-2.5 flex items-center justify-center gap-2 text-base text-gray-500 transition-all hover:border-[#00b095] hover:text-[#00b095]" style={{ minHeight: 44 }} onClick={() => setOpen(true)}><Plus size={15} className="opacity-70" /> 选择成员</button>)}
+    {open && (<><div className="fixed inset-0 z-40" onClick={() => setOpen(false)} /><div className="absolute top-full left-0 mt-2 z-50 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden" style={{ width: 320, maxHeight: 360 }}><div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-100"><Search className="w-4 h-4 text-gray-400 shrink-0" /><input autoFocus type="text" placeholder="搜索成员..." value={query} onChange={e => setQuery(e.target.value)} className="flex-1 outline-none text-base text-gray-700 placeholder-gray-400" />{query && <button onClick={() => setQuery("")} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>}</div><div className="overflow-y-auto" style={{ maxHeight: 288 }}>{filtered.length === 0 ? <p className="text-base text-gray-400 text-center py-8">无匹配结果</p> : filtered.map(m => (<button key={m.username} type="button" className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left" onClick={() => { onChange(m.name); setOpen(false); }}><div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold shrink-0">{m.name.slice(0, 1)}</div><div className="flex-1 min-w-0"><p className="text-base font-medium text-gray-800 truncate">{m.name}</p></div></button>))}</div></div></>)}
+  </div>);
+}
+
+function DeptMultiPicker({ selected, onChange }: { selected: string[]; onChange: (names: string[]) => void }) {
+  const [open, setOpen] = useState(false); const [query, setQuery] = useState(""); const containerRef = useRef<HTMLDivElement>(null);
+  const { raw: members } = useDepartmentMembers();
+  const filtered = useMemo(() => { const q = query.trim(); const list = q ? members.filter(m => m.name.includes(q)) : members; return list.slice(0, 30); }, [members, query]);
+  const toggle = (name: string) => { if (selected.includes(name)) onChange(selected.filter(n => n !== name)); else onChange([...selected, name]); };
+  return (<div ref={containerRef} className="relative">
+    <div className="border border-dashed border-gray-300 bg-white rounded-[10px] px-3 py-2 min-h-[72px] flex items-start flex-wrap gap-2 cursor-pointer" onClick={() => setOpen(true)}>
+      {selected.length === 0 ? <span className="text-base text-gray-400 flex items-center gap-1.5 py-2"><Plus size={15} className="opacity-70" /> 选择成员</span> : selected.map(name => (<span key={name} className="flex items-center gap-1 px-2 py-1 rounded-lg text-sm" style={{ background: "#f3f4f6", color: "#374151", border: "1px solid #e5e7eb" }}><span className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-[10px] text-white font-bold shrink-0">{name.slice(0, 1)}</span>{name}<X className="w-3 h-3 text-gray-400 cursor-pointer hover:text-gray-600" onClick={e => { e.stopPropagation(); toggle(name); }} /></span>))}
+    </div>
+    {open && (<><div className="fixed inset-0 z-40" onClick={() => setOpen(false)} /><div className="absolute top-full left-0 mt-2 z-50 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden" style={{ width: 340, maxHeight: 360 }}><div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-100"><Search className="w-4 h-4 text-gray-400 shrink-0" /><input autoFocus type="text" placeholder="搜索成员..." value={query} onChange={e => setQuery(e.target.value)} className="flex-1 outline-none text-base text-gray-700 placeholder-gray-400" />{query && <button onClick={() => setQuery("")} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>}</div><div className="overflow-y-auto" style={{ maxHeight: 288 }}>{filtered.length === 0 ? <p className="text-base text-gray-400 text-center py-8">无匹配结果</p> : filtered.map(m => { const isSel = selected.includes(m.name); return (<button key={m.username} type="button" className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left" onClick={() => toggle(m.name)}><div className="w-5 h-5 rounded border-2 flex items-center justify-center shrink-0" style={{ borderColor: isSel ? teal : "#d1d5db", backgroundColor: isSel ? teal : "transparent" }}>{isSel && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}</div><div className="flex-1 min-w-0"><p className="text-base font-medium text-gray-800 truncate">{m.name}</p></div></button>); })}</div></div></>)}
+  </div>);
+}
+
 function MultiStaffPicker({ selected, onChange }: { selected: string[]; onChange: (names: string[]) => void }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -171,8 +247,11 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const currentUser = useCurrentUser();
-  const { raw, isPending, isError } = useResearchDashboard();
+  const queryClient = useQueryClient();
+  const { raw, isPending, isError, refetch, isFetching } = useResearchDashboard();
+  const perms = useFormPermissions(JDY_CONFIG.JIAOYAN_ACTIVITY.entry_id);
   const { raw: allGroups } = useTeachingResearchGroups();
+  const { raw: deptMembers } = useDepartmentMembers();
 
   const isGroupLeader = useMemo(() => {
     if (!currentUser) return false;
@@ -198,6 +277,70 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
     return () => document.removeEventListener("mousedown", h);
   }, [dropdownOpen]);
 
+  const [tbSearch, setTbSearch] = useState("");
+  const [sortField, setSortField] = useState<keyof ResearchRecord>("提交时间");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [sortOpen, setSortOpen] = useState(false);
+  const sortRef = useRef<HTMLDivElement>(null);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [editRecord, setEditRecord] = useState<ResearchRecord | null>(null);
+
+  useEffect(() => {
+    if (!sortOpen) return;
+    function h(e: MouseEvent) { if (sortRef.current && !sortRef.current.contains(e.target as Node)) setSortOpen(false); }
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [sortOpen]);
+
+  // Pre-fill form when editing an existing record
+  useEffect(() => {
+    if (!editRecord) return;
+    setSemester(editRecord.学期);
+    setTopic(editRecord.教研主题);
+    setSubject(editRecord.教研学科);
+    setDate(editRecord.时间);
+    setWeek(editRecord.周次);
+    setLocation(editRecord.地点);
+    setGroup(editRecord.教研组);
+    setGroupLeader(editRecord.教研组长);
+    setHost(editRecord.主持人);
+    setRecorder(editRecord.记录人 ?? "");
+    setParticipants(editRecord.参与人员 ? editRecord.参与人员.split(",").filter(Boolean) : []);
+    setExpectedCount(String(editRecord.应到人数 ?? ""));
+    setActualCount(String(editRecord.实到人数 ?? ""));
+    setAbsentNote(editRecord.备注 ?? "");
+    setContentRecord(editRecord.内容记录);
+    setExistingPhotos(editRecord.照片 ?? []);
+    setExistingAttachments(editRecord.附件 ?? []);
+  }, [editRecord]);
+
+  const filtered = useMemo(() => {
+    if (!tbSearch.trim()) return tableData;
+    const q = tbSearch.trim();
+    return tableData.filter(r => r.教研主题.includes(q) || r.教研学科.includes(q) || r.教研组.includes(q) || r.主持人?.includes(q));
+  }, [tableData, tbSearch]);
+
+  const sorted = useMemo(() => [...filtered].sort((a, b) => {
+    const va = String(a[sortField] ?? ""); const vb = String(b[sortField] ?? "");
+    const cmp = va.localeCompare(vb, "zh"); return sortDir === "desc" ? -cmp : cmp;
+  }), [filtered, sortField, sortDir]);
+
+  const SORT_OPTIONS: { label: string; field: keyof ResearchRecord }[] = [
+    { label: "提交时间", field: "提交时间" },
+    { label: "学期", field: "学期" },
+    { label: "教研主题", field: "教研主题" },
+    { label: "时间", field: "时间" },
+  ];
+
+  const doExport = (data: ResearchRecord[]) => {
+    const headers = RESEARCH_COLUMNS.map(c => c.label);
+    const rows = data.map(r => RESEARCH_COLUMNS.map(c => String((r as unknown as Record<string, unknown>)[c.key] ?? "")));
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "教研活动记录");
+    XLSX.writeFile(wb, `教研活动记录_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
+
   const [topic, setTopic] = useState("");
   const [subject, setSubject] = useState("");
   const [date, setDate] = useState("");
@@ -205,19 +348,25 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
   const [location, setLocation] = useState("");
   const [group, setGroup] = useState("");
   const [groupLeader, setGroupLeader] = useState("");
-  const [host, setHost] = useState("");
-  const [recorder, setRecorder] = useState("");
+  const [host, setHost] = useState(currentUser?.name ?? "");
+  const [recorder, setRecorder] = useState(currentUser?.name ?? "");
   const [participants, setParticipants] = useState<string[]>([]);
   const [expectedCount, setExpectedCount] = useState("");
   const [actualCount, setActualCount] = useState("");
   const [absentNote, setAbsentNote] = useState("");
+  const [semester, setSemester] = useState("");
   const [contentRecord, setContentRecord] = useState("");
   const [photos, setPhotos] = useState<File[]>([]);
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [existingPhotos, setExistingPhotos] = useState<{ name: string; url: string; key?: string }[]>([]);
+  const [existingAttachments, setExistingAttachments] = useState<{ name: string; url: string; key?: string }[]>([]);
   const [submitted, setSubmitted] = useState(false);
 
   const { raw: courseList, isPending: courseLoading } = useCourses();
   const courseOptions = useMemo(() => [...new Set(courseList.map((c) => c.教研学科名).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh")), [courseList]);
+
+  const { raw: termList } = useTermInfo();
+  const termOptions = useMemo(() => termList.map(t => t.学期名称).filter(Boolean), [termList]);
 
   const { raw: groupList, isPending: groupLoading } = useTeachingResearchGroups();
   const groupOptions = useMemo(() => [...new Set(groupList.map((g) => g.教研组).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh")), [groupList]);
@@ -228,103 +377,346 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
     if (match) setGroupLeader(match.教研组长);
   };
 
-  const handleSubmit = () => { setSubmitted(true); if ([topic, subject, date, week, location, group, groupLeader, host, recorder, participants.length > 0, expectedCount, actualCount, absentNote, contentRecord].find((f) => !f)) window.scrollTo({ top: 0, behavior: "smooth" }); };
+  useEffect(() => {
+    if (dataMode !== DATA_MODES[0]) { setEditRecord(null); setExistingPhotos([]); setExistingAttachments([]); }
+  }, [dataMode]);
+
+  const handleClearForm = () => {
+    setSemester(""); setTopic(""); setSubject(""); setDate(""); setWeek(""); setLocation("");
+    setGroup(""); setGroupLeader(""); setHost(currentUser?.name ?? ""); setRecorder(currentUser?.name ?? "");
+    setParticipants([]); setExpectedCount(""); setActualCount("");
+    setAbsentNote(""); setContentRecord(""); setPhotos([]); setAttachments([]);
+    setExistingPhotos([]); setExistingAttachments([]); setSubmitted(false);
+    localStorage.removeItem("research-activity-draft");
+  };
+
+  const handleSaveDraft = () => {
+    if (!topic.trim() && !subject.trim() && !group.trim()) return;
+    localStorage.setItem("research-activity-draft", JSON.stringify({
+      semester, topic, subject, date, week, location, group, groupLeader,
+      host, recorder, participants, expectedCount, actualCount,
+      absentNote, contentRecord,
+    }));
+  };
+
+  // Restore draft when entering add mode
+  useEffect(() => {
+    if (editRecord || dataMode !== DATA_MODES[0]) return;
+    try {
+      const raw = localStorage.getItem("research-activity-draft");
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      if (d.semester) setSemester(d.semester);
+      if (d.topic) setTopic(d.topic);
+      if (d.subject) setSubject(d.subject);
+      if (d.date) setDate(d.date);
+      if (d.week) setWeek(d.week);
+      if (d.location) setLocation(d.location);
+      if (d.group) setGroup(d.group);
+      if (d.groupLeader) setGroupLeader(d.groupLeader);
+      if (d.host) setHost(d.host);
+      if (d.recorder) setRecorder(d.recorder);
+      if (d.participants) setParticipants(d.participants);
+      if (d.expectedCount) setExpectedCount(d.expectedCount);
+      if (d.actualCount) setActualCount(d.actualCount);
+      if (d.absentNote) setAbsentNote(d.absentNote);
+      if (d.contentRecord) setContentRecord(d.contentRecord);
+    } catch {}
+  }, [dataMode, editRecord]);
+
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const toMember = (name: string) => {
+    const m = deptMembers.find(d => d.name === name);
+    return m ? m.username : name;
+  };
+
+  const buildData = () => {
+    const now = new Date().toISOString();
+    return {
+      [WIDGET_IDS.学期]: { value: semester },
+      [WIDGET_IDS.教研主题]: { value: topic },
+      [WIDGET_IDS.教研学科]: { value: subject },
+      [WIDGET_IDS.时间]: { value: date },
+      [WIDGET_IDS.周次]: { value: week },
+      [WIDGET_IDS.地点]: { value: location },
+      [WIDGET_IDS.教研组]: { value: group },
+      [WIDGET_IDS.教研组长]: { value: toMember(groupLeader) },
+      [WIDGET_IDS.主持人]: { value: toMember(host) },
+      [WIDGET_IDS.记录人]: { value: toMember(recorder) },
+      [WIDGET_IDS.参与人员]: { value: participants.map(toMember) },
+      [WIDGET_IDS.应到人数]: { value: expectedCount },
+      [WIDGET_IDS.实到人数]: { value: actualCount },
+      [WIDGET_IDS.备注]: { value: absentNote },
+      [WIDGET_IDS.内容记录]: { value: contentRecord },
+      [WIDGET_IDS.学科部门]: { value: "" },
+      [WIDGET_IDS.提交人]: { value: isEditMode ? editRecord!.提交人 : (currentUser?.name ?? "") },
+      [WIDGET_IDS.提交时间]: { value: isEditMode ? editRecord!.提交时间 : now },
+    };
+  };
+
+  const isEditMode = editRecord !== null;
+
+  const handleSubmit = async () => {
+    setSubmitted(true);
+    if ([semester, topic, subject, date, week, location, group, groupLeader, host, recorder, participants.length > 0, expectedCount, actualCount, absentNote, contentRecord].find((f) => !f)) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const data: Record<string, { value: unknown }> = { ...buildData() };
+      const needUpload = photos.length > 0 || attachments.length > 0 || !isEditMode;
+      const transaction_id = needUpload ? crypto.randomUUID() : undefined;
+
+      // 编辑模式未上传新文件 → 不传文件字段，JDY 保留原值
+      if (photos.length > 0 || !isEditMode) {
+        const { keys } = await jdyUploadFiles(photos, JDY_CONFIG.JIAOYAN_ACTIVITY.app_id, JDY_CONFIG.JIAOYAN_ACTIVITY.entry_id, transaction_id);
+        data[WIDGET_IDS.照片] = { value: keys };
+      }
+      if (attachments.length > 0 || !isEditMode) {
+        const { keys } = await jdyUploadFiles(attachments, JDY_CONFIG.JIAOYAN_ACTIVITY.app_id, JDY_CONFIG.JIAOYAN_ACTIVITY.entry_id, transaction_id);
+        data[WIDGET_IDS.附件] = { value: keys };
+      }
+      if (isEditMode) {
+        await jdyUpdate({
+          app_id: JDY_CONFIG.JIAOYAN_ACTIVITY.app_id,
+          entry_id: JDY_CONFIG.JIAOYAN_ACTIVITY.entry_id,
+          data_id: editRecord!._id,
+          data,
+          data_creator: currentUser?.userId,
+          transaction_id,
+        });
+      } else {
+        await jdyCreate({
+          app_id: JDY_CONFIG.JIAOYAN_ACTIVITY.app_id,
+          entry_id: JDY_CONFIG.JIAOYAN_ACTIVITY.entry_id,
+          data,
+          data_creator: currentUser?.userId,
+          transaction_id,
+          is_start_workflow: false,
+          is_start_trigger: false,
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["research-dashboard", "activity-list"] });
+      localStorage.removeItem("research-activity-draft");
+      if (isEditMode) setEditRecord(null);
+      setDataMode(DATA_MODES[1]);
+      setSubmitted(false);
+      setPhotos([]); setAttachments([]); setExistingPhotos([]); setExistingAttachments([]);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "提交失败，请重试");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteSelected = async (mode: string) => {
+    const targetData = mode === "勾选的数据"
+      ? sorted.filter((_, i) => new Set(selectedIds).has(i + 1))
+      : tableData;
+    if (targetData.length === 0) return;
+    if (!confirm(`确定要删除 ${targetData.length} 条记录吗？此操作不可撤销。`)) return;
+    setDeleting(true);
+    try {
+      if (targetData.length === 1) {
+        await jdyDelete({ app_id: JDY_CONFIG.JIAOYAN_ACTIVITY.app_id, entry_id: JDY_CONFIG.JIAOYAN_ACTIVITY.entry_id, data_id: targetData[0]._id });
+      } else {
+        await jdyBatchDelete({ app_id: JDY_CONFIG.JIAOYAN_ACTIVITY.app_id, entry_id: JDY_CONFIG.JIAOYAN_ACTIVITY.entry_id, data_ids: targetData.map(r => r._id) });
+      }
+      queryClient.invalidateQueries({ queryKey: ["research-dashboard", "activity-list"] });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "删除失败，请重试");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (<div className="flex flex-col h-full overflow-hidden" style={{ color: "#1d1d1f" }}>
     <PageHeader centered breadcrumbs={[{ label: "教研活动" }, { label: "教研活动记录", active: true }]} onMenuOpen={onMenuOpen} />
     <div className="flex-1 overflow-y-auto bg-[#f5f5f7]">
-      {/* 模式选择下拉框 */}
-      <div className="max-w-6xl mx-auto mt-4 md:mt-10 px-3 md:px-6">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="relative shrink-0" ref={dropdownRef}>
-            <button
-              onClick={() => setDropdownOpen(v => !v)}
-              className="flex items-center gap-2 h-9 px-4 text-[15px] font-semibold rounded-xl transition-all duration-150 shrink-0"
-              style={{
-                minWidth: 200,
-                background: "white",
-                color: "#374151",
-                border: "1px solid rgba(0,0,0,0.1)",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-              }}
-            >
-              <span className="flex-1 text-left">{dataMode}</span>
-              <ChevronDown className="w-4 h-4 shrink-0 transition-transform duration-200" style={{ color: "#9ca3af", transform: dropdownOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
-            </button>
-            {dropdownOpen && (
-              <div className="absolute left-0 top-full mt-2 rounded-2xl overflow-hidden z-50" style={{ minWidth: 200, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 12px 32px rgba(0,0,0,0.12)" }}>
-                {DATA_MODES.map((opt, i) => {
-                  const disabled = opt === DATA_MODES[2] && !isGroupLeader;
-                  return (
-                    <button
-                      key={opt}
-                      onClick={() => { if (!disabled) { setDataMode(opt); setDropdownOpen(false); } }}
-                      className="w-full text-left px-4 h-11 text-[15px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                      disabled={disabled}
-                      style={{
-                        color: dataMode === opt ? teal : "#374151",
-                        background: dataMode === opt ? "rgba(0,176,149,0.06)" : "transparent",
-                        borderTop: i > 0 ? "1px solid rgba(0,0,0,0.04)" : "none",
-                      }}
-                    >
-                      {opt}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+      {/* 页面模式切换下拉框 — 始终可见 */}
+      <div className="max-w-7xl mx-auto px-3 md:px-6 pt-4 md:pt-6">
+        <div className="relative shrink-0 inline-block" ref={dropdownRef}>
+          <button
+            onClick={() => setDropdownOpen(v => !v)}
+            className="flex items-center gap-2 h-9 px-4 text-[15px] font-semibold rounded-xl transition-all duration-150"
+            style={{ minWidth: 200, background: "white", color: "#374151", border: "1px solid rgba(0,0,0,0.1)", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+          >
+            <span className="flex-1 text-left">{dataMode}</span>
+            <ChevronDown className="w-4 h-4 shrink-0 transition-transform duration-200" style={{ color: "#9ca3af", transform: dropdownOpen ? "rotate(180deg)" : "rotate(0deg)" }} />
+          </button>
+          {dropdownOpen && (
+            <div className="absolute left-0 top-full mt-2 rounded-2xl overflow-hidden z-50" style={{ minWidth: 200, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 12px 32px rgba(0,0,0,0.12)" }}>
+              {DATA_MODES.map((opt, i) => {
+                const disabled = opt === DATA_MODES[2] && !isGroupLeader;
+                return (
+                  <button
+                    key={opt}
+                    onClick={() => { if (!disabled) { setDataMode(opt); setDropdownOpen(false); } }}
+                    className="w-full text-left px-4 h-11 text-[15px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    disabled={disabled}
+                    style={{ color: dataMode === opt ? teal : "#374151", background: dataMode === opt ? "rgba(0,176,149,0.06)" : "transparent", borderTop: i > 0 ? "1px solid rgba(0,0,0,0.04)" : "none" }}
+                  >
+                    {opt}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
-      {dataMode === DATA_MODES[0] ? (
+      {(dataMode === DATA_MODES[0] || editRecord) ? (
         <main className="max-w-6xl mx-auto px-3 md:px-6 pb-24">
-          <div className="flex items-center justify-center gap-5 mb-10"><div className="relative h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} /><div className="flex items-center gap-3 px-12 py-2 text-white text-base font-semibold tracking-[0.2em]" style={{ backgroundColor: teal, clipPath: "polygon(10% 0,90% 0,100% 50%,90% 100%,10% 100%,0 50%)", boxShadow: "0 4px 12px rgba(0,176,149,0.2)" }}><span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" />教研活动记录<span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" /></div><div className="relative h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} /></div>
+          <div className="mb-8 text-center">
+            <div className="inline-flex flex-col items-center">
+              <h2 className="text-xl font-bold tracking-tight" style={{ color: "#111827" }}>
+                {editRecord ? "编辑教研活动记录" : "教研活动记录"}
+              </h2>
+              <div className="mt-2 h-0.5 w-12 rounded-full" style={{ background: `linear-gradient(90deg, ${teal}, #5BC8F5)` }} />
+              {editRecord && <p className="text-xs mt-2" style={{ color: "#9ca3af" }}>修改表单字段后点击保存</p>}
+            </div>
+          </div>
           <div className="rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white">
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
+              <Field label="学期" required error={submitted && !semester ? "此项为必填项" : undefined}><SelectField value={semester} onChange={setSemester} options={termOptions} /></Field>
               <Field label="教研主题" required error={submitted && !topic ? "此项为必填项" : undefined}><Input value={topic} onChange={setTopic} /></Field>
+            </div>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="教研学科" required error={submitted && !subject ? "此项为必填项" : undefined}><SelectField value={subject} onChange={setSubject} options={courseOptions} loading={courseLoading} /></Field>
-            </div>
-            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
-              <Field label="时间" required error={submitted && !date ? "此项为必填项" : undefined}><DateTimePicker value={date} onChange={setDate} /></Field>
-              <Field label="周次" required error={submitted && !week ? "此项为必填项" : undefined}><WeekInput value={week} onChange={setWeek} /></Field>
-            </div>
-            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
-              <Field label="地点" required error={submitted && !location ? "此项为必填项" : undefined}><Input value={location} onChange={setLocation} /></Field>
               <Field label="教研组" required error={submitted && !group ? "此项为必填项" : undefined}><SelectField value={group} onChange={handleGroupChange} options={groupOptions} loading={groupLoading} /></Field>
             </div>
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
-              <Field label="教研组长" required error={submitted && !groupLeader ? "此项为必填项" : undefined}><MiniStaffPicker value={groupLeader} onChange={setGroupLeader} /></Field>
-              <Field label="主持人" required error={submitted && !host ? "此项为必填项" : undefined}><MiniStaffPicker value={host} onChange={setHost} /></Field>
+              <Field label="时间" required error={submitted && !date ? "此项为必填项" : undefined}><DateTimePicker value={date} onChange={setDate} /></Field>
+              <Field label="地点" required error={submitted && !location ? "此项为必填项" : undefined}><Input value={location} onChange={setLocation} /></Field>
             </div>
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
-              <Field label="记录人" required error={submitted && !recorder ? "此项为必填项" : undefined}><MiniStaffPicker value={recorder} onChange={setRecorder} /></Field>
-              <Field label="参与人员" required error={submitted && participants.length === 0 ? "此项为必填项" : undefined}><MultiStaffPicker selected={participants} onChange={setParticipants} /></Field>
+              <Field label="周次" required error={submitted && !week ? "此项为必填项" : undefined}><WeekInput value={week} onChange={setWeek} /></Field>
+              <div />
+            </div>
+
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
+              <Field label="教研组长" required error={submitted && !groupLeader ? "此项为必填项" : undefined}><MiniStaffPicker value={groupLeader} onChange={setGroupLeader} /></Field>
+              <Field label="主持人" required error={submitted && !host ? "此项为必填项" : undefined}><RecorderPicker value={host} onChange={setHost} /></Field>
+            </div>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
+              <Field label="记录人" required error={submitted && !recorder ? "此项为必填项" : undefined}><RecorderPicker value={recorder} onChange={setRecorder} /></Field>
+              <Field label="参与人员" required error={submitted && participants.length === 0 ? "此项为必填项" : undefined}><DeptMultiPicker selected={participants} onChange={setParticipants} /></Field>
             </div>
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="应到人数" required error={submitted && !expectedCount ? "此项为必填项" : undefined}><Input value={expectedCount} onChange={setExpectedCount} /></Field>
               <Field label="实到人数" required error={submitted && !actualCount ? "此项为必填项" : undefined}><Input value={actualCount} onChange={setActualCount} /></Field>
             </div>
-            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
-              <Field label="未到场人员情况说明" required error={submitted && !absentNote ? "此项为必填项" : undefined}><Textarea value={absentNote} onChange={setAbsentNote} rows={6} /></Field>
-              <Field label="内容记录" required error={submitted && !contentRecord ? "此项为必填项" : undefined}><Textarea value={contentRecord} onChange={setContentRecord} rows={6} /></Field>
+
+            <div className="p-8 bg-white">
+              <Field label="内容记录" required error={submitted && !contentRecord ? "此项为必填项" : undefined}><Textarea value={contentRecord} onChange={setContentRecord} rows={5} /></Field>
             </div>
+            <div className="p-8 bg-white">
+              <Field label="未到场人员情况说明" required error={submitted && !absentNote ? "此项为必填项" : undefined}><Textarea value={absentNote} onChange={setAbsentNote} rows={5} /></Field>
+            </div>
+
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
-              <Field label="照片" required hint="请上传现场照片"><FileUpload files={photos} onChange={setPhotos} accept="image/*" hint="拖拽或单击后粘贴图片，单张 20MB 以内" /></Field>
-              <Field label="其他附件" hint="其他文件"><FileUpload files={attachments} onChange={setAttachments} accept="*" hint="拖拽或单击后粘贴文件，单个 500MB 以内" /></Field>
+              <div>
+                <Field label="照片" required hint="请上传现场照片"><FileUpload files={photos} onChange={setPhotos} accept="image/*" hint="拖拽或单击后粘贴图片，单张 20MB 以内" /></Field>
+                {existingPhotos.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {existingPhotos.map((f, i) => (
+                      <span key={i} className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 border border-blue-100 rounded text-xs text-blue-700">
+                        {f.name}<X className="w-3 h-3 cursor-pointer hover:text-red-500" onClick={() => setExistingPhotos(p => p.filter((_, j) => j !== i))} />
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div>
+                <Field label="其他附件" hint="其他文件"><FileUpload files={attachments} onChange={setAttachments} accept="*" hint="拖拽或单击后粘贴文件，单个 500MB 以内" /></Field>
+                {existingAttachments.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {existingAttachments.map((f, i) => (
+                      <span key={i} className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 border border-blue-100 rounded text-xs text-blue-700">
+                        {f.name}<X className="w-3 h-3 cursor-pointer hover:text-red-500" onClick={() => setExistingAttachments(p => p.filter((_, j) => j !== i))} />
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-          <div className="form-footer shrink-0 flex gap-3 px-6 md:px-10 py-4 mt-4 rounded-[28px]"><button className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px" style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }} onClick={handleSubmit}>提交</button><button className="btn-secondary">保存草稿</button></div>
+          <div className="form-footer shrink-0 flex gap-3 px-6 md:px-10 py-4 mt-4 rounded-[28px]">
+            {editRecord ? (
+              <button className="btn-secondary" onClick={() => { setEditRecord(null); setExistingPhotos([]); setExistingAttachments([]); }}>取消编辑</button>
+            ) : (
+              <>
+                <button className="btn-secondary" onClick={handleClearForm}>清空数据</button>
+                <button className="btn-secondary" onClick={handleSaveDraft}>保存草稿</button>
+              </>
+            )}
+            <div className="flex-1" />
+            <button className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px disabled:opacity-60" style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }} onClick={handleSubmit} disabled={submitting}>{submitting ? "提交中..." : (editRecord ? "保存" : "提交")}</button>
+          </div>
         </main>
       ) : (
-        <div className="max-w-7xl mx-auto px-3 md:px-6 pb-24">
+        <div className="max-w-7xl mx-auto px-3 md:px-6 pt-4 md:pt-6 pb-24">
           <div className="glass rounded-[32px] overflow-hidden flex flex-col shadow-sm" style={{ minHeight: 400 }}>
+            {/* 工具栏 */}
+            <div className="px-4 py-2.5 flex items-center gap-2 border-b border-gray-100">
+              <div className="flex items-center gap-0.5">
+                {perms.canExport && (
+                  <IconDropdown
+                    tooltip="导出"
+                    icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 14 12 9 17 14" /><line x1="12" y1="9" x2="12" y2="21" /></svg>}
+                    options={["勾选的数据", "全部数据"]}
+                    disabledOptions={selectedIds.length === 0 ? ["勾选的数据"] : undefined}
+                    onSelect={opt => { if (opt === "勾选的数据") { const idSet = new Set(selectedIds); doExport(sorted.filter((_, i) => idSet.has(i + 1))); } else { doExport(tableData); } }}
+                  />
+                )}
+                {perms.canDelete && (
+                  <IconDropdown tooltip="删除" icon={<Trash2 className="w-5 h-5" />} options={["勾选的数据", "全部数据"]} disabledOptions={(selectedIds.length === 0 ? ["勾选的数据"] : []).concat(deleting ? ["勾选的数据", "全部数据"] : [])} onSelect={handleDeleteSelected} />
+                )}
+                <IconDropdown tooltip="操作记录" icon={<Clock className="w-5 h-5" />} options={["批量修改记录", "批量打印模板记录"]} />
+              </div>
+              <div className="flex-1" />
+              <SearchBox2 value={tbSearch} onChange={setTbSearch} />
+              <button className="flex items-center gap-1 h-8 px-2.5 rounded-lg text-sm transition-all hover:bg-black/[0.05] shrink-0" style={{ color: "#8c8c8c", fontSize: 15 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></svg>筛选
+              </button>
+              <div className="flex items-center gap-0.5 pl-2 border-l border-gray-200" style={{ color: "#9ca3af" }}>
+                <div className="relative" ref={sortRef}>
+                  <Tooltip text="排序">
+                    <button onClick={() => setSortOpen(v => !v)} className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-black/[0.05] transition-all" style={{ color: sortField !== "提交时间" || sortDir !== "desc" ? teal : "#9ca3af" }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M6 12h12" /><path d="M9 18h6" /></svg>
+                    </button>
+                  </Tooltip>
+                  {sortOpen && (
+                    <div className="absolute right-0 top-full mt-1 rounded-xl overflow-hidden z-50" style={{ minWidth: 160, background: "white", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid rgba(0,0,0,0.06)" }}>
+                      <div className="px-3 py-2 border-b border-gray-100 flex items-center gap-2">
+                        <span className="text-xs font-medium" style={{ color: "#9ca3af" }}>排序字段</span>
+                        <div className="flex-1" />
+                        <button onClick={() => setSortDir(d => d === "desc" ? "asc" : "desc")} className="text-xs px-2 py-0.5 rounded-md transition-colors hover:bg-black/[0.04]" style={{ color: teal }}>{sortDir === "desc" ? "降序" : "升序"}</button>
+                      </div>
+                      {SORT_OPTIONS.map(opt => { const active = sortField === opt.field; return (
+                        <button key={opt.field} onClick={() => { setSortField(opt.field); setSortOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-black/[0.04] flex items-center gap-2" style={{ color: active ? teal : "#374151", fontWeight: active ? 600 : 400 }}>
+                          {opt.label}{active && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={teal} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="ml-auto"><polyline points="20 6 9 17 4 12" /></svg>}
+                        </button>
+                      );})}
+                    </div>
+                  )}
+                </div>
+                <Tooltip text="刷新">
+                  <button className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-black/[0.05] transition-all" onClick={() => refetch()} disabled={isFetching}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={isFetching ? "animate-spin" : ""}><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
+                  </button>
+                </Tooltip>
+              </div>
+            </div>
             {isPending ? (
               <div className="flex items-center justify-center py-20 text-sm text-gray-400">加载中...</div>
             ) : isError ? (
               <div className="flex items-center justify-center py-20 text-sm text-red-400">加载失败，请稍后重试</div>
             ) : (
-              <DataTable columns={RESEARCH_COLUMNS} rows={tableData.map((r, i) => ({ ...r, id: i + 1 }))} minWidth={1000} />
+              <DataTable columns={RESEARCH_COLUMNS} rows={sorted.map((r, i) => ({ ...r, id: i + 1 }))} minWidth={1000} onSelectionChange={setSelectedIds} onRowClick={r => setEditRecord(r as ResearchRecord)} />
             )}
           </div>
         </div>

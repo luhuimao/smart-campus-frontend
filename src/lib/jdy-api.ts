@@ -211,6 +211,8 @@ export const BEIKE_WIDGET_IDS = {
   附件: "_widget_1733300024357",
   学科部门: "_widget_1732696211426",
   备课参加次数: "_widget_1732696211427",
+  提交人: "creator",
+  提交时间: "createTime",
 } as const;
 //科技节活动记录
 export const SCIENTCE_FEST_WIDGET_IDS = {
@@ -226,6 +228,8 @@ export const SCIENTCE_FEST_WIDGET_IDS = {
   活动视频: "_widget_1773652937030",
   更多图片: "_widget_1778718276085",
   备注: "_widget_1773800483911",
+  提交人: "creator",
+  提交时间: "createTime",
 } as const;
 //教师所带班级排名
 export const CLASS_RANK_WIDGET_IDS = {
@@ -1148,6 +1152,7 @@ export interface JdyCreateParams {
   entry_id: string;
   data: Record<string, { value: unknown }>;
   data_creator?: string;
+  transaction_id?: string;
   is_start_workflow?: boolean;
   is_start_trigger?: boolean;
 }
@@ -1167,6 +1172,7 @@ export interface JdyUpdateParams {
   data_id: string;
   data: Record<string, { value: unknown }>;
   data_creator?: string;
+  transaction_id?: string;
   is_start_trigger?: boolean;
 }
 
@@ -1225,4 +1231,42 @@ export function jdyDelete(params: JdyDeleteParams): Promise<JdyMutationResponse>
 
 export function jdyBatchDelete(params: JdyBatchDeleteParams): Promise<JdyMutationResponse> {
   return scheduler.schedule(() => jdyMutate("batch-delete", params));
+}
+
+// ── 文件上传 ──────────────────────────────────────────────
+
+interface JdyUploadTokenResponse {
+  token_and_url_list: { url: string; token: string }[];
+}
+
+export async function jdyGetUploadTokens(app_id: string, entry_id: string, count: number, transaction_id?: string): Promise<{ tokens: { url: string; token: string }[]; transaction_id: string }> {
+  const tid = transaction_id ?? crypto.randomUUID();
+  const res = await fetch("/api/jdy/upload-token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ app_id, entry_id, transaction_id: tid }),
+  });
+  if (!res.ok) throw new Error(`get upload token failed (${res.status})`);
+  const data: JdyUploadTokenResponse = await res.json();
+  const list = data.token_and_url_list ?? [];
+  if (list.length < count) throw new Error(`need ${count} upload tokens but got ${list.length}`);
+  return { tokens: list.slice(0, count), transaction_id: tid };
+}
+
+async function uploadOneFile(file: File, url: string, token: string): Promise<string> {
+  const fullUrl = url.startsWith("http") ? url : `https://api.jiandaoyun.com${url.startsWith("/") ? "" : "/"}${url}`;
+  const form = new FormData();
+  form.append("file", file);
+  form.append("token", token);
+  const res = await fetch(fullUrl, { method: "POST", body: form });
+  if (!res.ok) throw new Error(`upload file failed (${res.status}): ${await res.text()}`);
+  const data = await res.json();
+  return data.key as string;
+}
+
+export async function jdyUploadFiles(files: File[], app_id: string, entry_id: string, transaction_id?: string): Promise<{ keys: string[]; transaction_id: string }> {
+  if (files.length === 0) return { keys: [], transaction_id: transaction_id ?? crypto.randomUUID() };
+  const { tokens, transaction_id: tid } = await jdyGetUploadTokens(app_id, entry_id, files.length, transaction_id);
+  const keys = await Promise.all(files.map((f, i) => uploadOneFile(f, tokens[i].url, tokens[i].token)));
+  return { keys, transaction_id: tid };
 }
