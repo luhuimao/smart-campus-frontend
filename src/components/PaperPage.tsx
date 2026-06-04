@@ -1,10 +1,12 @@
 "use client";
 
-import { Plus, ClipboardList, Menu, Trash2 } from "lucide-react";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { Plus, ClipboardList, Trash2 } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useCurrentUser } from "@/lib/user-context";
 import { StaffPicker } from "./ui/StaffPicker";
-import { useStaffDirectory, type StaffDirectoryRecord } from "@/hooks/use-research-dashboard";
+import { useStaffDirectory, useDepartmentMembers, type StaffDirectoryRecord } from "@/hooks/use-research-dashboard";
+import { JDY_CONFIG, TEACHER_PAPER_WIDGET_IDS, jdyCreate, jdyUploadFiles } from "@/lib/jdy-api";
+import { useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "./PageHeader";
 
 const teal = "#00b095";
@@ -63,10 +65,12 @@ type PaperRow = {
   author: string;
   date: string;
   level: string;
+  images: File[];
 };
 
 export function PaperPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const currentUser = useCurrentUser();
+  const queryClient = useQueryClient();
   const [teacherName, setTeacherName] = useState(currentUser?.name ?? "");
   const [idCard, setIdCard] = useState("");
   const [department, setDepartment] = useState("");
@@ -77,18 +81,24 @@ export function PaperPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [subject, setSubject] = useState("");
   const [hasThesis, setHasThesis] = useState<"yes" | "no">("yes");
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [draftToast, setDraftToast] = useState(false);
+  const draftImageCount = useRef(0);
 
   const [paperRows, setPaperRows] = useState<PaperRow[]>([
-    { id: 1, type: "", name: "", author: "", date: "", level: "" },
+    { id: 1, type: "", name: "", author: "", date: "", level: "", images: [] },
   ]);
   const [nextPaperId, setNextPaperId] = useState(2);
 
-  const updatePaperRow = useCallback((id: number, field: string, value: string | null) => {
+  const { raw: staffList } = useStaffDirectory();
+  const { raw: deptMembers } = useDepartmentMembers();
+
+  const updatePaperRow = useCallback((id: number, field: string, value: unknown) => {
     setPaperRows((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
   }, []);
 
   const addPaperRow = useCallback(() => {
-    setPaperRows((prev) => [...prev, { id: nextPaperId, type: "", name: "", author: "", date: "", level: "" }]);
+    setPaperRows((prev) => [...prev, { id: nextPaperId, type: "", name: "", author: "", date: "", level: "", images: [] }]);
     setNextPaperId((n) => n + 1);
   }, [nextPaperId]);
 
@@ -97,11 +107,152 @@ export function PaperPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   }, []);
 
   const anyPaperMissing = useMemo(
-    () => paperRows.some((r) => !r.type || !r.name || !r.author || !r.date || !r.level),
+    () => paperRows.some((r) => !r.type || !r.name || !r.author || !r.date || !r.level || r.images.length === 0),
     [paperRows],
   );
 
-  const { raw: staffList } = useStaffDirectory();
+  const hasImages = useMemo(() => paperRows.some(r => r.images.length > 0), [paperRows]);
+
+  // ── API Logic ──────────────────────────────────────────────
+
+  const toMember = (name: string) => {
+    const m = deptMembers.find(d => d.name === name);
+    return m ? m.username : name;
+  };
+
+  const H = TEACHER_PAPER_WIDGET_IDS;
+
+  const buildData = (allKeys: string[]) => {
+    let ki = 0;
+    const subRecords = paperRows.map(row => ({
+      [H.论文发表_编号]: { value: "" },
+      [H.论文发表_类型]: { value: row.type },
+      [H.论文发表_成果名称]: { value: row.name },
+      [H.论文发表_作者]: { value: row.author },
+      [H.论文发表_时间]: { value: row.date },
+      [H.论文发表_级别]: { value: row.level },
+      [H.论文发表_等级]: { value: "" },
+      [H.论文发表_刊物名称]: { value: "" },
+      [H.论文发表_证明图片]: { value: row.images.map(() => allKeys[ki++]) },
+    }));
+
+    const data: Record<string, { value: unknown }> = {
+      [H.教师姓名]: { value: toMember(teacherName) },
+      [H.身份证号码]: { value: idCard },
+      [H.有无论文]: { value: hasThesis === "yes" ? "有" : "暂无" },
+      [H["教师姓名（文本）"]]: { value: teacherName },
+    };
+    if (hasThesis === "yes") {
+      data[H.部门] = { value: department };
+      data[H.岗位] = { value: position };
+      data[H.岗位类型] = { value: positionType };
+      data[H["党委/行政职务"]] = { value: partyJob };
+      data[H.联系方式] = { value: phone };
+      data[H.担任学科] = { value: subject };
+      data[H.论文发表] = { value: subRecords };
+    }
+    return data;
+  };
+
+  const handleSubmit = async () => {
+    setSubmitted(true);
+    if (hasThesis === "yes" && anyPaperMissing) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    if (!teacherName || !idCard) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const allFiles = paperRows.flatMap(r => r.images);
+      let allKeys: string[] = [];
+      let transaction_id: string | undefined;
+      if (allFiles.length > 0) {
+        transaction_id = crypto.randomUUID();
+        const { keys } = await jdyUploadFiles(
+          allFiles,
+          JDY_CONFIG.TEACHER_PAPER_INFO.app_id,
+          JDY_CONFIG.TEACHER_PAPER_INFO.entry_id,
+          transaction_id,
+        );
+        allKeys = keys;
+      }
+      const res = await jdyCreate({
+        app_id: JDY_CONFIG.TEACHER_PAPER_INFO.app_id,
+        entry_id: JDY_CONFIG.TEACHER_PAPER_INFO.entry_id,
+        data: buildData(allKeys),
+        data_creator: currentUser?.userId,
+        transaction_id,
+        is_start_workflow: true,
+        is_start_trigger: false,
+      });
+      if (!res.success) {
+        alert(res.message || "提交失败，请重试");
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ["paper"] });
+      handleClearForm();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "提交失败，请重试");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ── Draft ──────────────────────────────────────────────────
+
+  const handleSaveDraft = () => {
+    const hasContent = teacherName || idCard || department || position || positionType || partyJob || phone || subject
+      || paperRows.some(r => r.type || r.name || r.author || r.date || r.level);
+    if (!hasContent) return;
+    if (hasImages) { draftImageCount.current = paperRows.reduce((s, r) => s + r.images.length, 0); setDraftToast(true); }
+    localStorage.setItem("paper-draft", JSON.stringify({
+      teacherName, idCard, department, position, positionType, partyJob, phone, subject,
+      hasThesis, paperRows: paperRows.map(r => ({ id: r.id, type: r.type, name: r.name, author: r.author, date: r.date, level: r.level })),
+      _imageCount: paperRows.reduce((s, r) => s + r.images.length, 0),
+    }));
+  };
+
+  const handleClearForm = () => {
+    setTeacherName(""); setIdCard(""); setDepartment(""); setPosition("");
+    setPositionType(""); setPartyJob(""); setPhone(""); setSubject("");
+    setPaperRows([{ id: 1, type: "", name: "", author: "", date: "", level: "", images: [] }]);
+    setNextPaperId(2);
+    setSubmitted(false);
+    localStorage.removeItem("paper-draft");
+  };
+
+  useEffect(() => {
+    if (!draftToast) return;
+    const t = setTimeout(() => setDraftToast(false), 3000);
+    return () => clearTimeout(t);
+  }, [draftToast]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("paper-draft");
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      if (d.teacherName) setTeacherName(d.teacherName);
+      if (d.idCard) setIdCard(d.idCard);
+      if (d.department) setDepartment(d.department);
+      if (d.position) setPosition(d.position);
+      if (d.positionType) setPositionType(d.positionType);
+      if (d.partyJob) setPartyJob(d.partyJob);
+      if (d.phone) setPhone(d.phone);
+      if (d.subject) setSubject(d.subject);
+      if (d.hasThesis) setHasThesis(d.hasThesis);
+      if (d.paperRows && d.paperRows.length > 0) {
+        setPaperRows(d.paperRows.map((r: PaperRow) => ({ ...r, images: [] })));
+        setNextPaperId(Math.max(...d.paperRows.map((r: PaperRow) => r.id)) + 1);
+      }
+    } catch {}
+  }, []);
+
+  // ── Staff ──────────────────────────────────────────────────
 
   useEffect(() => {
     if (teacherName && staffList.length > 0 && !idCard) {
@@ -136,27 +287,7 @@ export function PaperPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
     }
   };
 
-  const handleSubmit = () => {
-    setSubmitted(true);
-    const check = [
-      { field: teacherName, name: "教师姓名" },
-      { field: idCard, name: "身份证号码" },
-      ...(hasThesis === "yes"
-        ? [
-          { field: department, name: "部门" },
-          { field: position, name: "岗位" },
-          { field: positionType, name: "岗位类型" },
-          { field: partyJob, name: "党委/行政职务" },
-          { field: phone, name: "联系方式" },
-          { field: subject, name: "担任学科" },
-          { field: !anyPaperMissing, name: "论文发表" },
-        ]
-        : []),
-    ];
-    if (check.find((r) => !r.field)) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
+  // ── Render ─────────────────────────────────────────────────
 
   return (
     <div
@@ -165,33 +296,31 @@ export function PaperPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
     >
       <PageHeader
         centered
-       
         breadcrumbs={[{ label: "教师基础档案" }, { label: "论文", active: true }]}
         onMenuOpen={onMenuOpen}
       />
 
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto bg-[#f5f5f7] pb-24">
-        <main className="max-w-6xl mx-auto mt-4 md:mt-10 px-3 md:px-6">
+      <div className="flex-1 overflow-y-auto bg-[#f5f5f7]">
+        <main className="max-w-6xl mx-auto pt-4 md:pt-6 px-3 md:px-6 pb-24">
 
-          {/* Decorative title */}
-          <div className="flex items-center justify-center gap-5 mb-12">
-            <div className="h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} />
-            <div
-              className="flex items-center gap-3 px-12 py-2 text-white text-base font-semibold tracking-[0.2em]"
-              style={{ backgroundColor: teal, clipPath: "polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%)", boxShadow: "0 4px 12px rgba(0,176,149,0.2)" }}
-            >
-              <span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" />
-              论文
-              <span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" />
+          <div className="mb-8 text-center">
+            <div className="inline-flex flex-col items-center">
+              <h2 className="text-xl font-bold tracking-tight" style={{ color: "#111827" }}>论文</h2>
+              <div className="mt-2 h-0.5 w-12 rounded-full" style={{ background: `linear-gradient(90deg, ${teal}, #5BC8F5)` }} />
             </div>
-            <div className="h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} />
           </div>
 
-          {/* Form card */}
-          <div className="rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white">
+          {draftToast && (
+            <div className="mb-4 flex items-center gap-2 text-sm rounded-lg px-4 py-2.5 max-w-lg mx-auto"
+              style={{ background: "rgba(245,158,11,0.08)", color: "#d97706" }}>
+              <span>草稿已保存</span>
+              <span className="opacity-60">—</span>
+              <span className="opacity-60">已选的 {draftImageCount.current} 张图片未保存，提交前请重新上传</span>
+            </div>
+          )}
 
-            {/* Row 1 — 教师姓名 + 身份证号码 */}
+          <div className="rounded-[28px] shadow-sm border border-gray-100 bg-white">
+
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="教师姓名" required>
                 <StaffPicker value={teacherName} onChange={setTeacherName} onSelectRecord={handleSelectStaff} />
@@ -203,7 +332,6 @@ export function PaperPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
               </Field>
             </div>
 
-            {/* Row 2 — 有无论文 */}
             <div className="p-8 bg-white">
               <Field label="有无论文" required>
                 <div className="flex items-center gap-10 py-2">
@@ -224,7 +352,6 @@ export function PaperPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
 
             {hasThesis === "yes" && (
               <>
-                {/* Row 3 — 部门 + 岗位 */}
                 <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
                   <Field label="部门" required>
                     <Input value={department} onChange={setDepartment} />
@@ -236,7 +363,6 @@ export function PaperPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                   </Field>
                 </div>
 
-                {/* Row 4 — 岗位类型 + 党委/行政职务 */}
                 <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
                   <Field label="岗位类型" hint="可填任意一个：教学岗 教辅岗 行政岗 工勤岗 技能岗 管理岗" required>
                     <Input value={positionType} onChange={setPositionType} />
@@ -248,7 +374,6 @@ export function PaperPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                   </Field>
                 </div>
 
-                {/* Row 5 — 联系方式 + 担任学科 */}
                 <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
                   <Field label="联系方式" required>
                     <Input value={phone} onChange={setPhone} />
@@ -267,11 +392,10 @@ export function PaperPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                   </p>
 
                   <div className="w-full border border-gray-100 rounded-xl overflow-hidden text-sm"
-                    style={{ display: "grid", gridTemplateColumns: "48px 1fr 1.4fr 1fr 1fr 1fr 52px" }}>
-                    {/* Header */}
-                    {["", "类型", "成果名称", "作者", "时间", "级别", ""].map((h, i) => (
+                    style={{ display: "grid", gridTemplateColumns: "48px 1fr 1.4fr 1fr 1fr 1fr 160px 52px" }}>
+                    {["", "类型", "成果名称", "作者", "时间", "级别", "证明图片", ""].map((h, i) => (
                       <div key={i} className="px-3 py-3 bg-gray-50 text-sm font-semibold text-gray-600 border-b border-r border-gray-100 last:border-r-0">
-                        {i > 0 && i !== 5 && i !== 6 && <span style={{ color: "#ff4d4f", marginRight: 3 }}>*</span>}
+                        {i > 0 && i !== 6 && i !== 7 && <span style={{ color: "#ff4d4f", marginRight: 3 }}>*</span>}
                         {h}
                       </div>
                     ))}
@@ -324,6 +448,41 @@ export function PaperPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                             options={["国家级", "省级", "市级","区级","校级","其他"]}
                           />
                         </div>
+                        <div key={`img-${row.id}`} className="px-1 py-2 bg-white border-b border-r border-gray-100">
+                          <div className="flex items-center gap-1 overflow-x-auto" style={{ maxWidth: 152 }}>
+                            {row.images.map((file, fi) => (
+                              <div key={fi} className="relative shrink-0 w-7 h-7 rounded overflow-hidden border border-gray-200 group">
+                                <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
+                                <button
+                                  type="button"
+                                  className="absolute inset-0 flex items-center justify-center bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => {
+                                    const updated = [...row.images]; updated.splice(fi, 1);
+                                    updatePaperRow(row.id, "images", updated);
+                                  }}
+                                >
+                                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
+                              </div>
+                            ))}
+                            <label
+                              className="shrink-0 w-7 h-7 border border-dashed rounded flex items-center justify-center cursor-pointer hover:border-[#00b095] hover:bg-teal-50/30 bg-gray-50"
+                              style={{ borderColor: submitted && row.images.length === 0 ? "#ff4d4f" : "#e5e7eb" }}
+                            >
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                className="hidden"
+                                onChange={(e) => {
+                                  if (e.target.files) updatePaperRow(row.id, "images", [...row.images, ...Array.from(e.target.files)]);
+                                  e.target.value = "";
+                                }}
+                              />
+                            </label>
+                          </div>
+                        </div>
                         <div key={`del-${row.id}`} className="px-2 py-2 bg-white border-b border-gray-100 flex items-center justify-center">
                           <button
                             type="button"
@@ -344,6 +503,7 @@ export function PaperPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                       {paperRows.some((r) => !r.author) && <p className="text-xs" style={{ color: "#ff4d4f" }}>作者为必填项</p>}
                       {paperRows.some((r) => !r.date) && <p className="text-xs" style={{ color: "#ff4d4f" }}>时间为必填项</p>}
                       {paperRows.some((r) => !r.level) && <p className="text-xs" style={{ color: "#ff4d4f" }}>级别为必填项</p>}
+                      {paperRows.some((r) => r.images.length === 0) && <p className="text-xs" style={{ color: "#ff4d4f" }}>证明图片为必填项</p>}
                     </div>
                   )}
 
@@ -359,21 +519,20 @@ export function PaperPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
               </>
             )}
           </div>
-        </main>
-      </div>
 
-      {/* Fixed footer */}
-      <div className="form-footer shrink-0 flex gap-3 px-10 py-4">
-        <button
-          className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px"
-          style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}
-          onClick={handleSubmit}
-        >
-          提交
-        </button>
-        <button className="btn-secondary">
-          保存草稿
-        </button>
+          <div className="form-footer shrink-0 flex gap-3 px-6 md:px-10 py-4 mt-4 rounded-[28px]">
+            <button className="btn-secondary" onClick={handleSaveDraft}>保存草稿</button>
+            <div className="flex-1" />
+            <button
+              className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px disabled:opacity-60"
+              style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
+              {submitting ? "提交中..." : "提交"}
+            </button>
+          </div>
+        </main>
       </div>
     </div>
   );

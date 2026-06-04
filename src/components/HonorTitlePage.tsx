@@ -1,10 +1,12 @@
 "use client";
 
-import { Plus, Image, ClipboardList, Menu, Trash2 } from "lucide-react";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { Plus, ClipboardList, Trash2, Upload, X } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useCurrentUser } from "@/lib/user-context";
 import { StaffPicker } from "./ui/StaffPicker";
-import { useStaffDirectory, type StaffDirectoryRecord } from "@/hooks/use-research-dashboard";
+import { useStaffDirectory, useDepartmentMembers, type StaffDirectoryRecord } from "@/hooks/use-research-dashboard";
+import { JDY_CONFIG, TEACHER_HONORARY_TITLE_WIDGET_IDS, jdyCreate, jdyUploadFiles } from "@/lib/jdy-api";
+import { useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "./PageHeader";
 
 const teal = "#00b095";
@@ -62,11 +64,12 @@ type HonorRow = {
   title: string;
   level: string;
   unit: string;
-  image: string | null;
+  images: File[];
 };
 
 export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const currentUser = useCurrentUser();
+  const queryClient = useQueryClient();
   const [teacherName, setTeacherName] = useState(currentUser?.name ?? "");
   const [idCard, setIdCard] = useState("");
   const [department, setDepartment] = useState("");
@@ -77,18 +80,24 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [subject, setSubject] = useState("");
   const [hasHonor, setHasHonor] = useState<"yes" | "no">("yes");
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [draftToast, setDraftToast] = useState(false);
+  const draftImageCount = useRef(0);
 
   const [honorRows, setHonorRows] = useState<HonorRow[]>([
-    { id: 1, date: "", title: "", level: "", unit: "", image: null },
+    { id: 1, date: "", title: "", level: "", unit: "", images: [] },
   ]);
   const [nextHonorId, setNextHonorId] = useState(2);
 
-  const updateHonorRow = useCallback((id: number, field: string, value: string | null) => {
+  const { raw: staffList } = useStaffDirectory();
+  const { raw: deptMembers } = useDepartmentMembers();
+
+  const updateHonorRow = useCallback((id: number, field: string, value: unknown) => {
     setHonorRows((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
   }, []);
 
   const addHonorRow = useCallback(() => {
-    setHonorRows((prev) => [...prev, { id: nextHonorId, date: "", title: "", level: "", unit: "", image: null }]);
+    setHonorRows((prev) => [...prev, { id: nextHonorId, date: "", title: "", level: "", unit: "", images: [] }]);
     setNextHonorId((n) => n + 1);
   }, [nextHonorId]);
 
@@ -97,11 +106,149 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   }, []);
 
   const anyHonorMissing = useMemo(
-    () => honorRows.some((r) => !r.date || !r.title || !r.level || !r.unit || !r.image),
+    () => honorRows.some((r) => !r.date || !r.title || !r.level || !r.unit || r.images.length === 0),
     [honorRows],
   );
 
-  const { raw: staffList } = useStaffDirectory();
+  const hasImages = useMemo(() => honorRows.some(r => r.images.length > 0), [honorRows]);
+
+  // ── API Logic ──────────────────────────────────────────────
+
+  const toMember = (name: string) => {
+    const m = deptMembers.find(d => d.name === name);
+    return m ? m.username : name;
+  };
+
+  const H = TEACHER_HONORARY_TITLE_WIDGET_IDS;
+
+  const buildData = (allKeys: string[]) => {
+    let ki = 0;
+    const subRecords = honorRows.map(row => ({
+      [H.荣誉称号_编号]: { value: "" },
+      [H.荣誉称号_获评日期]: { value: row.date },
+      [H.荣誉称号_荣誉称号]: { value: row.title },
+      [H.荣誉称号_荣誉级别]: { value: row.level },
+      [H.荣誉称号_颁发单位]: { value: row.unit },
+      [H.荣誉称号_相关照片]: { value: row.images.map(() => allKeys[ki++]) },
+    }));
+
+    const data: Record<string, { value: unknown }> = {
+      [H.教师姓名]: { value: toMember(teacherName) },
+      [H.身份证号码]: { value: idCard },
+      [H.有无荣誉称号]: { value: hasHonor === "yes" ? "有" : "暂无" },
+      [H["教师姓名（文本）"]]: { value: teacherName },
+    };
+    if (hasHonor === "yes") {
+      data[H.部门] = { value: department };
+      data[H.岗位] = { value: position };
+      data[H.岗位类型] = { value: positionType };
+      data[H["党委/行政职务"]] = { value: partyJob };
+      data[H.联系方式] = { value: phone };
+      data[H.担任学科] = { value: subject };
+      data[H.荣誉称号] = { value: subRecords };
+    }
+    return data;
+  };
+
+  const handleSubmit = async () => {
+    setSubmitted(true);
+    if (hasHonor === "yes" && anyHonorMissing) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    if (!teacherName || !idCard) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const allFiles = honorRows.flatMap(r => r.images);
+      let allKeys: string[] = [];
+      let transaction_id: string | undefined;
+      if (allFiles.length > 0) {
+        transaction_id = crypto.randomUUID();
+        const { keys } = await jdyUploadFiles(
+          allFiles,
+          JDY_CONFIG.TEACHER_HONORARY_TITLE_INFO.app_id,
+          JDY_CONFIG.TEACHER_HONORARY_TITLE_INFO.entry_id,
+          transaction_id,
+        );
+        allKeys = keys;
+      }
+      const res = await jdyCreate({
+        app_id: JDY_CONFIG.TEACHER_HONORARY_TITLE_INFO.app_id,
+        entry_id: JDY_CONFIG.TEACHER_HONORARY_TITLE_INFO.entry_id,
+        data: buildData(allKeys),
+        data_creator: currentUser?.userId,
+        transaction_id,
+        is_start_workflow: true,
+        is_start_trigger: false,
+      });
+      if (!res.success) {
+        alert(res.message || "提交失败，请重试");
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ["honor-title"] });
+      handleClearForm();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "提交失败，请重试");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ── Draft ──────────────────────────────────────────────────
+
+  const handleSaveDraft = () => {
+    const hasContent = teacherName || idCard || department || position || positionType || partyJob || phone || subject
+      || honorRows.some(r => r.date || r.title || r.level || r.unit);
+    if (!hasContent) return;
+    if (hasImages) { draftImageCount.current = honorRows.reduce((s, r) => s + r.images.length, 0); setDraftToast(true); }
+    localStorage.setItem("honor-title-draft", JSON.stringify({
+      teacherName, idCard, department, position, positionType, partyJob, phone, subject,
+      hasHonor, honorRows: honorRows.map(r => ({ id: r.id, date: r.date, title: r.title, level: r.level, unit: r.unit })),
+      _imageCount: honorRows.reduce((s, r) => s + r.images.length, 0),
+    }));
+  };
+
+  const handleClearForm = () => {
+    setTeacherName(""); setIdCard(""); setDepartment(""); setPosition("");
+    setPositionType(""); setPartyJob(""); setPhone(""); setSubject("");
+    setHonorRows([{ id: 1, date: "", title: "", level: "", unit: "", images: [] }]);
+    setNextHonorId(2);
+    setSubmitted(false);
+    localStorage.removeItem("honor-title-draft");
+  };
+
+  useEffect(() => {
+    if (!draftToast) return;
+    const t = setTimeout(() => setDraftToast(false), 3000);
+    return () => clearTimeout(t);
+  }, [draftToast]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("honor-title-draft");
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      if (d.teacherName) setTeacherName(d.teacherName);
+      if (d.idCard) setIdCard(d.idCard);
+      if (d.department) setDepartment(d.department);
+      if (d.position) setPosition(d.position);
+      if (d.positionType) setPositionType(d.positionType);
+      if (d.partyJob) setPartyJob(d.partyJob);
+      if (d.phone) setPhone(d.phone);
+      if (d.subject) setSubject(d.subject);
+      if (d.hasHonor) setHasHonor(d.hasHonor);
+      if (d.honorRows && d.honorRows.length > 0) {
+        setHonorRows(d.honorRows.map((r: HonorRow) => ({ ...r, images: [] })));
+        setNextHonorId(Math.max(...d.honorRows.map((r: HonorRow) => r.id)) + 1);
+      }
+    } catch {}
+  }, []);
+
+  // ── Staff ──────────────────────────────────────────────────
 
   useEffect(() => {
     if (teacherName && staffList.length > 0 && !idCard) {
@@ -136,27 +283,7 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
     }
   };
 
-  const handleSubmit = () => {
-    setSubmitted(true);
-    const check = [
-      { field: teacherName, name: "教师姓名" },
-      { field: idCard, name: "身份证号码" },
-      ...(hasHonor === "yes"
-        ? [
-          { field: department, name: "部门" },
-          { field: position, name: "岗位" },
-          { field: positionType, name: "岗位类型" },
-          { field: partyJob, name: "党委/行政职务" },
-          { field: phone, name: "联系方式" },
-          { field: subject, name: "担任学科" },
-          { field: !anyHonorMissing, name: "荣誉称号" },
-        ]
-        : []),
-    ];
-    if (check.find((r) => !r.field)) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
+  // ── Render ─────────────────────────────────────────────────
 
   return (
     <div
@@ -165,33 +292,31 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
     >
       <PageHeader
         centered
-       
         breadcrumbs={[{ label: "教师基础档案" }, { label: "荣誉称号", active: true }]}
         onMenuOpen={onMenuOpen}
       />
 
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto bg-[#f5f5f7] pb-24">
-        <main className="max-w-6xl mx-auto mt-4 md:mt-10 px-3 md:px-6">
+      <div className="flex-1 overflow-y-auto bg-[#f5f5f7]">
+        <main className="max-w-6xl mx-auto pt-4 md:pt-6 px-3 md:px-6 pb-24">
 
-          {/* Decorative title */}
-          <div className="flex items-center justify-center gap-5 mb-12">
-            <div className="relative h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} />
-            <div
-              className="flex items-center gap-3 px-12 py-2 text-white text-base font-semibold tracking-[0.2em]"
-              style={{ backgroundColor: teal, clipPath: "polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%)", boxShadow: "0 4px 12px rgba(0,176,149,0.2)" }}
-            >
-              <span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" />
-              荣誉称号
-              <span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" />
+          <div className="mb-8 text-center">
+            <div className="inline-flex flex-col items-center">
+              <h2 className="text-xl font-bold tracking-tight" style={{ color: "#111827" }}>荣誉称号</h2>
+              <div className="mt-2 h-0.5 w-12 rounded-full" style={{ background: `linear-gradient(90deg, ${teal}, #5BC8F5)` }} />
             </div>
-            <div className="relative h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} />
           </div>
 
-          {/* Form card */}
-          <div className="rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white">
+          {draftToast && (
+            <div className="mb-4 flex items-center gap-2 text-sm rounded-lg px-4 py-2.5 max-w-lg mx-auto"
+              style={{ background: "rgba(245,158,11,0.08)", color: "#d97706" }}>
+              <span>草稿已保存</span>
+              <span className="opacity-60">—</span>
+              <span className="opacity-60">已选的 {draftImageCount.current} 张图片未保存，提交前请重新上传</span>
+            </div>
+          )}
 
-            {/* Row 1 — 教师姓名 + 身份证号码 */}
+          <div className="rounded-[28px] shadow-sm border border-gray-100 bg-white">
+
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="教师姓名" required>
                 <StaffPicker value={teacherName} onChange={setTeacherName} onSelectRecord={handleSelectStaff} />
@@ -203,7 +328,6 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
               </Field>
             </div>
 
-            {/* Row 2 — 有无荣誉称号 */}
             <div className="p-8 bg-white">
               <Field label="有无荣誉称号" required>
                 <div className="flex items-center gap-10 py-2">
@@ -224,7 +348,6 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
 
             {hasHonor === "yes" && (
               <>
-                {/* Row 3 — 部门 + 岗位 */}
                 <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
                   <Field label="部门" required>
                     <Input value={department} onChange={setDepartment} />
@@ -236,7 +359,6 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                   </Field>
                 </div>
 
-                {/* Row 4 — 岗位类型 + 党委/行政职务 */}
                 <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
                   <Field label="岗位类型" hint="可填任意一个：教学岗 教辅岗 行政岗 工勤岗 技能岗 管理岗" required>
                     <Input value={positionType} onChange={setPositionType} />
@@ -248,7 +370,6 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                   </Field>
                 </div>
 
-                {/* Row 5 — 联系方式 + 担任学科 */}
                 <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
                   <Field label="联系方式" required>
                     <Input value={phone} onChange={setPhone} />
@@ -270,8 +391,7 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                   </div>
 
                   <div className="w-full border border-gray-100 rounded-xl overflow-hidden text-sm"
-                    style={{ display: "grid", gridTemplateColumns: "48px 1fr 1.2fr 1fr 1.2fr 80px 52px" }}>
-                    {/* Header */}
+                    style={{ display: "grid", gridTemplateColumns: "48px 1fr 1.2fr 1fr 1.2fr 160px 52px" }}>
                     {["", "获评日期", "荣誉称号", "荣誉级别", "颁发单位", "相关照片", ""].map((h, i) => (
                       <div key={i} className="px-3 py-3 bg-gray-50 text-sm font-semibold text-gray-600 border-b border-r border-gray-100 last:border-r-0">
                         {i > 0 && i !== 5 && i !== 6 && <span style={{ color: "#ff4d4f", marginRight: 3 }}>*</span>}
@@ -321,24 +441,40 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                             onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
                           />
                         </div>
-                        <div key={`img-${row.id}`} className="px-2 py-2 bg-white border-b border-r border-gray-100">
-                          <label className="w-full h-8 border rounded-lg flex items-center justify-center bg-gray-50 text-gray-300 cursor-pointer hover:bg-gray-100 transition-colors overflow-hidden"
-                            style={{ borderColor: submitted && !row.image ? "#ff4d4f" : "#e5e7eb" }}>
-                            {row.image ? (
-                              <img src={row.image} alt="" className="w-full h-full object-cover" />
-                            ) : (
-                              <Image className="w-4 h-4" />
-                            )}
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) updateHonorRow(row.id, "image", URL.createObjectURL(file));
-                              }}
-                            />
-                          </label>
+                        <div key={`img-${row.id}`} className="px-1 py-2 bg-white border-b border-r border-gray-100">
+                          <div className="flex items-center gap-1 overflow-x-auto" style={{ maxWidth: 152 }}>
+                            {row.images.map((file, fi) => (
+                              <div key={fi} className="relative shrink-0 w-7 h-7 rounded overflow-hidden border border-gray-200 group">
+                                <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
+                                <button
+                                  type="button"
+                                  className="absolute inset-0 flex items-center justify-center bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => {
+                                    const updated = [...row.images]; updated.splice(fi, 1);
+                                    updateHonorRow(row.id, "images", updated);
+                                  }}
+                                >
+                                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
+                              </div>
+                            ))}
+                            <label
+                              className="shrink-0 w-7 h-7 border border-dashed rounded flex items-center justify-center cursor-pointer hover:border-[#00b095] hover:bg-teal-50/30 bg-gray-50"
+                              style={{ borderColor: submitted && row.images.length === 0 ? "#ff4d4f" : "#e5e7eb" }}
+                            >
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                className="hidden"
+                                onChange={(e) => {
+                                  if (e.target.files) updateHonorRow(row.id, "images", [...row.images, ...Array.from(e.target.files)]);
+                                  e.target.value = "";
+                                }}
+                              />
+                            </label>
+                          </div>
                         </div>
                         <div key={`del-${row.id}`} className="px-2 py-2 bg-white border-b border-gray-100 flex items-center justify-center">
                           <button
@@ -359,7 +495,7 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                       {honorRows.some((r) => !r.title) && <p className="text-xs" style={{ color: "#ff4d4f" }}>荣誉称号为必填项</p>}
                       {honorRows.some((r) => !r.level) && <p className="text-xs" style={{ color: "#ff4d4f" }}>荣誉级别为必填项</p>}
                       {honorRows.some((r) => !r.unit) && <p className="text-xs" style={{ color: "#ff4d4f" }}>颁发单位为必填项</p>}
-                      {honorRows.some((r) => !r.image) && <p className="text-xs" style={{ color: "#ff4d4f" }}>相关照片为必填项</p>}
+                      {honorRows.some((r) => r.images.length === 0) && <p className="text-xs" style={{ color: "#ff4d4f" }}>相关照片为必填项</p>}
                     </div>
                   )}
 
@@ -375,21 +511,20 @@ export function HonorTitlePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
               </>
             )}
           </div>
-        </main>
-      </div>
 
-      {/* Fixed footer */}
-      <div className="form-footer shrink-0 flex gap-3 px-10 py-4">
-        <button
-          className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px"
-          style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}
-          onClick={handleSubmit}
-        >
-          提交
-        </button>
-        <button className="btn-secondary">
-          保存草稿
-        </button>
+          <div className="form-footer shrink-0 flex gap-3 px-6 md:px-10 py-4 mt-4 rounded-[28px]">
+            <button className="btn-secondary" onClick={handleSaveDraft}>保存草稿</button>
+            <div className="flex-1" />
+            <button
+              className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px disabled:opacity-60"
+              style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
+              {submitting ? "提交中..." : "提交"}
+            </button>
+          </div>
+        </main>
       </div>
     </div>
   );

@@ -1,10 +1,12 @@
 "use client";
 
-import { Bell, ChevronDown, ChevronRight, Plus, Image, ClipboardList, Menu, Trash2 } from "lucide-react";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { Upload, X } from "lucide-react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useCurrentUser } from "@/lib/user-context";
 import { StaffPicker } from "./ui/StaffPicker";
-import { useStaffDirectory, useCourses, type StaffDirectoryRecord } from "@/hooks/use-research-dashboard";
+import { useStaffDirectory, useCourses, useDepartmentMembers, type StaffDirectoryRecord } from "@/hooks/use-research-dashboard";
+import { JDY_CONFIG, TEACHER_QUALIFICATION_CERTIFICATE_WIDGET_IDS, jdyCreate, jdyUploadFiles } from "@/lib/jdy-api";
+import { useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "./PageHeader";
 
 const teal = "#00b095";
@@ -43,6 +45,7 @@ function Input({ placeholder = "", value, onChange }: { placeholder?: string; va
 
 export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const currentUser = useCurrentUser();
+  const queryClient = useQueryClient();
   const [teacherName, setTeacherName] = useState(currentUser?.name ?? "");
   const [idCard, setIdCard] = useState("");
   const [department, setDepartment] = useState("");
@@ -54,30 +57,18 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [hasCert, setHasCert] = useState<"yes" | "no">("yes");
   const [submitted, setSubmitted] = useState(false);
 
-  const [certRows, setCertRows] = useState<{ id: number; certNumber: string; certType: string; teachingSubject: string; certImage: string | null; certDate: string }[]>([
-    { id: 1, certNumber: "", certType: "", teachingSubject: "", certImage: null, certDate: "" },
-  ]);
-  const [nextCertId, setNextCertId] = useState(2);
-
-  const updateCertRow = useCallback((id: number, field: string, value: string | null) => {
-    setCertRows((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
-  }, []);
-
-  const addCertRow = useCallback(() => {
-    setCertRows((prev) => [...prev, { id: nextCertId, certNumber: "", certType: "", teachingSubject: "", certImage: null, certDate: "" }]);
-    setNextCertId((n) => n + 1);
-  }, [nextCertId]);
-
-  const removeCertRow = useCallback((id: number) => {
-    setCertRows((prev) => (prev.length <= 1 ? prev : prev.filter((r) => r.id !== id)));
-  }, []);
-
-  const anyCertMissing = useMemo(
-    () => certRows.some((r) => !r.certNumber || !r.certType || !r.teachingSubject || !r.certImage || !r.certDate),
-    [certRows],
-  );
+  const [certNumber, setCertNumber] = useState("");
+  const [certType, setCertType] = useState("");
+  const [certSubject, setCertSubject] = useState("");
+  const [certImages, setCertImages] = useState<File[]>([]);
+  const [certDate, setCertDate] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [draftToast, setDraftToast] = useState(false);
+  const draftImageCount = useRef(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { raw: staffList } = useStaffDirectory();
+  const { raw: deptMembers } = useDepartmentMembers();
   const { raw: courseList } = useCourses();
 
   const courseOptions = useMemo(
@@ -85,27 +76,99 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
     [courseList],
   );
 
-  const handleSubmit = () => {
+  const toMember = (name: string) => {
+    const m = deptMembers.find(d => d.name === name);
+    return m ? m.username : name;
+  };
+
+  const validate = (): boolean => {
     setSubmitted(true);
-    const required = [
+    const required: { field: unknown; name: string }[] = [
       { field: teacherName, name: "教师姓名" },
       { field: idCard, name: "身份证号码" },
-      ...(hasCert === "yes"
-        ? [
-          { field: department, name: "部门" },
-          { field: position, name: "岗位" },
-          { field: positionType, name: "岗位类型" },
-          { field: partyJob, name: "党委/行政职务" },
-          { field: phone, name: "联系方式" },
-          { field: subject, name: "担任学科" },
-          { field: !anyCertMissing, name: "教资信息" },
-        ]
-        : []),
     ];
+    if (hasCert === "yes") {
+      required.push(
+        { field: department, name: "部门" },
+        { field: position, name: "岗位" },
+        { field: positionType, name: "岗位类型" },
+        { field: partyJob, name: "党委/行政职务" },
+        { field: phone, name: "联系方式" },
+        { field: subject, name: "担任学科" },
+        { field: certNumber, name: "教资证书编号" },
+        { field: certType, name: "教师资格种类" },
+        { field: certSubject, name: "任教科目" },
+        { field: certImages.length > 0, name: "教师资格证书图片" },
+        { field: certDate, name: "获证时间" },
+      );
+    }
     const firstMissing = required.find((r) => !r.field);
     if (firstMissing) {
-      // scroll to top of form
       window.scrollTo({ top: 0, behavior: "smooth" });
+      return false;
+    }
+    return true;
+  };
+
+  const buildData = (certKeys: string[]): Record<string, { value: unknown }> => {
+    const data: Record<string, { value: unknown }> = {
+      [TEACHER_QUALIFICATION_CERTIFICATE_WIDGET_IDS.教师姓名]: { value: toMember(teacherName) },
+      [TEACHER_QUALIFICATION_CERTIFICATE_WIDGET_IDS.身份证号码]: { value: idCard },
+      [TEACHER_QUALIFICATION_CERTIFICATE_WIDGET_IDS.有无教师资格证]: { value: hasCert === "yes" ? "有" : "暂无" },
+      [TEACHER_QUALIFICATION_CERTIFICATE_WIDGET_IDS["教师姓名（文本）"]]: { value: teacherName },
+    };
+    if (hasCert === "yes") {
+      data[TEACHER_QUALIFICATION_CERTIFICATE_WIDGET_IDS.部门] = { value: department };
+      data[TEACHER_QUALIFICATION_CERTIFICATE_WIDGET_IDS.岗位] = { value: position };
+      data[TEACHER_QUALIFICATION_CERTIFICATE_WIDGET_IDS.岗位类型] = { value: positionType };
+      data[TEACHER_QUALIFICATION_CERTIFICATE_WIDGET_IDS["党委/行政职务"]] = { value: partyJob };
+      data[TEACHER_QUALIFICATION_CERTIFICATE_WIDGET_IDS.联系方式] = { value: phone };
+      data[TEACHER_QUALIFICATION_CERTIFICATE_WIDGET_IDS.担任学科] = { value: subject };
+      data[TEACHER_QUALIFICATION_CERTIFICATE_WIDGET_IDS.教资证书编号] = { value: certNumber };
+      data[TEACHER_QUALIFICATION_CERTIFICATE_WIDGET_IDS.教师资格种类] = { value: certType };
+      data[TEACHER_QUALIFICATION_CERTIFICATE_WIDGET_IDS.任教科目] = { value: certSubject };
+      data[TEACHER_QUALIFICATION_CERTIFICATE_WIDGET_IDS.获证时间] = { value: certDate };
+      if (certKeys.length > 0) data[TEACHER_QUALIFICATION_CERTIFICATE_WIDGET_IDS.教师资格证书图片] = { value: certKeys };
+    }
+    return data;
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    setSubmitting(true);
+    try {
+      let certKeys: string[] = [];
+      let transaction_id: string | undefined;
+      if (hasCert === "yes" && certImages.length > 0) {
+        transaction_id = crypto.randomUUID();
+        const { keys } = await jdyUploadFiles(
+          certImages,
+          JDY_CONFIG.TEACHER_QUALIFICATION_CERTIFICATE_INFO.app_id,
+          JDY_CONFIG.TEACHER_QUALIFICATION_CERTIFICATE_INFO.entry_id,
+          transaction_id,
+        );
+        certKeys = keys;
+      }
+      const res = await jdyCreate({
+        app_id: JDY_CONFIG.TEACHER_QUALIFICATION_CERTIFICATE_INFO.app_id,
+        entry_id: JDY_CONFIG.TEACHER_QUALIFICATION_CERTIFICATE_INFO.entry_id,
+        data: buildData(certKeys),
+        data_creator: currentUser?.userId,
+        transaction_id,
+        is_start_workflow: true,
+        is_start_trigger: false,
+      });
+      if (!res.success) {
+        alert(res.message || "提交失败，请重试");
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ["teacher-cert"] });
+      handleClearForm();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "提交失败，请重试");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -122,6 +185,55 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
       }
     }
   }, [teacherName, staffList, idCard]);
+
+  const handleSaveDraft = () => {
+    const hasContent = teacherName || idCard || department || position || positionType || partyJob || phone || subject
+      || certNumber || certType || certSubject || certDate;
+    if (!hasContent) return;
+    if (certImages.length > 0) { draftImageCount.current = certImages.length; setDraftToast(true); }
+    localStorage.setItem("teacher-cert-draft", JSON.stringify({
+      teacherName, idCard, department, position, positionType, partyJob, phone, subject,
+      hasCert, certNumber, certType, certSubject, certDate,
+      _imageCount: certImages.length,
+    }));
+  };
+
+  const handleClearForm = () => {
+    setTeacherName(""); setIdCard(""); setDepartment(""); setPosition("");
+    setPositionType(""); setPartyJob(""); setPhone(""); setSubject("");
+    setCertNumber(""); setCertType(""); setCertSubject(""); setCertImages([]); setCertDate("");
+    setSubmitted(false);
+    localStorage.removeItem("teacher-cert-draft");
+  };
+
+  // Auto-dismiss draft toast
+  useEffect(() => {
+    if (!draftToast) return;
+    const t = setTimeout(() => setDraftToast(false), 3000);
+    return () => clearTimeout(t);
+  }, [draftToast]);
+
+  // Restore draft on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("teacher-cert-draft");
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      if (d.teacherName) setTeacherName(d.teacherName);
+      if (d.idCard) setIdCard(d.idCard);
+      if (d.department) setDepartment(d.department);
+      if (d.position) setPosition(d.position);
+      if (d.positionType) setPositionType(d.positionType);
+      if (d.partyJob) setPartyJob(d.partyJob);
+      if (d.phone) setPhone(d.phone);
+      if (d.subject) setSubject(d.subject);
+      if (d.hasCert) setHasCert(d.hasCert);
+      if (d.certNumber) setCertNumber(d.certNumber);
+      if (d.certType) setCertType(d.certType);
+      if (d.certSubject) setCertSubject(d.certSubject);
+      if (d.certDate) setCertDate(d.certDate);
+    } catch {}
+  }, []);
 
   const handleSelectStaff = (record: StaffDirectoryRecord | null) => {
     if (record) {
@@ -155,26 +267,25 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
       />
 
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto bg-[#f5f5f7] pb-24">
-        <main className="max-w-6xl mx-auto mt-4 md:mt-10 px-3 md:px-6">
+      <div className="flex-1 overflow-y-auto bg-[#f5f5f7]">
+        <main className="max-w-6xl mx-auto pt-4 md:pt-6 px-3 md:px-6 pb-24">
 
-          {/* Decorative title */}
-          <div className="flex items-center justify-center gap-5 mb-12">
-            <div className="relative h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }}>
-              <div className="absolute h-px inset-x-2.5 -top-px opacity-40" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} />
-            </div>
-            <div
-              className="flex items-center gap-3 px-12 py-2 text-white text-base font-semibold tracking-[0.2em]"
-              style={{ backgroundColor: teal, clipPath: "polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%)", boxShadow: "0 4px 12px rgba(0,176,149,0.2)" }}
-            >
-              <span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" />
-              教师资格证
-              <span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" />
-            </div>
-            <div className="relative h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }}>
-              <div className="absolute h-px inset-x-2.5 -top-px opacity-40" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} />
+          {/* Title */}
+          <div className="mb-8 text-center">
+            <div className="inline-flex flex-col items-center">
+              <h2 className="text-xl font-bold tracking-tight" style={{ color: "#111827" }}>教师资格证</h2>
+              <div className="mt-2 h-0.5 w-12 rounded-full" style={{ background: `linear-gradient(90deg, ${teal}, #5BC8F5)` }} />
             </div>
           </div>
+
+          {draftToast && (
+            <div className="mb-4 flex items-center gap-2 text-sm rounded-lg px-4 py-2.5 max-w-lg mx-auto"
+              style={{ background: "rgba(245,158,11,0.08)", color: "#d97706" }}>
+              <span>草稿已保存</span>
+              <span className="opacity-60">—</span>
+              <span className="opacity-60">已选的 {draftImageCount.current} 张图片未保存，提交前请重新上传</span>
+            </div>
+          )}
 
           {/* Form card */}
           <div className="rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white">
@@ -257,160 +368,121 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
             </div>
             )}
 
-            {/* Section: 教资信息 table（隐藏当暂无） */}
+            {/* Section: 教资信息（隐藏当暂无） */}
             {hasCert === "yes" && (
-            <div className="p-8 bg-white border-t border-gray-50">
-              <p className="text-base font-semibold mb-6">
-                <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>教资信息
-              </p>
-
-              {/* Grid table */}
-              <div
-                className="w-full border border-gray-100 rounded-xl overflow-hidden text-sm"
-                style={{ display: "grid", gridTemplateColumns: "48px 1.3fr 1fr 1fr 1.1fr 1.1fr 52px" }}
-              >
-                {/* Header */}
-                {["", "教资证书编号", "教师资格种类", "任教科目", "教师资格证书图片", "获证时间", ""].map((h, i) => (
-                  <div key={i} className="px-3 py-3 bg-gray-50 text-sm font-semibold text-gray-600 border-b border-r border-gray-100 last:border-r-0">
-                    {i > 0 && i !== 3 && i !== 6 && <span style={{ color: "#ff4d4f", marginRight: 3 }}>*</span>}
-                    {h}
+            <>
+              <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
+                <Field label="教资证书编号" required>
+                  <Input value={certNumber} onChange={setCertNumber} />
+                  {submitted && !certNumber && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
+                </Field>
+                <Field label="教师资格种类" required>
+                  <select
+                    value={certType}
+                    onChange={e => setCertType(e.target.value)}
+                    className="form-input appearance-none pr-9"
+                    style={{ color: certType ? "#1d1d1f" : "#9ca3af", borderColor: submitted && !certType ? "#ff4d4f" : undefined }}
+                    onFocus={e => Object.assign(e.currentTarget.style, focusStyle)}
+                    onBlur={e => Object.assign(e.currentTarget.style, blurStyle)}
+                  >
+                    <option value="" disabled>请选择</option>
+                    <option>高等学校教师资格</option>
+                    <option>中等职业学校教师资格</option>
+                    <option>高中教师资格</option>
+                    <option>初中教师资格</option>
+                    <option>小学教师资格</option>
+                    <option>幼儿园教师资格</option>
+                  </select>
+                  {submitted && !certType && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
+                </Field>
+              </div>
+              <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
+                <Field label="任教科目" required>
+                  <select
+                    value={certSubject}
+                    onChange={e => setCertSubject(e.target.value)}
+                    className="form-input appearance-none pr-9"
+                    style={{ color: certSubject ? "#1d1d1f" : "#9ca3af", borderColor: submitted && !certSubject ? "#ff4d4f" : undefined }}
+                    onFocus={e => Object.assign(e.currentTarget.style, focusStyle)}
+                    onBlur={e => Object.assign(e.currentTarget.style, blurStyle)}
+                  >
+                    <option value="" disabled>请选择</option>
+                    {courseOptions.map(c => <option key={c}>{c}</option>)}
+                  </select>
+                  {submitted && !certSubject && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
+                </Field>
+                <Field label="获证时间" required>
+                  <input
+                    type="date"
+                    value={certDate}
+                    onChange={e => setCertDate(e.target.value)}
+                    className="form-input"
+                    style={{ color: certDate ? "#1d1d1f" : "#9ca3af", borderColor: submitted && !certDate ? "#ff4d4f" : undefined }}
+                    onFocus={e => Object.assign(e.currentTarget.style, focusStyle)}
+                    onBlur={e => Object.assign(e.currentTarget.style, blurStyle)}
+                  />
+                  {submitted && !certDate && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
+                </Field>
+              </div>
+              <div className="p-8 bg-white">
+                <Field label="教师资格证书图片" required>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div
+                      className="flex-1 flex items-center gap-2 border border-dashed border-gray-200 rounded-[10px] px-3.5 py-2.5 cursor-pointer"
+                      style={{ fontSize: 13, color: "#9ca3af", borderColor: submitted && certImages.length === 0 ? "#ff4d4f" : "#e5e7eb" }}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload size={14} className="shrink-0" style={{ color: "#9ca3af" }} />
+                      <span style={{ color: teal }}>选择</span>
+                      <span>支持多张图片上传</span>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => { if (e.target.files) setCertImages([...certImages, ...Array.from(e.target.files)]); e.target.value = ""; }}
+                    />
                   </div>
-                ))}
-
-                {certRows.map((row, idx) => (
-                  <>
-                    <div key={`num-${row.id}`} className="px-3 py-2.5 bg-white border-b border-r border-gray-100 flex items-center justify-center text-sm font-bold text-gray-400">
-                      {idx + 1}
+                  {certImages.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {certImages.map((file, i) => (
+                        <div key={i} className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200 group">
+                          <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            className="absolute top-0.5 right-0.5 w-5 h-5 flex items-center justify-center rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => setCertImages(certImages.filter((_, j) => j !== i))}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                    <div key={`cn-${row.id}`} className="px-2 py-2 bg-white border-b border-r border-gray-100">
-                      <input
-                        type="text"
-                        value={row.certNumber}
-                        onChange={(e) => updateCertRow(row.id, "certNumber", e.target.value)}
-                        className="table-input"
-                        style={submitted && !row.certNumber ? { borderColor: "#ff4d4f" } : undefined}
-                        onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
-                        onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
-                      />
-                    </div>
-                    <div key={`ct-${row.id}`} className="px-2 py-2 bg-white border-b border-r border-gray-100">
-                      <select
-                        value={row.certType}
-                        onChange={(e) => updateCertRow(row.id, "certType", e.target.value)}
-                        className="table-input appearance-none"
-                        style={submitted && !row.certType ? { borderColor: "#ff4d4f" } : undefined}
-                        onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
-                        onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
-                      >
-                        <option value=""></option>
-                        <option>高等学校教师资格</option>
-                        <option>中等职业学校教师资格</option>
-                        <option>高中教师资格</option>
-                        <option>初中教师资格</option>
-                        <option>小学教师资格</option>
-                        <option>幼儿园教师资格</option>
-                      </select>
-                    </div>
-                    <div key={`ts-${row.id}`} className="px-2 py-2 bg-white border-b border-r border-gray-100">
-                      <select
-                        value={row.teachingSubject}
-                        onChange={(e) => updateCertRow(row.id, "teachingSubject", e.target.value)}
-                        className="table-input appearance-none"
-                        style={submitted && !row.teachingSubject ? { borderColor: "#ff4d4f" } : undefined}
-                        onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
-                        onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
-                      >
-                        <option value=""></option>
-                        {courseOptions.map((c) => (
-                          <option key={c}>{c}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div key={`img-${row.id}`} className="px-2 py-2 bg-white border-b border-r border-gray-100">
-                      <label className="w-full h-8 border rounded-lg flex items-center justify-center bg-gray-50 text-gray-300 cursor-pointer hover:bg-gray-100 transition-colors overflow-hidden"
-                        style={{ borderColor: submitted && !row.certImage ? "#ff4d4f" : "#e5e7eb" }}>
-                        {row.certImage ? (
-                          <img src={row.certImage} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <Image className="w-4 h-4" />
-                        )}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) updateCertRow(row.id, "certImage", URL.createObjectURL(file));
-                          }}
-                        />
-                      </label>
-                    </div>
-                    <div key={`date-${row.id}`} className="px-2 py-2 bg-white border-b border-gray-100">
-                      <input
-                        type="date"
-                        value={row.certDate}
-                        onChange={(e) => updateCertRow(row.id, "certDate", e.target.value)}
-                        className="table-input w-full"
-                        style={{ color: row.certDate ? "#374151" : "#9ca3af", borderColor: submitted && !row.certDate ? "#ff4d4f" : undefined }}
-                        onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
-                        onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
-                      />
-                    </div>
-                    <div key={`del-${row.id}`} className="px-2 py-2 bg-white border-b border-gray-100 flex items-center justify-center">
-                      <button
-                        type="button"
-                        className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-                        onClick={() => removeCertRow(row.id)}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </>
-                ))}
+                  )}
+                  {submitted && certImages.length === 0 && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
+                </Field>
               </div>
-
-              {submitted && hasCert === "yes" && anyCertMissing && (
-                <div className="mt-3 space-y-0.5">
-                  {certRows.some((r) => !r.certNumber) && <p className="text-xs" style={{ color: "#ff4d4f" }}>教资证书编号为必填项</p>}
-                  {certRows.some((r) => !r.certType) && <p className="text-xs" style={{ color: "#ff4d4f" }}>教师资格种类为必填项</p>}
-                  {certRows.some((r) => !r.teachingSubject) && <p className="text-xs" style={{ color: "#ff4d4f" }}>任教科目为必填项</p>}
-                  {certRows.some((r) => !r.certImage) && <p className="text-xs" style={{ color: "#ff4d4f" }}>教师资格证书图片为必填项</p>}
-                  {certRows.some((r) => !r.certDate) && <p className="text-xs" style={{ color: "#ff4d4f" }}>获证时间为必填项</p>}
-                </div>
-              )}
-
-              {/* Add / Quick fill */}
-              <div className="flex items-center gap-8 mt-5">
-                <button type="button" className="flex items-center gap-1.5 text-base font-bold transition-colors" style={{ color: teal }} onClick={addCertRow}>
-                  <Plus className="w-4 h-4" /> 添加
-                </button>
-                <button type="button" className="flex items-center gap-1.5 text-base font-bold transition-colors" style={{ color: teal }}>
-                  <ClipboardList className="w-4 h-4" /> 快速填报
-                </button>
-              </div>
-            </div>
+            </>
             )}
 
           </div>
-        </main>
-      </div>
 
-      {/* Fixed footer */}
-      <div
-        className="form-footer shrink-0 flex gap-3 px-10 py-4"
-      >
-        <button
-          className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px"
-          style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}
-          onClick={handleSubmit}
-        >
-          提交
-        </button>
-        <button
-          className="btn-secondary"
-        >
-          保存草稿
-        </button>
+          {/* Form footer */}
+          <div className="form-footer shrink-0 flex gap-3 px-6 md:px-10 py-4 mt-4 rounded-[28px]">
+            <button className="btn-secondary" onClick={handleSaveDraft}>保存草稿</button>
+            <div className="flex-1" />
+            <button
+              className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px disabled:opacity-60"
+              style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
+              {submitting ? "提交中..." : "提交"}
+            </button>
+          </div>
+        </main>
       </div>
     </div>
   );

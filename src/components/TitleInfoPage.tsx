@@ -1,13 +1,16 @@
 "use client";
 
-import { Plus, Image, ClipboardList, Menu, Trash2 } from "lucide-react";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { Upload, X } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { useCurrentUser } from "@/lib/user-context";
 import { StaffPicker } from "./ui/StaffPicker";
-import { useStaffDirectory, type StaffDirectoryRecord } from "@/hooks/use-research-dashboard";
+import { useStaffDirectory, useDepartmentMembers, type StaffDirectoryRecord } from "@/hooks/use-research-dashboard";
+import { JDY_CONFIG, FACULTY_POSITION_TITLES_WIDGET_IDS, jdyCreate, jdyUploadFiles } from "@/lib/jdy-api";
+import { useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "./PageHeader";
 
 const teal = "#00b095";
+
 const focusStyle = { borderColor: teal, boxShadow: "0 0 0 4px rgba(0,176,149,0.1)" };
 const blurStyle  = { borderColor: "#e5e7eb", boxShadow: "none" };
 
@@ -35,13 +38,14 @@ function Input({ placeholder = "", value, onChange }: { placeholder?: string; va
       onChange={(e) => onChange?.(e.target.value)}
       className="form-input"
       onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
-      onBlur={(e)  => Object.assign(e.currentTarget.style, blurStyle)}
+      onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
     />
   );
 }
 
 export function TitleInfoPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const currentUser = useCurrentUser();
+  const queryClient = useQueryClient();
   const [teacherName, setTeacherName] = useState(currentUser?.name ?? "");
   const [idCard, setIdCard] = useState("");
   const [department, setDepartment] = useState("");
@@ -53,30 +57,111 @@ export function TitleInfoPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [hasTitle, setHasTitle] = useState<"yes" | "no">("yes");
   const [submitted, setSubmitted] = useState(false);
 
-  const [titleRows, setTitleRows] = useState<{ id: number; certNumber: string; titleLevel: string; awardDate: string; certImage: string | null }[]>([
-    { id: 1, certNumber: "", titleLevel: "", awardDate: "", certImage: null },
-  ]);
-  const [nextTitleId, setNextTitleId] = useState(2);
-
-  const updateTitleRow = useCallback((id: number, field: string, value: string | null) => {
-    setTitleRows((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
-  }, []);
-
-  const addTitleRow = useCallback(() => {
-    setTitleRows((prev) => [...prev, { id: nextTitleId, certNumber: "", titleLevel: "", awardDate: "", certImage: null }]);
-    setNextTitleId((n) => n + 1);
-  }, [nextTitleId]);
-
-  const removeTitleRow = useCallback((id: number) => {
-    setTitleRows((prev) => (prev.length <= 1 ? prev : prev.filter((r) => r.id !== id)));
-  }, []);
-
-  const anyTitleMissing = useMemo(
-    () => titleRows.some((r) => !r.certNumber || !r.titleLevel || !r.awardDate || !r.certImage),
-    [titleRows],
-  );
+  const [certNumber, setCertNumber] = useState("");
+  const [titleLevel, setTitleLevel] = useState("");
+  const [awardDate, setAwardDate] = useState("");
+  const [certImages, setCertImages] = useState<File[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [draftToast, setDraftToast] = useState(false);
+  const draftImageCount = useRef(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { raw: staffList } = useStaffDirectory();
+  const { raw: deptMembers } = useDepartmentMembers();
+
+  const toMember = (name: string) => {
+    const m = deptMembers.find(d => d.name === name);
+    return m ? m.username : name;
+  };
+
+  const validate = (): boolean => {
+    setSubmitted(true);
+    const required: { field: unknown; name: string }[] = [
+      { field: teacherName, name: "教师姓名" },
+      { field: idCard, name: "身份证号码" },
+    ];
+    if (hasTitle === "yes") {
+      required.push(
+        { field: department, name: "部门" },
+        { field: position, name: "岗位" },
+        { field: positionType, name: "岗位类型" },
+        { field: partyJob, name: "党委/行政职务" },
+        { field: phone, name: "联系方式" },
+        { field: subject, name: "担任学科" },
+        { field: certNumber, name: "证书编号" },
+        { field: titleLevel, name: "教师职称级别" },
+        { field: awardDate, name: "获评时间" },
+        { field: certImages.length > 0, name: "职称证书" },
+      );
+    }
+    const firstMissing = required.find((r) => !r.field);
+    if (firstMissing) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return false;
+    }
+    return true;
+  };
+
+  const buildData = (certKeys: string[]): Record<string, { value: unknown }> => {
+    const data: Record<string, { value: unknown }> = {
+      [FACULTY_POSITION_TITLES_WIDGET_IDS.教师姓名]: { value: toMember(teacherName) },
+      [FACULTY_POSITION_TITLES_WIDGET_IDS.身份证号码]: { value: idCard },
+      [FACULTY_POSITION_TITLES_WIDGET_IDS.有无职称]: { value: hasTitle === "yes" ? "有" : "暂无" },
+      [FACULTY_POSITION_TITLES_WIDGET_IDS["教师姓名（文本）"]]: { value: teacherName },
+    };
+    if (hasTitle === "yes") {
+      data[FACULTY_POSITION_TITLES_WIDGET_IDS.部门] = { value: department };
+      data[FACULTY_POSITION_TITLES_WIDGET_IDS.岗位] = { value: position };
+      data[FACULTY_POSITION_TITLES_WIDGET_IDS.岗位类型] = { value: positionType };
+      data[FACULTY_POSITION_TITLES_WIDGET_IDS["党委/行政职务"]] = { value: partyJob };
+      data[FACULTY_POSITION_TITLES_WIDGET_IDS.联系方式] = { value: phone };
+      data[FACULTY_POSITION_TITLES_WIDGET_IDS.担任学科] = { value: subject };
+      data[FACULTY_POSITION_TITLES_WIDGET_IDS.证书编号] = { value: certNumber };
+      data[FACULTY_POSITION_TITLES_WIDGET_IDS.教师职称级别] = { value: titleLevel };
+      data[FACULTY_POSITION_TITLES_WIDGET_IDS.获评时间] = { value: awardDate };
+      if (certKeys.length > 0) data[FACULTY_POSITION_TITLES_WIDGET_IDS.职称证书] = { value: certKeys };
+    }
+    return data;
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    setSubmitting(true);
+    try {
+      let certKeys: string[] = [];
+      let transaction_id: string | undefined;
+      if (hasTitle === "yes" && certImages.length > 0) {
+        transaction_id = crypto.randomUUID();
+        const { keys } = await jdyUploadFiles(
+          certImages,
+          JDY_CONFIG.FACULTY_POSITION_TITLES_INFO.app_id,
+          JDY_CONFIG.FACULTY_POSITION_TITLES_INFO.entry_id,
+          transaction_id,
+        );
+        certKeys = keys;
+      }
+      const res = await jdyCreate({
+        app_id: JDY_CONFIG.FACULTY_POSITION_TITLES_INFO.app_id,
+        entry_id: JDY_CONFIG.FACULTY_POSITION_TITLES_INFO.entry_id,
+        data: buildData(certKeys),
+        data_creator: currentUser?.userId,
+        transaction_id,
+        is_start_workflow: false,
+        is_start_trigger: false,
+      });
+      if (!res.success) {
+        alert(res.message || "提交失败，请重试");
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ["title-info"] });
+      handleClearForm();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "提交失败，请重试");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     if (teacherName && staffList.length > 0 && !idCard) {
@@ -91,6 +176,52 @@ export function TitleInfoPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
       }
     }
   }, [teacherName, staffList, idCard]);
+
+  const handleSaveDraft = () => {
+    const hasContent = teacherName || idCard || department || position || positionType || partyJob || phone || subject
+      || certNumber || titleLevel || awardDate;
+    if (!hasContent) return;
+    if (certImages.length > 0) { draftImageCount.current = certImages.length; setDraftToast(true); }
+    localStorage.setItem("title-info-draft", JSON.stringify({
+      teacherName, idCard, department, position, positionType, partyJob, phone, subject,
+      hasTitle, certNumber, titleLevel, awardDate,
+      _imageCount: certImages.length,
+    }));
+  };
+
+  const handleClearForm = () => {
+    setTeacherName(""); setIdCard(""); setDepartment(""); setPosition("");
+    setPositionType(""); setPartyJob(""); setPhone(""); setSubject("");
+    setCertNumber(""); setTitleLevel(""); setAwardDate(""); setCertImages([]);
+    setSubmitted(false);
+    localStorage.removeItem("title-info-draft");
+  };
+
+  useEffect(() => {
+    if (!draftToast) return;
+    const t = setTimeout(() => setDraftToast(false), 3000);
+    return () => clearTimeout(t);
+  }, [draftToast]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("title-info-draft");
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      if (d.teacherName) setTeacherName(d.teacherName);
+      if (d.idCard) setIdCard(d.idCard);
+      if (d.department) setDepartment(d.department);
+      if (d.position) setPosition(d.position);
+      if (d.positionType) setPositionType(d.positionType);
+      if (d.partyJob) setPartyJob(d.partyJob);
+      if (d.phone) setPhone(d.phone);
+      if (d.subject) setSubject(d.subject);
+      if (d.hasTitle) setHasTitle(d.hasTitle);
+      if (d.certNumber) setCertNumber(d.certNumber);
+      if (d.titleLevel) setTitleLevel(d.titleLevel);
+      if (d.awardDate) setAwardDate(d.awardDate);
+    } catch {}
+  }, []);
 
   const handleSelectStaff = (record: StaffDirectoryRecord | null) => {
     if (record) {
@@ -111,28 +242,6 @@ export function TitleInfoPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
     }
   };
 
-  const handleSubmit = () => {
-    setSubmitted(true);
-    const check = [
-      { field: teacherName, name: "教师姓名" },
-      { field: idCard, name: "身份证号码" },
-      ...(hasTitle === "yes"
-        ? [
-          { field: department, name: "部门" },
-          { field: position, name: "岗位" },
-          { field: positionType, name: "岗位类型" },
-          { field: partyJob, name: "党委/行政职务" },
-          { field: phone, name: "联系方式" },
-          { field: subject, name: "担任学科" },
-          { field: !anyTitleMissing, name: "职称信息" },
-        ]
-        : []),
-    ];
-    if (check.find((r) => !r.field)) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
-
   return (
     <div
       className="flex flex-col h-full overflow-hidden"
@@ -140,37 +249,31 @@ export function TitleInfoPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
     >
       <PageHeader
         centered
-       
         breadcrumbs={[{ label: "教师基础档案" }, { label: "职称信息", active: true }]}
         onMenuOpen={onMenuOpen}
       />
 
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto bg-[#f5f5f7] pb-24">
-        <main className="max-w-6xl mx-auto mt-4 md:mt-10 px-3 md:px-6">
+      <div className="flex-1 overflow-y-auto bg-[#f5f5f7]">
+        <main className="max-w-6xl mx-auto pt-4 md:pt-6 px-3 md:px-6 pb-24">
 
-          {/* Decorative title */}
-          <div className="flex items-center justify-center gap-5 mb-10">
-            <div className="relative h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }}>
-              <div className="absolute h-px inset-x-2.5 -top-px opacity-40" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} />
-            </div>
-            <div
-              className="flex items-center gap-3 px-12 py-2 text-white text-base font-semibold tracking-[0.2em]"
-              style={{ backgroundColor: teal, clipPath: "polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%)", boxShadow: "0 4px 12px rgba(0,176,149,0.2)" }}
-            >
-              <span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" />
-              职称信息
-              <span className="w-2 h-2 bg-white rotate-45 shrink-0 inline-block" />
-            </div>
-            <div className="relative h-px w-20" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }}>
-              <div className="absolute h-px inset-x-2.5 -top-px opacity-40" style={{ background: `linear-gradient(to right, transparent, ${teal}, transparent)` }} />
+          <div className="mb-8 text-center">
+            <div className="inline-flex flex-col items-center">
+              <h2 className="text-xl font-bold tracking-tight" style={{ color: "#111827" }}>职称信息</h2>
+              <div className="mt-2 h-0.5 w-12 rounded-full" style={{ background: `linear-gradient(90deg, ${teal}, #5BC8F5)` }} />
             </div>
           </div>
 
-          {/* Form card */}
-          <div className="rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white">
+          {draftToast && (
+            <div className="mb-4 flex items-center gap-2 text-sm rounded-lg px-4 py-2.5 max-w-lg mx-auto"
+              style={{ background: "rgba(245,158,11,0.08)", color: "#d97706" }}>
+              <span>草稿已保存</span>
+              <span className="opacity-60">—</span>
+              <span className="opacity-60">已选的 {draftImageCount.current} 张图片未保存，提交前请重新上传</span>
+            </div>
+          )}
 
-            {/* Row 1 — 教师姓名 + 身份证号码 */}
+          <div className="rounded-[28px] shadow-sm border border-gray-100 bg-white">
+
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="教师姓名" required>
                 <StaffPicker value={teacherName} onChange={setTeacherName} onSelectRecord={handleSelectStaff} />
@@ -182,7 +285,6 @@ export function TitleInfoPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
               </Field>
             </div>
 
-            {/* Row 2 — 有无职称 + 部门 */}
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white"
               style={{ gridTemplateColumns: hasTitle === "no" ? "1fr" : undefined }}>
               <Field label="有无职称" required>
@@ -209,177 +311,143 @@ export function TitleInfoPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
               )}
             </div>
 
-            {/* Row 3 — 岗位 + 岗位类型（隐藏当暂无） */}
             {hasTitle === "yes" && (
-              <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
-                <Field label="岗位" required>
-                  <Input value={position} onChange={setPosition} />
-                  {submitted && !position && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
-                </Field>
-                <Field label="岗位类型" hint="可填写任意一个：教学岗 教辅岗 行政岗 工勤岗 技能岗 管理岗" required>
-                  <Input value={positionType} onChange={setPositionType} />
-                  {submitted && !positionType && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
-                </Field>
-              </div>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
+              <Field label="岗位" required>
+                <Input value={position} onChange={setPosition} />
+                {submitted && !position && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
+              </Field>
+              <Field label="岗位类型" hint="可填写任意一个：教学岗 教辅岗 行政岗 工勤岗 技能岗 管理岗" required>
+                <Input value={positionType} onChange={setPositionType} />
+                {submitted && !positionType && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
+              </Field>
+            </div>
             )}
 
-            {/* Row 4 — 党委/行政职务 + 联系方式（隐藏当暂无） */}
             {hasTitle === "yes" && (
-              <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
-                <Field label="党委/行政职务" required>
-                  <Input value={partyJob} onChange={setPartyJob} />
-                  {submitted && !partyJob && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
-                </Field>
-                <Field label="联系方式" required>
-                  <Input value={phone} onChange={setPhone} />
-                  {submitted && !phone && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
-                </Field>
-              </div>
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
+              <Field label="党委/行政职务" required>
+                <Input value={partyJob} onChange={setPartyJob} />
+                {submitted && !partyJob && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
+              </Field>
+              <Field label="联系方式" required>
+                <Input value={phone} onChange={setPhone} />
+                {submitted && !phone && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
+              </Field>
+            </div>
             )}
 
-            {/* Row 5 — 担任学科（隐藏当暂无） */}
             {hasTitle === "yes" && (
+            <div className="p-8 bg-white">
+              <div className="max-w-md">
+                <Field label="担任学科" required>
+                  <Input value={subject} onChange={setSubject} />
+                  {submitted && !subject && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
+                </Field>
+              </div>
+            </div>
+            )}
+
+            {hasTitle === "yes" && (
+            <>
+              <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
+                <Field label="证书编号" required>
+                  <Input value={certNumber} onChange={setCertNumber} />
+                  {submitted && !certNumber && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
+                </Field>
+                <Field label="教师职称级别" required>
+                  <select
+                    value={titleLevel}
+                    onChange={e => setTitleLevel(e.target.value)}
+                    className="form-input appearance-none pr-9"
+                    style={{ color: titleLevel ? "#1d1d1f" : "#9ca3af", borderColor: submitted && !titleLevel ? "#ff4d4f" : undefined }}
+                    onFocus={e => Object.assign(e.currentTarget.style, focusStyle)}
+                    onBlur={e => Object.assign(e.currentTarget.style, blurStyle)}
+                  >
+                    <option value="" disabled>请选择</option>
+                    <option>正高级教师</option>
+                    <option>副高级教师</option>
+                    <option>一级教师</option>
+                    <option>二级教师</option>
+                    <option>三级教师</option>
+                  </select>
+                  {submitted && !titleLevel && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
+                </Field>
+              </div>
               <div className="p-8 bg-white">
                 <div className="max-w-md">
-                  <Field label="担任学科" required>
-                    <Input value={subject} onChange={setSubject} />
-                    {submitted && !subject && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
+                  <Field label="获评时间" required>
+                    <input
+                      type="date"
+                      value={awardDate}
+                      onChange={e => setAwardDate(e.target.value)}
+                      className="form-input"
+                      style={{ color: awardDate ? "#1d1d1f" : "#9ca3af", borderColor: submitted && !awardDate ? "#ff4d4f" : undefined }}
+                      onFocus={e => Object.assign(e.currentTarget.style, focusStyle)}
+                      onBlur={e => Object.assign(e.currentTarget.style, blurStyle)}
+                    />
+                    {submitted && !awardDate && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
                   </Field>
                 </div>
               </div>
-            )}
-
-            {/* Row 6 — 职称信息表格（隐藏当暂无） */}
-            {hasTitle === "yes" && (
-              <div className="p-8 bg-white border-t border-gray-50">
-                <p className="text-base font-semibold mb-6">
-                  <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>职称信息
-                </p>
-
-                <div
-                  className="w-full border border-gray-100 rounded-xl overflow-hidden text-sm"
-                  style={{ display: "grid", gridTemplateColumns: "48px 1.3fr 1.3fr 1fr 1fr 52px" }}
-                >
-                  {/* Header */}
-                  {["", "证书编号", "教师职称级别", "获评时间", "职称证书", ""].map((h, i) => (
-                    <div key={i} className="px-3 py-3 bg-gray-50 text-sm font-semibold text-gray-600 border-b border-r border-gray-100 last:border-r-0">
-                      {i > 0 && i !== 4 && i !== 5 && <span style={{ color: "#ff4d4f", marginRight: 3 }}>*</span>}
-                      {h}
+              <div className="p-8 bg-white">
+                <Field label="职称证书" required>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div
+                      className="flex-1 flex items-center gap-2 border border-dashed border-gray-200 rounded-[10px] px-3.5 py-2.5 cursor-pointer"
+                      style={{ fontSize: 13, color: "#9ca3af", borderColor: submitted && certImages.length === 0 ? "#ff4d4f" : "#e5e7eb" }}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload size={14} className="shrink-0" style={{ color: "#9ca3af" }} />
+                      <span style={{ color: teal }}>选择</span>
+                      <span>支持多张图片上传</span>
                     </div>
-                  ))}
-
-                  {titleRows.map((row, idx) => (
-                    <>
-                      <div key={`num-${row.id}`} className="px-3 py-2.5 bg-white border-b border-r border-gray-100 flex items-center justify-center text-sm font-bold text-gray-400">
-                        {idx + 1}
-                      </div>
-                      <div key={`cn-${row.id}`} className="px-2 py-2 bg-white border-b border-r border-gray-100">
-                        <input
-                          type="text"
-                          value={row.certNumber}
-                          onChange={(e) => updateTitleRow(row.id, "certNumber", e.target.value)}
-                          className="table-input"
-                          style={submitted && !row.certNumber ? { borderColor: "#ff4d4f" } : undefined}
-                          onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
-                          onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
-                        />
-                      </div>
-                      <div key={`tl-${row.id}`} className="px-2 py-2 bg-white border-b border-r border-gray-100">
-                        <select
-                          value={row.titleLevel}
-                          onChange={(e) => updateTitleRow(row.id, "titleLevel", e.target.value)}
-                          className="table-input appearance-none"
-                          style={submitted && !row.titleLevel ? { borderColor: "#ff4d4f" } : undefined}
-                          onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
-                          onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
-                        >
-                          <option value=""></option>
-                          <option>正高级教师</option>
-                          <option>副高级教师</option>
-                          <option>一级教师</option>
-                          <option>二级教师</option>
-                          <option>三级教师</option>
-                        </select>
-                      </div>
-                      <div key={`date-${row.id}`} className="px-2 py-2 bg-white border-b border-r border-gray-100">
-                        <input
-                          type="date"
-                          value={row.awardDate}
-                          onChange={(e) => updateTitleRow(row.id, "awardDate", e.target.value)}
-                          className="table-input w-full"
-                          style={{ color: row.awardDate ? "#374151" : "#9ca3af", borderColor: submitted && !row.awardDate ? "#ff4d4f" : undefined }}
-                          onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)}
-                          onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}
-                        />
-                      </div>
-                      <div key={`img-${row.id}`} className="px-2 py-2 bg-white border-b border-r border-gray-100">
-                        <label className="w-full h-8 border rounded-lg flex items-center justify-center bg-gray-50 text-gray-300 cursor-pointer hover:bg-gray-100 transition-colors overflow-hidden"
-                          style={{ borderColor: submitted && !row.certImage ? "#ff4d4f" : "#e5e7eb" }}>
-                          {row.certImage ? (
-                            <img src={row.certImage} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <Image className="w-4 h-4" />
-                          )}
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) updateTitleRow(row.id, "certImage", URL.createObjectURL(file));
-                            }}
-                          />
-                        </label>
-                      </div>
-                      <div key={`del-${row.id}`} className="px-2 py-2 bg-white border-b border-gray-100 flex items-center justify-center">
-                        <button
-                          type="button"
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-                          onClick={() => removeTitleRow(row.id)}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </>
-                  ))}
-                </div>
-
-                {submitted && hasTitle === "yes" && anyTitleMissing && (
-                  <div className="mt-3 space-y-0.5">
-                    {titleRows.some((r) => !r.certNumber) && <p className="text-xs" style={{ color: "#ff4d4f" }}>证书编号为必填项</p>}
-                    {titleRows.some((r) => !r.titleLevel) && <p className="text-xs" style={{ color: "#ff4d4f" }}>教师职称级别为必填项</p>}
-                    {titleRows.some((r) => !r.awardDate) && <p className="text-xs" style={{ color: "#ff4d4f" }}>获评时间为必填项</p>}
-                    {titleRows.some((r) => !r.certImage) && <p className="text-xs" style={{ color: "#ff4d4f" }}>职称证书为必填项</p>}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => { if (e.target.files) setCertImages([...certImages, ...Array.from(e.target.files)]); e.target.value = ""; }}
+                    />
                   </div>
-                )}
-
-                <div className="flex items-center gap-8 mt-5">
-                  <button type="button" className="flex items-center gap-1.5 text-base font-bold transition-colors" style={{ color: teal }} onClick={addTitleRow}>
-                    <Plus className="w-4 h-4" /> 添加
-                  </button>
-                  <button type="button" className="flex items-center gap-1.5 text-base font-bold transition-colors" style={{ color: teal }}>
-                    <ClipboardList className="w-4 h-4" /> 快速填报
-                  </button>
-                </div>
+                  {certImages.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {certImages.map((file, i) => (
+                        <div key={i} className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200 group">
+                          <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            className="absolute top-0.5 right-0.5 w-5 h-5 flex items-center justify-center rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => setCertImages(certImages.filter((_, j) => j !== i))}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {submitted && certImages.length === 0 && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
+                </Field>
               </div>
+            </>
             )}
 
           </div>
-        </main>
-      </div>
 
-      {/* Fixed footer */}
-      <div className="form-footer shrink-0 flex gap-3 px-10 py-4">
-        <button
-          className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px"
-          style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}
-          onClick={handleSubmit}
-        >
-          提交
-        </button>
-        <button className="btn-secondary">
-          保存草稿
-        </button>
+          <div className="form-footer shrink-0 flex gap-3 px-6 md:px-10 py-4 mt-4 rounded-[28px]">
+            <button className="btn-secondary" onClick={handleSaveDraft}>保存草稿</button>
+            <div className="flex-1" />
+            <button
+              className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px disabled:opacity-60"
+              style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
+              {submitting ? "提交中..." : "提交"}
+            </button>
+          </div>
+        </main>
       </div>
     </div>
   );
