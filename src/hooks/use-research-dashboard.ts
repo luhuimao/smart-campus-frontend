@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { JDY_CONFIG, WIDGET_IDS, BEIKE_WIDGET_IDS, SCIENTCE_FEST_WIDGET_IDS, CLASS_RANK_WIDGET_IDS, DORM_ATTENDANCE_WIDGET_IDS, STUDENT_INFO_WIDGET_IDS, STUDENT_LEAVE_WIDGET_IDS, HEALTH_CHECK_WIDGET_IDS, STUDENT_RETURN_SCHOOL_WIDGET_IDS, STUDENT_SUPPORT_STATUS_WIDGET_IDS, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS, STAFF_DIRECTORY_WIDGET_IDS, COURSE_INFO_WIDGET_IDS, TERM_INFO_WIDGET_IDS, GRADE_INFO_WIDGET_IDS, TEACHING_RESEARCH_GROUP_WIDGET_IDS, LESSON_PREPARE_GROUP_WIDGET_IDS, TRANSACTIONS_RECORD_WIDGET_IDS, ACCESS_LOGS_WIDGET_IDS, jdyListAll, jdyListPage, jdyList, type JdyRecord, type JdyPageResult } from "@/lib/jdy-api";
+import { JDY_CONFIG, WIDGET_IDS, BEIKE_WIDGET_IDS, SCIENTCE_FEST_WIDGET_IDS, CLASS_RANK_WIDGET_IDS, DORM_ATTENDANCE_WIDGET_IDS, STUDENT_INFO_WIDGET_IDS, STUDENT_LEAVE_WIDGET_IDS, HEALTH_CHECK_WIDGET_IDS, STUDENT_RETURN_SCHOOL_WIDGET_IDS, STUDENT_SUPPORT_STATUS_WIDGET_IDS, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS, STUDENT_AWARD_WIDGET_IDS, GOOD_DEEDS_WIDGET_IDS, PHYSICAL_TEST_WIDGET_IDS, STUDENT_CADREE_WIDGET_IDS, STUDENT_WITHDRAWAL_TRANSFER_LEAVE_WIDGET_IDS, STAFF_DIRECTORY_WIDGET_IDS, COURSE_INFO_WIDGET_IDS, TERM_INFO_WIDGET_IDS, GRADE_INFO_WIDGET_IDS, TEACHING_RESEARCH_GROUP_WIDGET_IDS, LESSON_PREPARE_GROUP_WIDGET_IDS, TRANSACTIONS_RECORD_WIDGET_IDS, ACCESS_LOGS_WIDGET_IDS, jdyListAll, jdyListPage, jdyList, type JdyRecord, type JdyPageResult } from "@/lib/jdy-api";
 
 export interface ResearchRecord {
   _id: string;
@@ -79,6 +79,16 @@ function pickFiles(record: JdyRecord, widgetId: string): { name: string; url: st
   return v
     .map((x) => ({ name: (x as { name?: string }).name ?? "", url: (x as { url?: string }).url ?? "", key: (x as { key?: string }).key }))
     .filter((f) => f.url || f.key);
+}
+
+function pickStrArr(record: JdyRecord, widgetId: string): string[] {
+  const v = record[widgetId];
+  if (!Array.isArray(v)) return [];
+  return v.map((x: unknown) => {
+    if (typeof x === "string") return x;
+    if (typeof x === "object" && x !== null) return (x as Record<string, unknown>).name as string ?? "";
+    return "";
+  }).filter(Boolean);
 }
 
 function normalize(records: JdyRecord[]): ResearchRecord[] {
@@ -595,7 +605,7 @@ export function useDormAttendance(filters?: DormAttendanceFilters) {
         app_id: JDY_CONFIG.DORM_ATTENDANCE.app_id,
         entry_id: JDY_CONFIG.DORM_ATTENDANCE.entry_id,
         pageSize: 100,
-        maxPages: 20,
+        maxPages: 50,
       });
       return records.map(normalizeDormAttendanceRecord);
     },
@@ -632,10 +642,14 @@ export function useDormAttendance(filters?: DormAttendanceFilters) {
 // ── 学生花名册 ──────────────────────────────────────────────
 
 export interface StudentInfoRecord {
+  id: number;
   _id: string;
   学籍状态: string;
+  学籍状态_运营: string;
   学籍状态开始时间: string;
   姓名: string;
+  曾用名: string;
+  身份证号: string;
   宏德学号: string;
   民族: string;
   性别: string;
@@ -677,6 +691,9 @@ export interface StudentInfoRecord {
   选科1: string;
   选科2: string;
   外语选科: string;
+  证件照: { name: string; url: string; key?: string }[];
+  生活照: { name: string; url: string; key?: string }[];
+  提交人: string;
   提交时间:string;
 }
 
@@ -687,12 +704,16 @@ export interface StudentInfoFilters {
   status: string;
 }
 
-function normalizeStudentInfoRecord(r: JdyRecord): StudentInfoRecord {
+function normalizeStudentInfoRecord(r: JdyRecord, index: number): StudentInfoRecord {
   return {
+    id: index + 1,
     _id: r._id,
     学籍状态:              pickStr(r, STUDENT_INFO_WIDGET_IDS.学籍状态_教务) || pickStr(r, STUDENT_INFO_WIDGET_IDS.学籍状态_运营),
+    学籍状态_运营:         pickStr(r, STUDENT_INFO_WIDGET_IDS.学籍状态_运营),
     学籍状态开始时间:      pickStr(r, STUDENT_INFO_WIDGET_IDS.学籍状态开始时间),
     姓名:                  pickStr(r, STUDENT_INFO_WIDGET_IDS.姓名),
+    曾用名:                pickStr(r, STUDENT_INFO_WIDGET_IDS.曾用名),
+    身份证号:              pickStr(r, STUDENT_INFO_WIDGET_IDS.身份证号),
     宏德学号:              pickStr(r, STUDENT_INFO_WIDGET_IDS.宏德学号),
     民族:                  pickStr(r, STUDENT_INFO_WIDGET_IDS.民族),
     性别:                  pickStr(r, STUDENT_INFO_WIDGET_IDS.性别),
@@ -734,12 +755,15 @@ function normalizeStudentInfoRecord(r: JdyRecord): StudentInfoRecord {
     选科1:                 pickStr(r, STUDENT_INFO_WIDGET_IDS.选科1),
     选科2:                 pickStr(r, STUDENT_INFO_WIDGET_IDS.选科2),
     外语选科:              pickStr(r, STUDENT_INFO_WIDGET_IDS.外语选科),
+    证件照:                pickFiles(r, STUDENT_INFO_WIDGET_IDS.证件照),
+    生活照:                pickFiles(r, STUDENT_INFO_WIDGET_IDS.生活照),
+    提交人:                pickStr(r, STUDENT_INFO_WIDGET_IDS.提交人),
     提交时间:              pickStr(r, STUDENT_INFO_WIDGET_IDS.提交时间),
   };
 }
 
 export function useStudentInfo(filters?: StudentInfoFilters, enabled = true) {
-  const { data: allRecords, isPending, isError, error, refetch } = useQuery({
+  const { data: allRecords, isPending, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["student-info", "list"],
     queryFn: async () => {
       const records = await jdyListAll({
@@ -748,7 +772,7 @@ export function useStudentInfo(filters?: StudentInfoFilters, enabled = true) {
         pageSize: 100,
         maxPages: 50,
       });
-      return records.map(normalizeStudentInfoRecord);
+      return records.map((r, i) => normalizeStudentInfoRecord(r, i));
     },
     staleTime: 10 * 60 * 1000,
     refetchInterval: 5 * 60 * 1000,
@@ -775,7 +799,7 @@ export function useStudentInfo(filters?: StudentInfoFilters, enabled = true) {
     });
   }, [allRecords, filters?.status, filters?.grade, filters?.className, filters?.name]);
 
-  return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch };
+  return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch, isFetching };
 }
 
 // ── 学生请假 ─────────────────────────────────────────────────────
@@ -1100,6 +1124,7 @@ export function useHealthCheck(filters?: HealthCheckFilters, enabled = true) {
 // ── 学生返校登记 ──────────────────────────────────────────────────
 
 export interface StudentReturnSchoolRecord {
+  id: number;
   _id: string;
   填报日期: string;
   学期: string;
@@ -1115,19 +1140,21 @@ export interface StudentReturnSchoolRecord {
   转入学生人数: number;
   班主任: string;
   级部主任: string;
-  病假学生姓名: string;
+  提交人: string;
+  提交时间: string;
+  病假学生姓名: string[];
   病假学生人数: number;
   病假具体情况说明: string;
-  事假学生姓名: string;
+  事假学生姓名: string[];
   事假学生人数: number;
   事假具体情况说明: string;
-  在外学习培训学生姓名: string;
+  在外学习培训学生姓名: string[];
   在外学习培训学生人数: number;
   在外学习培训具体情况说明: string;
-  休学学生姓名: string;
+  休学学生姓名: string[];
   休学学生人数: number;
   休学具体情况说明: string;
-  流失学生姓名: string;
+  流失学生姓名: string[];
   流失学生人数: number;
   流失学生具体情况说明: string;
 }
@@ -1138,8 +1165,9 @@ export interface StudentReturnSchoolFilters {
   semester: string;
 }
 
-function normalizeStudentReturnSchoolRecord(r: JdyRecord): StudentReturnSchoolRecord {
+function normalizeStudentReturnSchoolRecord(r: JdyRecord, index: number): StudentReturnSchoolRecord {
   return {
+    id:                       index + 1,
     _id:                      r._id,
     填报日期:                 pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.填报日期),
     学期:                     pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.学期),
@@ -1155,26 +1183,28 @@ function normalizeStudentReturnSchoolRecord(r: JdyRecord): StudentReturnSchoolRe
     转入学生人数:             pickNum(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.转入学生人数),
     班主任:                   pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.班主任),
     级部主任:                 pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.级部主任),
-    病假学生姓名:             pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.病假学生姓名),
+    提交人:                   pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.提交人),
+    提交时间:                 pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.提交时间),
+    病假学生姓名:             pickStrArr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.病假学生姓名),
     病假学生人数:             pickNum(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.病假学生人数),
     病假具体情况说明:         pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.病假具体情况说明),
-    事假学生姓名:             pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.事假学生姓名),
+    事假学生姓名:             pickStrArr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.事假学生姓名),
     事假学生人数:             pickNum(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.事假学生人数),
     事假具体情况说明:         pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.事假具体情况说明),
-    在外学习培训学生姓名:     pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.在外学习培训学生姓名),
+    在外学习培训学生姓名:     pickStrArr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.在外学习培训学生姓名),
     在外学习培训学生人数:     pickNum(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.在外学习培训学生人数),
     在外学习培训具体情况说明: pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.在外学习培训具体情况说明),
-    休学学生姓名:             pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.休学学生姓名),
+    休学学生姓名:             pickStrArr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.休学学生姓名),
     休学学生人数:             pickNum(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.休学学生人数),
     休学具体情况说明:         pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.休学具体情况说明),
-    流失学生姓名:             pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.流失学生姓名),
+    流失学生姓名:             pickStrArr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.流失学生姓名),
     流失学生人数:             pickNum(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.流失学生人数),
     流失学生具体情况说明:     pickStr(r, STUDENT_RETURN_SCHOOL_WIDGET_IDS.流失学生具体情况说明),
   };
 }
 
 export function useStudentReturnSchool(filters?: StudentReturnSchoolFilters, enabled = true) {
-  const { data: allRecords, isPending, isError, error, refetch } = useQuery({
+  const { data: allRecords, isPending, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["student-return-school", "list"],
     queryFn: async () => {
       const records = await jdyListAll({
@@ -1183,7 +1213,9 @@ export function useStudentReturnSchool(filters?: StudentReturnSchoolFilters, ena
         pageSize: 100,
         maxPages: 50,
       });
-      return records.map(normalizeStudentReturnSchoolRecord);
+      const normalized = records.map((r, i) => normalizeStudentReturnSchoolRecord(r, i));
+      normalized.sort((a, b) => b.提交时间.localeCompare(a.提交时间));
+      return normalized;
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: 60_000,
@@ -1209,7 +1241,7 @@ export function useStudentReturnSchool(filters?: StudentReturnSchoolFilters, ena
     });
   }, [allRecords, filters?.grade, filters?.className, filters?.semester]);
 
-  return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch };
+  return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch, isFetching };
 }
 
 // ── 学生资助情况 ──────────────────────────────────────────────────
@@ -1298,6 +1330,7 @@ export function useStudentSupport(filters?: StudentSupportFilters, enabled = tru
 // ── 谈心谈话记录 ──────────────────────────────────────────────────
 
 export interface HeartToHeartTalkRecord {
+  id: number;
   _id: string;
   谈心教师: string;
   班级名称: string;
@@ -1309,7 +1342,9 @@ export interface HeartToHeartTalkRecord {
   谈话内容: string;
   谈心谈话内容记录: string;
   教师指导建议: string;
-  沟通照片: string;
+  沟通照片: { name: string; url: string; key?: string }[];
+  提交人: string;
+  提交时间: string;
 }
 
 export interface HeartToHeartTalkFilters {
@@ -1317,7 +1352,7 @@ export interface HeartToHeartTalkFilters {
   teacher: string;
 }
 
-function normalizeHeartToHeartTalkRecord(r: JdyRecord): HeartToHeartTalkRecord {
+function normalizeHeartToHeartTalkRecord(r: JdyRecord, index: number): HeartToHeartTalkRecord {
   function pickUser(rec: JdyRecord, id: string): string {
     const v = rec[id];
     if (!v) return "";
@@ -1326,6 +1361,7 @@ function normalizeHeartToHeartTalkRecord(r: JdyRecord): HeartToHeartTalkRecord {
     return String(v);
   }
   return {
+    id: index + 1,
     _id:              r._id,
     谈心教师:         pickUser(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.谈心教师),
     班级名称:         pickStr(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.班级名称),
@@ -1337,12 +1373,14 @@ function normalizeHeartToHeartTalkRecord(r: JdyRecord): HeartToHeartTalkRecord {
     谈话内容:         pickStr(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.谈话内容),
     谈心谈话内容记录: pickStr(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.谈心谈话内容记录),
     教师指导建议:     pickStr(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.教师指导建议),
-    沟通照片:         pickStr(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.沟通照片),
+    沟通照片:         pickFiles(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.沟通照片),
+    提交人:           pickStr(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.提交人),
+    提交时间:         pickStr(r, STUDENT_HEART_TO_HEART_TALK_WIDGET_IDS.提交时间),
   };
 }
 
 export function useHeartToHeartTalk(filters?: HeartToHeartTalkFilters, enabled = true) {
-  const { data: allRecords, isPending, isError, error, refetch } = useQuery({
+  const { data: allRecords, isPending, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["heart-to-heart-talk", "list"],
     queryFn: async () => {
       const records = await jdyListAll({
@@ -1351,7 +1389,9 @@ export function useHeartToHeartTalk(filters?: HeartToHeartTalkFilters, enabled =
         pageSize: 100,
         maxPages: 50,
       });
-      return records.map(normalizeHeartToHeartTalkRecord);
+      const normalized = records.map((r, i) => normalizeHeartToHeartTalkRecord(r, i));
+      normalized.sort((a, b) => b.提交时间.localeCompare(a.提交时间));
+      return normalized;
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: 60_000,
@@ -1375,7 +1415,7 @@ export function useHeartToHeartTalk(filters?: HeartToHeartTalkFilters, enabled =
     });
   }, [allRecords, filters?.className, filters?.teacher]);
 
-  return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch };
+  return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch, isFetching };
 }
 
 // ── 教职工花名册 ──────────────────────────────────────────────────
@@ -1886,6 +1926,7 @@ export function useAccessStats(activeTime: number) {
 // ── 学情分析记录 ──────────────────────────────────────────────────
 
 export interface LearningAnalysisRecord {
+  id: number;
   _id: string;
   班级: string;
   学生姓名: string;
@@ -1904,8 +1945,9 @@ export interface LearningAnalysisFilters {
   subject: string;
 }
 
-function normalizeLearningAnalysisRecord(r: JdyRecord): LearningAnalysisRecord {
+function normalizeLearningAnalysisRecord(r: JdyRecord, index: number): LearningAnalysisRecord {
   return {
+    id: index + 1,
     _id:              r._id,
     班级:             pickStr(r, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS.班级),
     学生姓名:         pickStr(r, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS.学生姓名),
@@ -1921,7 +1963,7 @@ function normalizeLearningAnalysisRecord(r: JdyRecord): LearningAnalysisRecord {
 }
 
 export function useLearningAnalysis(filters?: LearningAnalysisFilters, enabled = true) {
-  const { data: allRecords, isPending, isError, error, refetch } = useQuery({
+  const { data: allRecords, isPending, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["learning-analysis", "list"],
     queryFn: async () => {
       const records = await jdyListAll({
@@ -1930,7 +1972,7 @@ export function useLearningAnalysis(filters?: LearningAnalysisFilters, enabled =
         pageSize: 100,
         maxPages: 50,
       });
-      return records.map(normalizeLearningAnalysisRecord);
+      return records.map((r, i) => normalizeLearningAnalysisRecord(r, i));
     },
     staleTime: 5 * 60 * 1000,
     refetchInterval: 60_000,
@@ -1954,7 +1996,314 @@ export function useLearningAnalysis(filters?: LearningAnalysisFilters, enabled =
     });
   }, [allRecords, filters?.className, filters?.subject]);
 
-  return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch };
+  return { raw, allRecords: allRecords ?? [], filterOptions, isPending, isError, error, refetch, isFetching };
+}
+
+// ── 学生获奖记录 ──────────────────────────────────────────────────
+
+export interface StudentAwardRecord {
+  id: number;
+  _id: string;
+  学期: string;
+  年级: string;
+  级部: string;
+  班级名称: string;
+  学生姓名: string;
+  学生学号: string;
+  获奖级别: string;
+  获奖等级: string;
+  参与比赛名称: string;
+  获奖时间: string;
+  颁发单位: string;
+  个人团体获奖: string;
+  指导老师: string;
+  提交人: string;
+  提交时间: string;
+}
+
+function normalizeStudentAwardRecord(r: JdyRecord, index: number): StudentAwardRecord {
+  const teacherRaw = r[STUDENT_AWARD_WIDGET_IDS.指导老师];
+  const teacherArr: Array<{ name?: string }> = Array.isArray(teacherRaw) ? teacherRaw : [];
+  const teacherNames = teacherArr.map(t => t.name ?? "").join("、");
+  return {
+    id: index + 1,
+    _id: r._id,
+    学期: pickStr(r, STUDENT_AWARD_WIDGET_IDS.学期),
+    年级: pickStr(r, STUDENT_AWARD_WIDGET_IDS.年级),
+    级部: pickStr(r, STUDENT_AWARD_WIDGET_IDS.级部),
+    班级名称: pickStr(r, STUDENT_AWARD_WIDGET_IDS.班级名称),
+    学生姓名: pickStr(r, STUDENT_AWARD_WIDGET_IDS.学生姓名),
+    学生学号: pickStr(r, STUDENT_AWARD_WIDGET_IDS.学生学号),
+    获奖级别: pickStr(r, STUDENT_AWARD_WIDGET_IDS.获奖级别),
+    获奖等级: pickStr(r, STUDENT_AWARD_WIDGET_IDS.获奖等级),
+    参与比赛名称: pickStr(r, STUDENT_AWARD_WIDGET_IDS.参与比赛名称),
+    获奖时间: pickStr(r, STUDENT_AWARD_WIDGET_IDS.获奖时间),
+    颁发单位: pickStr(r, STUDENT_AWARD_WIDGET_IDS.颁发单位),
+    个人团体获奖: pickStr(r, STUDENT_AWARD_WIDGET_IDS.个人团体获奖),
+    指导老师: teacherNames,
+    提交人: pickStr(r, STUDENT_AWARD_WIDGET_IDS.提交人),
+    提交时间: pickStr(r, STUDENT_AWARD_WIDGET_IDS.提交时间),
+  };
+}
+
+export function useStudentAward() {
+  const { data: allRecords, isPending, isError, error, refetch, isFetching } = useQuery({
+    queryKey: ["student-award", "list"],
+    queryFn: async () => {
+      const records = await jdyListAll({
+        app_id: JDY_CONFIG.STUDENT_AWARD_INFO.app_id,
+        entry_id: JDY_CONFIG.STUDENT_AWARD_INFO.entry_id,
+        pageSize: 100,
+        maxPages: 50,
+      });
+      const normalized = records.map((r, i) => normalizeStudentAwardRecord(r, i));
+      normalized.sort((a, b) => b.提交时间.localeCompare(a.提交时间));
+      return normalized;
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 60_000,
+  });
+
+  return { raw: allRecords ?? [], isPending, isError, error, refetch, isFetching };
+}
+
+// ── 好人好事记录 ──────────────────────────────────────────────────
+
+export interface GoodDeedsRecord {
+  id: number;
+  _id: string;
+  学期: string;
+  填报时间: string;
+  填报人: string;
+  年级: string;
+  班级名称: string;
+  级部: string;
+  学生姓名: string;
+  学生学号: string;
+  事件发生时间: string;
+  事件地点: string;
+  事件描述: string;
+  班主任: string;
+  级部主任: string;
+  提交人: string;
+  提交时间: string;
+}
+
+function normalizeGoodDeedsRecord(r: JdyRecord, index: number): GoodDeedsRecord {
+  return {
+    id: index + 1,
+    _id: r._id,
+    学期: pickStr(r, GOOD_DEEDS_WIDGET_IDS.学期),
+    填报时间: pickStr(r, GOOD_DEEDS_WIDGET_IDS.填报时间),
+    填报人: pickStr(r, GOOD_DEEDS_WIDGET_IDS.填报人),
+    年级: pickStr(r, GOOD_DEEDS_WIDGET_IDS.年级),
+    班级名称: pickStr(r, GOOD_DEEDS_WIDGET_IDS.班级名称),
+    级部: pickStr(r, GOOD_DEEDS_WIDGET_IDS.级部),
+    学生姓名: pickStr(r, GOOD_DEEDS_WIDGET_IDS.学生姓名),
+    学生学号: pickStr(r, GOOD_DEEDS_WIDGET_IDS.学生学号),
+    事件发生时间: pickStr(r, GOOD_DEEDS_WIDGET_IDS.事件发生时间),
+    事件地点: pickStr(r, GOOD_DEEDS_WIDGET_IDS.事件地点),
+    事件描述: pickStr(r, GOOD_DEEDS_WIDGET_IDS.事件描述),
+    班主任: pickStr(r, GOOD_DEEDS_WIDGET_IDS.班主任),
+    级部主任: pickStr(r, GOOD_DEEDS_WIDGET_IDS.级部主任),
+    提交人: pickStr(r, GOOD_DEEDS_WIDGET_IDS.提交人),
+    提交时间: pickStr(r, GOOD_DEEDS_WIDGET_IDS.提交时间),
+  };
+}
+
+export function useGoodDeeds() {
+  const { data: allRecords, isPending, isError, error, refetch, isFetching } = useQuery({
+    queryKey: ["good-deeds", "list"],
+    queryFn: async () => {
+      const records = await jdyListAll({
+        app_id: JDY_CONFIG.GOOD_DEEDS_INFO.app_id,
+        entry_id: JDY_CONFIG.GOOD_DEEDS_INFO.entry_id,
+        pageSize: 100,
+        maxPages: 50,
+      });
+      const normalized = records.map((r, i) => normalizeGoodDeedsRecord(r, i));
+      normalized.sort((a, b) => b.提交时间.localeCompare(a.提交时间));
+      return normalized;
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 60_000,
+  });
+
+  return { raw: allRecords ?? [], isPending, isError, error, refetch, isFetching };
+}
+
+// ── 体质检测录入 ──────────────────────────────────────────────────
+
+export interface PhysicalTestRecord {
+  id: number;
+  _id: string;
+  录入学期: string;
+  年级: string;
+  班级名称: string;
+  级部: string;
+  姓名: string;
+  学号: string;
+  性别: string;
+  班主任: string;
+  级部主任: string;
+  考试名称: string;
+  考试时间: string;
+  身高: string;
+  体重: string;
+  肺活量: string;
+  "50米跑": string;
+  坐位体前屈: string;
+  立定跳远: string;
+  "800米跑": string;
+  "1000米跑": string;
+  一分钟跳绳: string;
+  一分钟仰卧起坐: string;
+  引体向上: string;
+  提交人: string;
+  提交时间: string;
+}
+
+function normalizePhysicalTestRecord(r: JdyRecord, index: number): PhysicalTestRecord {
+  return {
+    id: index + 1,
+    _id: r._id,
+    录入学期: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.录入学期),
+    年级: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.年级),
+    班级名称: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.班级名称),
+    级部: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.级部),
+    姓名: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.姓名),
+    学号: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.学号),
+    性别: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.性别),
+    班主任: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.班主任),
+    级部主任: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.级部主任),
+    考试名称: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.考试名称),
+    考试时间: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.考试时间),
+    身高: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.身高),
+    体重: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.体重),
+    肺活量: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.肺活量),
+    "50米跑": pickStr(r, PHYSICAL_TEST_WIDGET_IDS["50米跑"]),
+    坐位体前屈: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.坐位体前屈),
+    立定跳远: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.立定跳远),
+    "800米跑": pickStr(r, PHYSICAL_TEST_WIDGET_IDS["800米跑"]),
+    "1000米跑": pickStr(r, PHYSICAL_TEST_WIDGET_IDS["1000米跑"]),
+    一分钟跳绳: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.一分钟跳绳),
+    一分钟仰卧起坐: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.一分钟仰卧起坐),
+    引体向上: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.引体向上),
+    提交人: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.提交人),
+    提交时间: pickStr(r, PHYSICAL_TEST_WIDGET_IDS.提交时间),
+  };
+}
+
+export function usePhysicalTest() {
+  const { data: allRecords, isPending, isError, error, refetch, isFetching } = useQuery({
+    queryKey: ["physical-test", "list"],
+    queryFn: async () => {
+      const records = await jdyListAll({
+        app_id: JDY_CONFIG.PHYSICAL_TEST_INFO.app_id,
+        entry_id: JDY_CONFIG.PHYSICAL_TEST_INFO.entry_id,
+        pageSize: 100,
+        maxPages: 50,
+      });
+      const normalized = records.map((r, i) => normalizePhysicalTestRecord(r, i));
+      normalized.sort((a, b) => b.提交时间.localeCompare(a.提交时间));
+      return normalized;
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 60_000,
+  });
+
+  return { raw: allRecords ?? [], isPending, isError, error, refetch, isFetching };
+}
+
+// ── 学生干部风采 ──────────────────────────────────────────────────
+
+export interface StudentCadreeRecord {
+  id: number;
+  _id: string;
+  录入学期: string;
+  年级: string;
+  班级名称: string;
+  级部: string;
+  姓名: string;
+  学号: string;
+  职务: string;
+  自我介绍: string;
+  任职宣言: string;
+  家长寄语: string;
+  德育处评价: string;
+  学生照片: { name: string; url: string; key?: string }[];
+  任职开始时间: string;
+  任职结束时间: string;
+  班主任: string;
+  级部主任: string;
+  提交人: string;
+  提交时间: string;
+}
+
+function normalizeStudentCadreeRecord(r: JdyRecord, index: number): StudentCadreeRecord {
+  return {
+    id: index + 1,
+    _id: r._id,
+    录入学期: pickStr(r, STUDENT_CADREE_WIDGET_IDS.录入学期),
+    年级: pickStr(r, STUDENT_CADREE_WIDGET_IDS.年级),
+    班级名称: pickStr(r, STUDENT_CADREE_WIDGET_IDS.班级名称),
+    级部: pickStr(r, STUDENT_CADREE_WIDGET_IDS.级部),
+    姓名: pickStr(r, STUDENT_CADREE_WIDGET_IDS.姓名),
+    学号: pickStr(r, STUDENT_CADREE_WIDGET_IDS.学号),
+    职务: pickStr(r, STUDENT_CADREE_WIDGET_IDS.职务),
+    自我介绍: pickStr(r, STUDENT_CADREE_WIDGET_IDS.自我介绍),
+    任职宣言: pickStr(r, STUDENT_CADREE_WIDGET_IDS.任职宣言),
+    家长寄语: pickStr(r, STUDENT_CADREE_WIDGET_IDS.家长寄语),
+    德育处评价: pickStr(r, STUDENT_CADREE_WIDGET_IDS.德育处评价),
+    学生照片: pickFiles(r, STUDENT_CADREE_WIDGET_IDS.学生照片),
+    任职开始时间: pickStr(r, STUDENT_CADREE_WIDGET_IDS.任职开始时间),
+    任职结束时间: pickStr(r, STUDENT_CADREE_WIDGET_IDS.任职结束时间),
+    班主任: pickStr(r, STUDENT_CADREE_WIDGET_IDS.班主任),
+    级部主任: pickStr(r, STUDENT_CADREE_WIDGET_IDS.级部主任),
+    提交人: pickStr(r, STUDENT_CADREE_WIDGET_IDS.提交人),
+    提交时间: pickStr(r, STUDENT_CADREE_WIDGET_IDS.提交时间),
+  };
+}
+
+export function useStudentCadree() {
+  const { data: allRecords, isPending, isError, error, refetch, isFetching } = useQuery({
+    queryKey: ["student-cadree", "list"],
+    queryFn: async () => {
+      const records = await jdyListAll({
+        app_id: JDY_CONFIG.STUDENT_CADREE_INFO.app_id,
+        entry_id: JDY_CONFIG.STUDENT_CADREE_INFO.entry_id,
+        pageSize: 100,
+        maxPages: 50,
+      });
+      const normalized = records.map((r, i) => normalizeStudentCadreeRecord(r, i));
+      normalized.sort((a, b) => b.提交时间.localeCompare(a.提交时间));
+      return normalized;
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 60_000,
+  });
+
+  return { raw: allRecords ?? [], isPending, isError, error, refetch, isFetching };
+}
+
+// ── 学生退/转/休学申请表 ──────────────────────────────────────────
+
+export function useWithdrawal() {
+  const { isPending, isError, error, refetch, isFetching } = useQuery({
+    queryKey: ["withdrawal", "list"],
+    queryFn: async () => {
+      return await jdyListAll({
+        app_id: JDY_CONFIG.STUDENT_WITHDRAWAL_TRANSFER_LEAVE_APPLICATION.app_id,
+        entry_id: JDY_CONFIG.STUDENT_WITHDRAWAL_TRANSFER_LEAVE_APPLICATION.entry_id,
+        pageSize: 100,
+        maxPages: 50,
+      });
+    },
+    staleTime: 5 * 60 * 1000,
+    enabled: false,
+  });
+
+  return { isPending, isError, error, refetch, isFetching };
 }
 
 // ── 学期信息 ──────────────────────────────────────────────────

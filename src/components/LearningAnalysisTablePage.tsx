@@ -1,11 +1,16 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
-import { ChevronDown, LayoutGrid, List, AlignLeft, RefreshCw, MoreHorizontal, Plus, Download, Trash2, Clock, Search, Filter, X } from "lucide-react";
+import { useState, useMemo, useRef, useEffect } from "react";
+import * as XLSX from "xlsx";
+import { ChevronDown, Trash2, Clock, Search, X, Plus, Image } from "lucide-react";
 import { PageHeader } from "./PageHeader";
 import { DatePicker } from "./ui/DatePicker";
 import { StudentPicker } from "./ui/StudentPicker";
-import { useCourses, type StudentInfoRecord } from "@/hooks/use-research-dashboard";
+import { DataTable, type ColDef } from "./DataTable";
+import { useLearningAnalysis, useCourses, type LearningAnalysisRecord, type StudentInfoRecord } from "@/hooks/use-research-dashboard";
+import { JDY_CONFIG, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS, jdyCreate, jdyUpdate, jdyDelete, jdyUploadFiles } from "@/lib/jdy-api";
+import { useCurrentUser } from "@/lib/user-context";
+import { useQueryClient } from "@tanstack/react-query";
 
 const teal = "#00b095";
 
@@ -20,6 +25,30 @@ const modeOptions: { value: Mode; label: string }[] = [
   { value: "all-permitted",  label: "全部有权限的数据" },
 ];
 
+const H = STUDENT_LEARNING_ANALYSIS_WIDGET_IDS;
+
+// ── Column definitions ──────────────────────────────────────────
+
+const COLUMNS: ColDef<LearningAnalysisRecord>[] = [
+  { key: "班级",       label: "班级" },
+  { key: "学生姓名",   label: "学生姓名" },
+  { key: "学科",       label: "学科" },
+  { key: "学情分析开始时间", label: "开始时间" },
+  { key: "学情分析结束时间", label: "结束时间" },
+  { key: "教师指导措施", label: "教师指导措施", minWidth: 200 },
+  { key: "提交人",     label: "提交人", minWidth: 80 },
+  { key: "提交时间",   label: "提交时间", minWidth: 160 },
+];
+
+const SORT_OPTIONS: { label: string; field: keyof LearningAnalysisRecord }[] = [
+  { label: "提交时间", field: "提交时间" },
+  { label: "班级", field: "班级" },
+  { label: "学生姓名", field: "学生姓名" },
+  { label: "学科", field: "学科" },
+];
+
+// ── Helpers ──────────────────────────────────────────────────────
+
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (<div><label className="block text-base font-semibold mb-2" style={{ color: "#1d1d1f" }}>{required && <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>}{label}</label>{children}</div>);
 }
@@ -28,12 +57,42 @@ function FSelect({ value, onChange, options, placeholder }: { value: string; onC
   return (<div className="relative"><select value={value} onChange={(e) => onChange(e.target.value)} className="form-input appearance-none" style={{ color: value ? "#1d1d1f" : "#9ca3af" }} onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)} onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}><option value="" disabled>{placeholder ?? ""}</option>{options.map((o) => <option key={o}>{o}</option>)}</select><ChevronDown className="w-4 h-4 absolute right-3.5 top-3 text-gray-400 pointer-events-none" /></div>);
 }
 
-function FileUpload({ files, onChange, accept, hint }: { files: File[]; onChange: (f: File[]) => void; accept: string; hint: string }) {
+function ImageField({ files, onChange, label }: { files: File[]; onChange: (f: File[]) => void; label: string }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  return (<div>
-    <div className="flex items-center gap-2 mb-2"><div className="flex-1 border-2 border-dashed border-gray-200 rounded-xl py-3 px-3.5 flex items-center justify-center gap-1 cursor-pointer hover:border-emerald-300 hover:bg-emerald-50/30 transition-colors" onClick={() => inputRef.current?.click()}><span className="text-sm font-medium" style={{ color: teal }}>选择</span><span className="text-sm" style={{ color: "#9ca3af" }}>{hint}</span></div><input ref={inputRef} type="file" accept={accept} multiple className="hidden" onChange={(e) => { if (e.target.files) onChange([...files, ...Array.from(e.target.files)]); e.target.value = ""; }} /></div>
-    {files.length > 0 && (<div className="flex flex-wrap gap-2">{files.map((f, i) => (<div key={i} className="flex items-center gap-1.5 px-2 py-1 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600"><span className="max-w-[160px] truncate">{f.name}</span><X className="w-3 h-3 cursor-pointer hover:text-red-500 flex-shrink-0" onClick={() => onChange(files.filter((_, j) => j !== i))} /></div>))}</div>)}
-  </div>);
+  const previews = useMemo(() => files.map(f => URL.createObjectURL(f)), [files]);
+
+  useEffect(() => {
+    return () => previews.forEach(url => URL.revokeObjectURL(url));
+  }, [previews]);
+
+  return (
+    <div>
+      <div className="flex flex-wrap gap-2 mb-2">
+        {previews.map((url, i) => (
+          <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 group shrink-0">
+            <img src={url} alt="" className="w-full h-full object-cover" />
+            <button
+              onClick={() => onChange(files.filter((_, j) => j !== i))}
+              className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white border border-gray-200 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+            >
+              <X className="w-3 h-3 text-gray-500" />
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-0.5 text-gray-400 hover:border-emerald-300 hover:text-emerald-400 transition-colors shrink-0"
+        >
+          <Plus className="w-4 h-4" />
+          <span className="text-[9px] leading-none">上传</span>
+        </button>
+      </div>
+      <input ref={inputRef} type="file" accept="image/*" multiple className="hidden"
+        onChange={(e) => { if (e.target.files) onChange([...files, ...Array.from(e.target.files)]); e.target.value = ""; }} />
+      <p className="text-xs text-gray-400" style={{ marginTop: 2 }}>{label}</p>
+    </div>
+  );
 }
 
 function SectionHeader({ title }: { title: string }) {
@@ -47,185 +106,122 @@ function SectionHeader({ title }: { title: string }) {
   );
 }
 
-const mockRecords = [
-  { id: 1, cls: "高一(1)班", student: "张三", subject: "数学", startTime: "2026-04-01", endTime: "2026-04-20", goodPoints: "函数、三角", weakPoints: "导数", guidance: "加强导数练习", submitter: "张老师", submitTime: "2026-04-20 17:00", updateTime: "2026-04-20 17:00" },
-  { id: 2, cls: "高一(2)班", student: "李四", subject: "语文", startTime: "2026-04-01", endTime: "2026-04-18", goodPoints: "阅读理解", weakPoints: "作文", guidance: "写作专项训练", submitter: "李老师", submitTime: "2026-04-18 16:30", updateTime: "2026-04-18 16:30" },
-  { id: 3, cls: "高一(1)班", student: "王五", subject: "英语", startTime: "2026-03-15", endTime: "2026-04-15", goodPoints: "听力、口语", weakPoints: "语法", guidance: "每日语法练习", submitter: "王老师", submitTime: "2026-04-15 15:00", updateTime: "2026-04-15 15:00" },
-];
+// ── Toolbar helpers ──────────────────────────────────────────────
 
-const COLUMNS = ["班级", "学生姓名", "学科", "学情分析开始时间", "学情分析结束时间", "掌握较好的知识点", "掌握不足的知识点", "教师指导措施", "提交人", "提交时间", "更新时间"];
-
-function RecordTable({ records }: { records: typeof mockRecords }) {
-  const [selected, setSelected] = useState<Set<number>>(new Set());
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const pageSize = 20;
-
-  const filtered = records.filter(
-    (r) => !search || r.student.includes(search) || r.cls.includes(search) || r.subject.includes(search)
-  );
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
-
-  const allChecked = paged.length > 0 && paged.every((r) => selected.has(r.id));
-  const toggleAll = () => {
-    const next = new Set(selected);
-    if (allChecked) paged.forEach((r) => next.delete(r.id));
-    else paged.forEach((r) => next.add(r.id));
-    setSelected(next);
-  };
-  const toggle = (id: number) => {
-    const next = new Set(selected);
-    next.has(id) ? next.delete(id) : next.add(id);
-    setSelected(next);
-  };
-
+function Tooltip({ text, disabled, children }: { text: string; disabled?: boolean; children: React.ReactNode }) {
+  const [visible, setVisible] = useState(false);
   return (
-    <div className="flex flex-col h-full">
-      <div className="px-3 py-2.5 flex justify-between items-center border-b border-gray-100 bg-white shrink-0">
-        <div className="flex items-center gap-1">
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium text-white transition-all hover:opacity-90" style={{ backgroundColor: teal }}>
-            <Plus className="w-3.5 h-3.5" /> 添加
-          </button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-gray-600 hover:bg-gray-100 transition-colors">
-            <Download className="w-3.5 h-3.5" /> 导出
-          </button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-gray-600 hover:bg-gray-100 transition-colors">
-            <Trash2 className="w-3.5 h-3.5" /> 删除
-          </button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-gray-600 hover:bg-gray-100 transition-colors">
-            <Clock className="w-3.5 h-3.5" /> 操作记录
-          </button>
+    <div className="relative flex items-center justify-center" onMouseEnter={() => setVisible(true)} onMouseLeave={() => setVisible(false)}>
+      {children}
+      {visible && !disabled && (
+        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs text-white px-2.5 py-1.5 rounded-md pointer-events-none z-50"
+          style={{ background: "rgba(30,30,30,0.88)", backdropFilter: "blur(4px)", boxShadow: "0 4px 12px rgba(0,0,0,0.18)" }}>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent" style={{ borderBottomColor: "rgba(30,30,30,0.88)" }} />
+          {text}
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center border border-gray-300 rounded-md px-2.5 py-1 gap-1.5 w-56 bg-white">
-            <Search className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-            <input
-              type="text"
-              placeholder="搜索数据"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="text-sm outline-none w-full bg-transparent"
-            />
-            <ChevronDown className="w-3 h-3 text-gray-400 shrink-0" />
-          </div>
-          <button className="flex items-center gap-1.5 border border-gray-300 rounded-md px-3 py-1 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
-            <Filter className="w-3.5 h-3.5" /> 筛选
-          </button>
-          <div className="flex items-center gap-3 pl-3 ml-1 border-l border-gray-200 text-gray-400">
-            <LayoutGrid className="w-4 h-4 cursor-pointer rounded p-0.5" style={{ color: teal, background: "rgba(0,176,149,0.08)" }} />
-            <List className="w-4 h-4 cursor-pointer hover:text-gray-600 transition-colors" />
-            <AlignLeft className="w-4 h-4 cursor-pointer hover:text-gray-600 transition-colors" />
-            <RefreshCw className="w-4 h-4 cursor-pointer hover:text-gray-600 transition-colors" />
-            <MoreHorizontal className="w-4 h-4 cursor-pointer hover:text-gray-600 transition-colors" />
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-auto">
-        <table className="w-full text-sm border-collapse min-w-[800px]">
-          <thead className="sticky top-0 z-10">
-            <tr>
-              <th className="w-10 px-3 py-2.5 bg-gray-50 border-b border-r border-gray-200 text-left">
-                <input type="checkbox" checked={allChecked} onChange={toggleAll} className="w-4 h-4 rounded border-gray-300 cursor-pointer" style={{ accentColor: teal }} />
-              </th>
-              {COLUMNS.map((col) => (
-                <th key={col} className="px-3 py-2.5 bg-gray-50 border-b border-r border-gray-200 text-left text-[13px] font-medium text-gray-700 whitespace-nowrap">
-                  {col}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {paged.length === 0 ? (
-              <tr>
-                <td colSpan={COLUMNS.length + 1}>
-                  <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-                    <svg viewBox="0 0 200 150" fill="none" className="w-48 h-36 mb-3">
-                      <path d="M100 50 L0 80 L200 80 Z" fill="rgba(255,243,176,0.3)" />
-                      <path d="M20 130 Q100 110 180 130" stroke="#e6e6e6" strokeWidth="2" />
-                      <rect x="90" y="55" width="20" height="70" fill="#d9e3f0" rx="2" />
-                      <rect x="88" y="50" width="24" height="6" fill="#bfcedd" rx="1" />
-                      <circle cx="100" cy="45" r="8" fill="#d9e3f0" />
-                      <rect x="98" y="100" width="4" height="8" fill="#fff" rx="1" />
-                      <circle cx="65" cy="120" r="8" fill="#e6e6e6" />
-                      <circle cx="145" cy="125" r="6" fill="#e6e6e6" />
-                    </svg>
-                    <span className="text-sm">暂无数据</span>
-                  </div>
-                </td>
-              </tr>
-            ) : paged.map((r) => (
-              <tr key={r.id} className="hover:bg-gray-50 transition-colors" style={selected.has(r.id) ? { background: "rgba(0,176,149,0.04)" } : {}}>
-                <td className="px-3 py-2.5 border-b border-r border-gray-100">
-                  <input type="checkbox" checked={selected.has(r.id)} onChange={() => toggle(r.id)} className="w-4 h-4 rounded border-gray-300 cursor-pointer" style={{ accentColor: teal }} />
-                </td>
-                <td className="px-3 py-2.5 border-b border-r border-gray-100 text-gray-800 whitespace-nowrap">{r.cls}</td>
-                <td className="px-3 py-2.5 border-b border-r border-gray-100 text-gray-800 whitespace-nowrap">{r.student}</td>
-                <td className="px-3 py-2.5 border-b border-r border-gray-100 text-gray-600 whitespace-nowrap">{r.subject}</td>
-                <td className="px-3 py-2.5 border-b border-r border-gray-100 text-gray-600 whitespace-nowrap">{r.startTime}</td>
-                <td className="px-3 py-2.5 border-b border-r border-gray-100 text-gray-600 whitespace-nowrap">{r.endTime}</td>
-                <td className="px-3 py-2.5 border-b border-r border-gray-100 text-gray-500 max-w-[160px] truncate">{r.goodPoints}</td>
-                <td className="px-3 py-2.5 border-b border-r border-gray-100 text-gray-500 max-w-[160px] truncate">{r.weakPoints}</td>
-                <td className="px-3 py-2.5 border-b border-r border-gray-100 text-gray-500 max-w-[200px] truncate">{r.guidance}</td>
-                <td className="px-3 py-2.5 border-b border-r border-gray-100 text-gray-600 whitespace-nowrap">{r.submitter}</td>
-                <td className="px-3 py-2.5 border-b border-r border-gray-100 text-gray-500 whitespace-nowrap">{r.submitTime}</td>
-                <td className="px-3 py-2.5 border-b border-r border-gray-100 text-gray-500 whitespace-nowrap">{r.updateTime}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="px-3 py-2.5 border-t border-gray-100 bg-white shrink-0 flex justify-between items-center text-sm text-gray-600">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3 text-gray-400 border-r border-gray-200 pr-4">
-            <List className="w-4 h-4 cursor-pointer hover:text-gray-600" />
-            <AlignLeft className="w-4 h-4 cursor-pointer hover:text-gray-600" />
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="flex items-center border border-gray-200 rounded px-2 py-0.5 cursor-pointer hover:bg-gray-50 text-sm gap-1.5">
-              <span>{pageSize} 条/页</span>
-              <ChevronDown className="w-3 h-3 text-gray-400" />
-            </div>
-            <span className="ml-3 text-gray-500">共 {filtered.length} 条</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-1">
-          <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="p-1 rounded disabled:text-gray-300 hover:enabled:text-gray-700 transition-colors">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6" /></svg>
-          </button>
-          <div className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded bg-white text-gray-700 text-sm">{page}</div>
-          <span className="text-gray-400 px-1">/ {totalPages}</span>
-          <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="p-1 rounded disabled:text-gray-300 hover:enabled:text-gray-700 transition-colors">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6" /></svg>
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
+
+function IconDropdown({ icon, tooltip, options, onSelect, disabledOptions }: {
+  icon: React.ReactNode; tooltip: string; options: string[]; onSelect?: (option: string) => void; disabledOptions?: string[];
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const disabledSet = new Set(disabledOptions ?? []);
+  useEffect(() => {
+    if (!open) return;
+    function h(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); }
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [open]);
+  return (
+    <div className="relative" ref={ref}>
+      <Tooltip text={tooltip} disabled={open}>
+        <button onClick={() => setOpen(v => !v)} className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:bg-black/[0.05]" style={{ color: "#8c8c8c" }}>{icon}</button>
+      </Tooltip>
+      {open && (
+        <div className="absolute left-0 top-full mt-1 rounded-xl overflow-hidden z-50" style={{ minWidth: 148, background: "white", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid rgba(0,0,0,0.06)" }}>
+          {options.map(opt => {
+            const isDisabled = disabledSet.has(opt);
+            return (
+              <button key={opt} onClick={() => { if (!isDisabled) { setOpen(false); onSelect?.(opt); } }}
+                className="w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-black/[0.04] disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ color: "#374151" }} disabled={isDisabled}>{opt}</button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SearchBox({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  function expand() { setExpanded(true); setTimeout(() => inputRef.current?.focus(), 50); }
+  function collapse() { if (!value) setExpanded(false); }
+  return (
+    <div className="flex items-center rounded-lg border transition-all duration-200 bg-white overflow-hidden"
+      style={{ width: expanded ? 200 : 32, height: 32, borderColor: expanded ? "#d1d5db" : "transparent", background: expanded ? "white" : "transparent" }}>
+      <button onClick={expand} className="flex items-center justify-center w-8 h-8 shrink-0 transition-colors" style={{ color: expanded ? teal : "#8c8c8c" }}><Search className="w-4 h-4" /></button>
+      {expanded && <input ref={inputRef} type="text" placeholder="搜索数据" value={value} onChange={e => onChange(e.target.value)} onBlur={collapse} className="outline-none text-sm bg-transparent pr-2 w-full" style={{ color: "#374151" }} />}
+    </div>
+  );
+}
+
+// ── Mode selector ────────────────────────────────────────────────
 
 function ModeSelector({ value, onChange }: { value: Mode; onChange: (v: Mode) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    function h(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); }
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [open]);
+  const currentLabel = modeOptions.find(o => o.value === value)?.label ?? value;
   return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value as Mode)}
-        className="appearance-none pl-3 pr-8 py-1.5 text-sm font-semibold border border-gray-200 rounded-xl bg-white outline-none cursor-pointer hover:border-gray-300 transition-colors"
-        style={{ color: "#374151" }}
-      >
-        {modeOptions.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
-      <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-2.5 text-gray-400 pointer-events-none" />
+    <div className="relative shrink-0 inline-block" ref={ref}>
+      <button onClick={() => setOpen(v => !v)} className="flex items-center gap-2 h-9 px-4 text-[15px] font-semibold rounded-xl transition-all duration-150 shrink-0"
+        style={{ minWidth: 200, background: "white", color: "#374151", border: "1px solid rgba(0,0,0,0.1)", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+        <span className="flex-1 text-left">{currentLabel}</span>
+        <ChevronDown className="w-4 h-4 shrink-0 transition-transform duration-200" style={{ color: "#9ca3af", transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full mt-2 rounded-2xl overflow-hidden z-50"
+          style={{ minWidth: 200, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 12px 32px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)" }}>
+          {modeOptions.map((opt, i) => {
+            const isSelected = opt.value === value;
+            return (
+              <button key={opt.value} onClick={() => { setOpen(false); onChange(opt.value); }}
+                className="w-full text-left px-4 h-11 text-[15px] font-medium transition-colors duration-100"
+                style={{ color: isSelected ? teal : "#374151", background: isSelected ? "rgba(0,176,149,0.06)" : "transparent", borderTop: i > 0 ? "1px solid rgba(0,0,0,0.04)" : "none" }}>
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
+// ── Main component ───────────────────────────────────────────────
+
 export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
-  const [mode, setMode] = useState<Mode>("add-only");
+  const [mode, setMode] = useState<Mode>("add-manage-own");
+  const [search, setSearch] = useState("");
+  const [sortField, setSortField] = useState<keyof LearningAnalysisRecord>("提交时间");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [sortOpen, setSortOpen] = useState(false);
+  const sortRef = useRef<HTMLDivElement>(null);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+  // Form state
+  const [editRecord, setEditRecord] = useState<LearningAnalysisRecord | null>(null);
   const [cls, setCls] = useState("");
   const [studentName, setStudentName] = useState("");
   const [subject, setSubject] = useState("");
@@ -234,74 +230,427 @@ export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => v
   const [goodPhotos, setGoodPhotos] = useState<File[]>([]);
   const [weakPhotos, setWeakPhotos] = useState<File[]>([]);
   const [guidance, setGuidance] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
 
-  const ownRecords = mockRecords.filter((r) => r.submitter === "张老师");
-
+  const currentUser = useCurrentUser();
+  const queryClient = useQueryClient();
+  const { raw, isPending, isError, refetch, isFetching } = useLearningAnalysis();
   const { raw: courseList } = useCourses();
+
+  const isEditMode = editRecord !== null;
   const subjectOptions = useMemo(() => [...new Set(courseList.map((c) => c.教研学科名 || c.科目).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh")), [courseList]);
+
+  // Click outside for sort dropdown
+  useEffect(() => {
+    if (!sortOpen) return;
+    function h(e: MouseEvent) { if (sortRef.current && !sortRef.current.contains(e.target as Node)) setSortOpen(false); }
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [sortOpen]);
+
+  // Pre-fill form when editing
+  useEffect(() => {
+    if (!editRecord) return;
+    setCls(editRecord.班级);
+    setStudentName(editRecord.学生姓名);
+    setSubject(editRecord.学科);
+    setStartDate(editRecord.学情分析开始时间 ? new Date(editRecord.学情分析开始时间) : null);
+    setEndDate(editRecord.学情分析结束时间 ? new Date(editRecord.学情分析结束时间) : null);
+    setGuidance(editRecord.教师指导措施);
+    setGoodPhotos([]);
+    setWeakPhotos([]);
+  }, [editRecord]);
+
+  // Restore draft when entering add mode (without edit record)
+  useEffect(() => {
+    if (editRecord || mode !== "add-only") return;
+    try {
+      const rawDraft = localStorage.getItem("learning-analysis-draft");
+      if (!rawDraft) return;
+      const d = JSON.parse(rawDraft);
+      if (d.cls) setCls(d.cls);
+      if (d.studentName) setStudentName(d.studentName);
+      if (d.subject) setSubject(d.subject);
+      if (d.startDate) setStartDate(new Date(d.startDate));
+      if (d.endDate) setEndDate(new Date(d.endDate));
+      if (d.guidance) setGuidance(d.guidance);
+    } catch {}
+  }, [mode, editRecord]);
+
+  // ── API logic ────────────────────────────────────────────────
 
   const handleSelectStudent = (record: StudentInfoRecord | null) => {
     if (record) setCls(record.班级名称 || "");
     else setCls("");
   };
 
-  const handleSubmit = () => { setSubmitted(true); if ([cls, studentName, subject, startDate, endDate, goodPhotos.length > 0, weakPhotos.length > 0, guidance].find((f) => !f)) window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const validate = (): boolean => {
+    const errs: Record<string, string> = {};
+    if (!cls.trim())          errs.cls = "请输入班级";
+    if (!studentName.trim())   errs.studentName = "请选择学生";
+    if (!subject.trim())       errs.subject = "请选择学科";
+    if (!startDate)            errs.startDate = "请选择开始时间";
+    if (!endDate)              errs.endDate = "请选择结束时间";
+    if (goodPhotos.length === 0 && !isEditMode) errs.goodPhotos = "请上传掌握较好的知识点图片";
+    if (weakPhotos.length === 0 && !isEditMode) errs.weakPhotos = "请上传掌握不足的知识点图片";
+    if (!guidance.trim())      errs.guidance = "请输入教师指导措施";
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const clearError = (field: string) => {
+    if (errors[field]) setErrors(prev => { const n = { ...prev }; delete n[field]; return n; });
+  };
+
+  const buildData = (goodKeys: string[], weakKeys: string[]) => {
+    const now = new Date().toISOString();
+    const fmtDate = (d: Date | null) => d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` : "";
+    return {
+      [H.班级]: { value: cls },
+      [H.学生姓名]: { value: studentName },
+      [H.学科]: { value: subject },
+      [H.学情分析开始时间]: { value: fmtDate(startDate) },
+      [H.学情分析结束时间]: { value: fmtDate(endDate) },
+      [H.掌握较好的知识点]: { value: goodKeys },
+      [H.掌握不足的知识点]: { value: weakKeys },
+      [H.教师指导措施]: { value: guidance },
+      [H.提交人]: { value: isEditMode ? editRecord!.提交人 : (currentUser?.name ?? "") },
+      [H.提交时间]: { value: isEditMode ? editRecord!.提交时间 : now },
+    };
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    setSubmitting(true);
+    try {
+      const allFiles = [...goodPhotos, ...weakPhotos];
+      const transaction_id = allFiles.length > 0 ? crypto.randomUUID() : undefined;
+      let goodKeys: string[] = isEditMode ? editRecord!.掌握较好的知识点.map(f => f.name) : [];
+      let weakKeys: string[] = isEditMode ? editRecord!.掌握不足的知识点.map(f => f.name) : [];
+
+      if (transaction_id) {
+        const result = await jdyUploadFiles(allFiles, JDY_CONFIG.STUDENT_LEARNING_ANALYSIS.app_id, JDY_CONFIG.STUDENT_LEARNING_ANALYSIS.entry_id, transaction_id);
+        let ki = 0;
+        if (goodPhotos.length > 0) { goodKeys = result.keys.slice(ki, ki + goodPhotos.length); ki += goodPhotos.length; }
+        if (weakPhotos.length > 0) { weakKeys = result.keys.slice(ki, ki + weakPhotos.length); }
+      }
+
+      if (isEditMode) {
+        await jdyUpdate({
+          app_id: JDY_CONFIG.STUDENT_LEARNING_ANALYSIS.app_id,
+          entry_id: JDY_CONFIG.STUDENT_LEARNING_ANALYSIS.entry_id,
+          data_id: editRecord!._id,
+          data: buildData(goodKeys, weakKeys),
+          data_creator: currentUser?.userId,
+          transaction_id,
+        });
+      } else {
+        await jdyCreate({
+          app_id: JDY_CONFIG.STUDENT_LEARNING_ANALYSIS.app_id,
+          entry_id: JDY_CONFIG.STUDENT_LEARNING_ANALYSIS.entry_id,
+          data: buildData(goodKeys, weakKeys),
+          data_creator: currentUser?.userId,
+          transaction_id,
+          is_start_workflow: false,
+          is_start_trigger: false,
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["learning-analysis", "list"] });
+      handleClearForm();
+      if (isEditMode) setEditRecord(null);
+      setMode("add-manage-own");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "提交失败，请重试");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const clearFormFields = () => {
+    setCls(""); setStudentName(""); setSubject(""); setStartDate(null); setEndDate(null);
+    setGoodPhotos([]); setWeakPhotos([]); setGuidance("");
+    setErrors({});
+  };
+
+  const handleClearForm = () => {
+    clearFormFields();
+    localStorage.removeItem("learning-analysis-draft");
+  };
+
+  const handleSaveDraft = () => {
+    const hasContent = cls || studentName || subject || guidance;
+    if (!hasContent) return;
+    localStorage.setItem("learning-analysis-draft", JSON.stringify({
+      cls, studentName, subject, startDate: startDate?.toISOString(), endDate: endDate?.toISOString(), guidance,
+    }));
+  };
+
+  const handleDeleteSelected = async (opt: string) => {
+    const idSet = new Set(selectedIds);
+    const targetData = opt === "勾选的数据" ? tableData.filter(r => idSet.has(r.id)) : tableData;
+    if (targetData.length === 0) return;
+    if (!confirm(`确定要删除 ${targetData.length} 条记录吗？此操作不可撤销。`)) return;
+    try {
+      for (const r of targetData) {
+        await jdyDelete({ app_id: JDY_CONFIG.STUDENT_LEARNING_ANALYSIS.app_id, entry_id: JDY_CONFIG.STUDENT_LEARNING_ANALYSIS.entry_id, data_id: r._id });
+      }
+      queryClient.invalidateQueries({ queryKey: ["learning-analysis", "list"] });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "删除失败，请重试");
+    }
+  };
+
+  const doExport = (data: LearningAnalysisRecord[]) => {
+    const headers = COLUMNS.map(c => c.label);
+    const rows = data.map(r => COLUMNS.map(c => String(r[c.key as keyof LearningAnalysisRecord] ?? "")));
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "学情分析表");
+    XLSX.writeFile(wb, `学情分析表_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
+
+  // ── Table data ───────────────────────────────────────────────
+
+  const handleModeChange = (newMode: Mode) => {
+    if (newMode === "add-only") {
+      setEditRecord(null);
+      clearFormFields();
+    } else {
+      setEditRecord(null);
+    }
+    setMode(newMode);
+  };
+
+  const tableData = useMemo(() => {
+    if (mode === "add-manage-own") return raw.filter(r => r.提交人 === currentUser?.name);
+    if (mode === "all-permitted") return raw;
+    return raw;
+  }, [raw, mode, currentUser]);
+
+  const filtered = tableData.filter(r =>
+    r.班级.includes(search) || r.学生姓名.includes(search) || r.学科.includes(search)
+  );
+
+  const sorted = [...filtered].sort((a, b) => {
+    const va = String(a[sortField] ?? "");
+    const vb = String(b[sortField] ?? "");
+    const cmp = va.localeCompare(vb, "zh");
+    return sortDir === "desc" ? -cmp : cmp;
+  });
+
+  // ── Render ───────────────────────────────────────────────────
 
   return (
     <div className="flex flex-col h-full overflow-hidden" style={{ color: "#1d1d1f" }}>
       <PageHeader
         centered
         breadcrumbs={[{ label: "学情分析" }, { label: "学情分析表", active: true }]}
-        left={<ModeSelector value={mode} onChange={setMode} />}
         onMenuOpen={onMenuOpen}
       />
 
-      {mode === "add-only" ? (
-        <>
-          <div className="flex-1 overflow-y-auto bg-[#f5f5f7] pb-24">
-            <main className="max-w-5xl mx-auto mt-4 md:mt-10 px-3 md:px-6">
-              <div className="rounded-2xl md:rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white p-5 md:p-10">
+      <div className="flex-1 overflow-y-auto bg-[#f5f5f7]">
 
-                <SectionHeader title="南宁市宏德高级中学-学情分析表" />
+        <div className="max-w-7xl mx-auto px-3 md:px-6 pt-4 md:pt-6">
+          <ModeSelector value={mode} onChange={handleModeChange} />
+        </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 mt-8">
+        {(mode === "add-only" || editRecord) ? (
+          <main className="max-w-6xl mx-auto px-3 md:px-6 pb-24">
+            <div className="mb-8 text-center">
+              <div className="inline-flex flex-col items-center">
+                <h2 className="text-xl font-bold tracking-tight" style={{ color: "#111827" }}>
+                  {editRecord ? "编辑学情分析" : "学情分析表"}
+                </h2>
+                <div className="mt-2 h-0.5 w-12 rounded-full" style={{ background: `linear-gradient(90deg, ${teal}, #5BC8F5)` }} />
+                {editRecord && <p className="text-xs mt-2" style={{ color: "#9ca3af" }}>修改表单字段后点击保存</p>}
+              </div>
+            </div>
 
-                  <Field label="班级" required><input value={cls} onChange={(e) => setCls(e.target.value)} placeholder="请输入班级" className="form-input" onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)} onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)} />{submitted && !cls && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
+            <div className="rounded-[28px] shadow-sm border border-gray-100 bg-white">
+              <div className="p-8 space-y-10">
 
-                  <Field label="学生姓名" required><StudentPicker value={studentName} onChange={setStudentName} onSelectRecord={handleSelectStudent} />{submitted && !studentName && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
+                {/* Row 1: 基本信息 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                  <Field label="班级" required>
+                    <input value={cls} onChange={(e) => { setCls(e.target.value); clearError("cls"); }} placeholder="请输入班级" className="form-input"
+                      onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)} onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)} />
+                    {errors.cls && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.cls}</p>}
+                  </Field>
 
-                  <Field label="学科" required><FSelect value={subject} onChange={setSubject} options={subjectOptions} />{submitted && !subject && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
+                  <Field label="学生姓名" required>
+                    <StudentPicker value={studentName} onChange={setStudentName} onSelectRecord={handleSelectStudent} />
+                    {errors.studentName && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.studentName}</p>}
+                  </Field>
 
-                  <Field label="学情分析开始时间" required><DatePicker value={startDate} onChange={setStartDate} dateOnly />{submitted && !startDate && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
+                  <Field label="学科" required>
+                    <FSelect value={subject} onChange={v => { setSubject(v); clearError("subject"); }} options={subjectOptions} />
+                    {errors.subject && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.subject}</p>}
+                  </Field>
 
-                  <Field label="学情分析结束时间" required><DatePicker value={endDate} onChange={setEndDate} dateOnly />{submitted && !endDate && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
-
-                  <Field label="掌握较好的知识点" required><FileUpload files={goodPhotos} onChange={setGoodPhotos} accept="image/*" hint="拖拽或单击后粘贴图片，单张 20MB 以内" />{submitted && goodPhotos.length === 0 && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
-
-                  <Field label="掌握不足的知识点" required><FileUpload files={weakPhotos} onChange={setWeakPhotos} accept="image/*" hint="拖拽或单击后粘贴图片，单张 20MB 以内" />{submitted && weakPhotos.length === 0 && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
-
-                  <div className="md:col-start-2">
-                    <Field label="教师指导措施" required><textarea rows={7} value={guidance} onChange={(e) => setGuidance(e.target.value)} placeholder="根据薄弱知识点或题块给出具体指导措施" className="form-input resize-none" onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)} onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)} />{submitted && !guidance && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
+                  <div>
+                    <label className="block text-base font-semibold mb-2" style={{ color: "#1d1d1f" }}>
+                      <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>分析时间范围
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <DatePicker value={startDate} onChange={d => { setStartDate(d); clearError("startDate"); }} dateOnly />
+                      <span className="text-gray-400 text-sm shrink-0">至</span>
+                      <DatePicker value={endDate} onChange={d => { setEndDate(d); clearError("endDate"); }} dateOnly />
+                    </div>
+                    {(errors.startDate || errors.endDate) && (
+                      <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.startDate || errors.endDate}</p>
+                    )}
                   </div>
+                </div>
 
+                {/* Divider */}
+                <div className="border-t border-gray-100" />
+
+                {/* Row 2: 知识点分析 — full width image fields */}
+                <div className="space-y-6">
+                  <Field label="掌握较好的知识点" required>
+                    <ImageField files={goodPhotos} onChange={f => { setGoodPhotos(f); clearError("goodPhotos"); }} label="上传截图或照片，单张 20MB 以内" />
+                    {errors.goodPhotos && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.goodPhotos}</p>}
+                  </Field>
+
+                  <Field label="掌握不足的知识点" required>
+                    <ImageField files={weakPhotos} onChange={f => { setWeakPhotos(f); clearError("weakPhotos"); }} label="上传截图或照片，单张 20MB 以内" />
+                    {errors.weakPhotos && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.weakPhotos}</p>}
+                  </Field>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-gray-100" />
+
+                {/* Row 3: 教师指导措施 — full width */}
+                <Field label="教师指导措施" required>
+                  <textarea rows={6} value={guidance} onChange={(e) => { setGuidance(e.target.value); clearError("guidance"); }}
+                    placeholder="根据薄弱知识点或题块给出具体指导措施" className="form-input resize-none"
+                    onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)} onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)} />
+                  {errors.guidance && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.guidance}</p>}
+                </Field>
+
+              </div>
+            </div>
+
+            <div className="form-footer shrink-0 flex gap-3 px-6 md:px-10 py-4 mt-4 rounded-[28px]">
+              {editRecord ? (
+                <button className="btn-secondary" onClick={() => { setEditRecord(null); handleClearForm(); }}>取消编辑</button>
+              ) : (
+                <>
+                  <button className="btn-secondary" onClick={handleClearForm}>清空数据</button>
+                  <button className="btn-secondary" onClick={handleSaveDraft}>保存草稿</button>
+                </>
+              )}
+              <div className="flex-1" />
+              <button
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px disabled:opacity-60"
+                style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}
+              >
+                {submitting ? "提交中..." : (editRecord ? "保存" : "提交")}
+              </button>
+            </div>
+          </main>
+        ) : (
+          <div className="max-w-7xl mx-auto px-3 md:px-6 pt-4 md:pt-6 pb-24">
+            <div className="glass rounded-[32px] overflow-hidden flex flex-col shadow-sm" style={{ minHeight: 500 }}>
+
+              {/* Toolbar */}
+              <div className="px-4 py-2.5 flex items-center gap-2 border-b border-gray-100">
+                <div className="flex items-center gap-0.5">
+                  <IconDropdown
+                    tooltip="导出"
+                    icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 14 12 9 17 14" /><line x1="12" y1="9" x2="12" y2="21" /></svg>}
+                    options={["勾选的数据", "全部数据"]}
+                    disabledOptions={selectedIds.length === 0 ? ["勾选的数据"] : undefined}
+                    onSelect={opt => {
+                      if (opt === "勾选的数据") { const idSet = new Set(selectedIds); doExport(raw.filter(r => idSet.has(r.id))); }
+                      else doExport(raw);
+                    }}
+                  />
+                  <IconDropdown
+                    tooltip="删除"
+                    icon={<Trash2 className="w-5 h-5" />}
+                    options={["勾选的数据", "全部数据"]}
+                    disabledOptions={selectedIds.length === 0 ? ["勾选的数据"] : undefined}
+                    onSelect={handleDeleteSelected}
+                  />
+                  <IconDropdown
+                    tooltip="操作记录"
+                    icon={<Clock className="w-5 h-5" />}
+                    options={["批量修改记录", "批量打印模板记录"]}
+                  />
+                </div>
+
+                <div className="flex-1" />
+
+                <SearchBox value={search} onChange={setSearch} />
+
+                <button className="flex items-center gap-1 h-8 px-2.5 rounded-lg text-sm transition-all hover:bg-black/[0.05] shrink-0" style={{ color: "#8c8c8c", fontSize: 15 }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></svg>
+                  筛选
+                </button>
+
+                <div className="flex items-center gap-0.5 pl-2 border-l border-gray-200" style={{ color: "#9ca3af" }}>
+                  <div className="relative" ref={sortRef}>
+                    <Tooltip text="排序">
+                      <button onClick={() => setSortOpen(v => !v)} className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-black/[0.05] transition-all"
+                        style={{ color: sortField !== "提交时间" || sortDir !== "desc" ? teal : "#9ca3af" }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M6 12h12" /><path d="M9 18h6" /></svg>
+                      </button>
+                    </Tooltip>
+                    {sortOpen && (
+                      <div className="absolute right-0 top-full mt-1 rounded-xl overflow-hidden z-50" style={{ minWidth: 160, background: "white", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid rgba(0,0,0,0.06)" }}>
+                        <div className="px-3 py-2 border-b border-gray-100 flex items-center gap-2">
+                          <span className="text-xs font-medium" style={{ color: "#9ca3af" }}>排序字段</span>
+                          <div className="flex-1" />
+                          <button onClick={() => setSortDir(d => d === "desc" ? "asc" : "desc")} className="text-xs px-2 py-0.5 rounded-md transition-colors hover:bg-black/[0.04]" style={{ color: teal }}>
+                            {sortDir === "desc" ? "降序" : "升序"}
+                          </button>
+                        </div>
+                        {SORT_OPTIONS.map(opt => {
+                          const active = sortField === opt.field;
+                          return (
+                            <button key={opt.field} onClick={() => { setSortField(opt.field); setSortOpen(false); }}
+                              className="w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-black/[0.04] flex items-center gap-2"
+                              style={{ color: active ? teal : "#374151", fontWeight: active ? 600 : 400 }}>
+                              {opt.label}
+                              {active && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={teal} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="ml-auto"><polyline points="20 6 9 17 4 12" /></svg>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                  <Tooltip text="刷新">
+                    <button className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-black/[0.05] transition-all" onClick={() => refetch()} disabled={isFetching}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={isFetching ? "animate-spin" : ""}><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
+                    </button>
+                  </Tooltip>
                 </div>
               </div>
-            </main>
-          </div>
 
-          <div className="form-footer shrink-0 flex gap-3 px-6 md:px-10 py-4">
-            <button className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px" style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }} onClick={handleSubmit}>提交</button>
-            <button className="btn-secondary">保存草稿</button>
+              {isPending ? (
+                <div className="flex items-center justify-center py-20 text-sm text-gray-400">加载中...</div>
+              ) : isError ? (
+                <div className="flex items-center justify-center py-20 text-sm text-red-400">加载失败，请稍后重试</div>
+              ) : (
+                <DataTable
+                  columns={COLUMNS}
+                  rows={sorted}
+                  minWidth={1200}
+                  onSelectionChange={setSelectedIds}
+                  onRowClick={r => { setEditRecord(r as LearningAnalysisRecord); }}
+                />
+              )}
+
+            </div>
           </div>
-        </>
-      ) : (
-        <div className="flex-1 overflow-hidden bg-[#f0f2f5] p-4">
-          <div className="h-full rounded-lg overflow-hidden shadow-sm bg-white flex flex-col">
-            <RecordTable records={mode === "add-manage-own" ? ownRecords : mockRecords} />
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

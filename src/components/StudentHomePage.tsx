@@ -497,7 +497,7 @@ export function StudentHomePage({ onMenuOpen, onNavigate }: {
           </section>
 
           {/* ── Quick Entry ── */}
-          <section className="glass rounded-[32px] p-8 shadow-sm">
+          {/* <section className="glass rounded-[32px] p-8 shadow-sm">
             <div className="flex items-center mb-8">
               <div className="w-1.5 h-4 bg-violet-500 rounded-full mr-2" />
               <h3 className="text-xl font-bold text-gray-500 uppercase tracking-widest">快捷入口</h3>
@@ -513,7 +513,7 @@ export function StudentHomePage({ onMenuOpen, onNavigate }: {
                 </div>
               ))}
             </div>
-          </section>
+          </section> */}
 
           {/* ── 筛选区 ── */}
           <FilterBar

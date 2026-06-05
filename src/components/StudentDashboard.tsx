@@ -4,10 +4,10 @@ import * as XLSX from "xlsx";
 import { Users, PlusCircle, User, Menu, RefreshCw, ArrowUpDown, Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
-import { useStudentInfo, useStudentLeave, useStudentLeaveCount, useHealthCheck, useStudentReturnSchool, useStudentSupport, useHeartToHeartTalk, useTransactionsToday, useAccessLogsToday, useTransactionStats, useAccessStats, type StudentInfoFilters, type StudentLeaveFilters, type HealthCheckFilters, type StudentReturnSchoolFilters, type StudentSupportFilters, type HeartToHeartTalkFilters } from "@/hooks/use-research-dashboard";
+import { useStudentInfo, useStudentLeave, useStudentLeaveCount, useHealthCheck, useStudentReturnSchool, useStudentSupport, useHeartToHeartTalk, useTransactionsToday, useAccessLogsToday, useTransactionStats, useAccessStats, useStudentCadree, usePhysicalTest, useStudentAward, useGoodDeeds, type StudentInfoFilters, type StudentLeaveFilters, type HealthCheckFilters, type StudentReturnSchoolFilters, type StudentSupportFilters, type HeartToHeartTalkFilters } from "@/hooks/use-research-dashboard";
 import { DashboardTable } from "@/components/ui/DashboardTable";
 import type { ColumnDef } from "@/components/ui/DashboardTable";
-import type { StudentInfoRecord, StudentLeaveRecord, HealthCheckRecord, StudentReturnSchoolRecord, StudentSupportRecord, HeartToHeartTalkRecord, TransactionsRecord, AccessLogRecord } from "@/hooks/use-research-dashboard";
+import type { StudentInfoRecord, StudentLeaveRecord, HealthCheckRecord, StudentReturnSchoolRecord, StudentSupportRecord, HeartToHeartTalkRecord, TransactionsRecord, AccessLogRecord, StudentCadreeRecord, PhysicalTestRecord, StudentAwardRecord, GoodDeedsRecord } from "@/hooks/use-research-dashboard";
 import { UserAvatarMenu } from "@/components/ui/UserAvatarMenu";
 
 function formatCount(n: number | null | undefined): string {
@@ -492,11 +492,11 @@ function StudentReturnSchoolDrawer({ record, onClose }: { record: StudentReturnS
                 </div>
               </section>
               {[
-                { title: "病假",         count: record.病假学生人数,         names: record.病假学生姓名,         desc: record.病假具体情况说明,         color: "#dc2626" },
-                { title: "事假",         count: record.事假学生人数,         names: record.事假学生姓名,         desc: record.事假具体情况说明,         color: "#d97706" },
-                { title: "在外学习培训", count: record.在外学习培训学生人数, names: record.在外学习培训学生姓名, desc: record.在外学习培训具体情况说明, color: "#6366f1" },
-                { title: "休学",         count: record.休学学生人数,         names: record.休学学生姓名,         desc: record.休学具体情况说明,         color: "#f43f5e" },
-                { title: "流失",         count: record.流失学生人数,         names: record.流失学生姓名,         desc: record.流失学生具体情况说明,     color: "#f43f5e" },
+                { title: "病假",         count: record.病假学生人数,         names: record.病假学生姓名?.join("、"),         desc: record.病假具体情况说明,         color: "#dc2626" },
+                { title: "事假",         count: record.事假学生人数,         names: record.事假学生姓名?.join("、"),         desc: record.事假具体情况说明,         color: "#d97706" },
+                { title: "在外学习培训", count: record.在外学习培训学生人数, names: record.在外学习培训学生姓名?.join("、"), desc: record.在外学习培训具体情况说明, color: "#6366f1" },
+                { title: "休学",         count: record.休学学生人数,         names: record.休学学生姓名?.join("、"),         desc: record.休学具体情况说明,         color: "#f43f5e" },
+                { title: "流失",         count: record.流失学生人数,         names: record.流失学生姓名?.join("、"),         desc: record.流失学生具体情况说明,     color: "#f43f5e" },
               ].filter(s => s.count > 0 || s.names || s.desc).map(({ title, count, names, desc, color }) => (
                 <section key={title}>
                   <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">{title}</p>
@@ -713,10 +713,10 @@ function HeartToHeartTalkDrawer({ record, onClose }: { record: HeartToHeartTalkR
                   <p className="text-base text-gray-800 leading-relaxed whitespace-pre-wrap">{record.教师指导建议}</p>
                 </section>
               )}
-              {record.沟通照片 && (
+              {record.沟通照片.length > 0 && (
                 <section>
                   <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">沟通照片</p>
-                  <p className="text-base font-medium text-gray-800">{record.沟通照片}</p>
+                  <div className="flex flex-wrap gap-2">{record.沟通照片.map((f, i) => <img key={i} src={f.url} alt="" className="w-20 h-20 object-cover rounded-lg border border-gray-200" />)}</div>
                 </section>
               )}
             </div>
@@ -955,6 +955,32 @@ const unreportRows = [
 
 const timeFilters = ["今日", "本周", "本月", "今年"];
 
+function GenericDrawer({ record, onClose, title }: { record: object | null; onClose: () => void; title: string }) {
+  const r = record as Record<string, unknown> | null;
+  useEffect(() => { if (!r) return; function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); } document.addEventListener("keydown", onKey); return () => document.removeEventListener("keydown", onKey); }, [r, onClose]);
+  const entries = r ? Object.entries(r).filter(([k]) => !k.startsWith("_") && k !== "id") : [];
+  return (<>
+    <div className="fixed inset-0 z-40 transition-opacity duration-300" style={{ background: r ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: r ? "auto" : "none" }} onClick={onClose} />
+    <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl" style={{ width: 480, maxWidth: "100vw", background: "#fff", transform: r ? "translateX(0)" : "translateX(100%)", transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)" }}>
+      {r && (<>
+        <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+          <h2 className="text-base font-bold text-gray-900">{title}</h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 shrink-0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+            {entries.map(([k, v]) => (
+              <div key={k}><p className="text-sm text-gray-400 mb-0.5">{k}</p><p className="text-base font-medium text-gray-800">{typeof v === "string" ? v || "-" : typeof v === "number" ? String(v) : Array.isArray(v) ? (v as Array<{name?:string}>).map(x => x.name ?? "").filter(Boolean).join("、") || "-" : "-"}</p></div>
+            ))}
+          </div>
+        </div>
+      </>)}
+    </div>
+  </>);
+}
+
 export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [activeTab, setActiveTab] = useState(0);
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -1186,6 +1212,33 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const { amount: consumeAmount, isPending: consumeStatsPending } = useTransactionStats(activeTime);
   const { exitCount, enterCount, isPending: accessStatsPending } = useAccessStats(activeTime);
 
+  // ── 学生成长 hooks ──────────────────────────────────────────
+  const { raw: cadreeRows, isPending: cadreePending, isError: cadreeError, refetch: cadreeRefetch } = useStudentCadree();
+  const { raw: physicalRows, isPending: physicalPending, isError: physicalError, refetch: physicalRefetch } = usePhysicalTest();
+  const { raw: awardRows, isPending: awardPending, isError: awardError, refetch: awardRefetch } = useStudentAward();
+  const { raw: deedsRows, isPending: deedsPending, isError: deedsError, refetch: deedsRefetch } = useGoodDeeds();
+
+  // State for 学生成长 tables
+  const [cadreeSortAsc, setCadreeSortAsc] = useState(false); const [cadreePage, setCadreePage] = useState(1); const [cadreePageSize, setCadreePageSize] = useState(20);
+  const [physicalSortAsc, setPhysicalSortAsc] = useState(false); const [physicalPage, setPhysicalPage] = useState(1); const [physicalPageSize, setPhysicalPageSize] = useState(20);
+  const [awardSortAsc, setAwardSortAsc] = useState(false); const [awardPage, setAwardPage] = useState(1); const [awardPageSize, setAwardPageSize] = useState(20);
+  const [deedsSortAsc, setDeedsSortAsc] = useState(false); const [deedsPage, setDeedsPage] = useState(1); const [deedsPageSize, setDeedsPageSize] = useState(20);
+
+  const sortedCadree = useMemo(() => [...cadreeRows].sort((a, b) => cadreeSortAsc ? a.提交时间.localeCompare(b.提交时间) : b.提交时间.localeCompare(a.提交时间)), [cadreeRows, cadreeSortAsc]);
+  const sortedPhysical = useMemo(() => [...physicalRows].sort((a, b) => physicalSortAsc ? a.提交时间.localeCompare(b.提交时间) : b.提交时间.localeCompare(a.提交时间)), [physicalRows, physicalSortAsc]);
+  const sortedAward = useMemo(() => [...awardRows].sort((a, b) => awardSortAsc ? a.提交时间.localeCompare(b.提交时间) : b.提交时间.localeCompare(a.提交时间)), [awardRows, awardSortAsc]);
+  const sortedDeeds = useMemo(() => [...deedsRows].sort((a, b) => deedsSortAsc ? a.提交时间.localeCompare(b.提交时间) : b.提交时间.localeCompare(a.提交时间)), [deedsRows, deedsSortAsc]);
+
+  const [selectedCadree, setSelectedCadree] = useState<StudentCadreeRecord | null>(null);
+  const [selectedPhysical, setSelectedPhysical] = useState<PhysicalTestRecord | null>(null);
+  const [selectedAward, setSelectedAward] = useState<StudentAwardRecord | null>(null);
+  const [selectedDeeds, setSelectedDeeds] = useState<GoodDeedsRecord | null>(null);
+
+  const pagedCadree = sortedCadree.slice((cadreePage - 1) * cadreePageSize, cadreePage * cadreePageSize);
+  const pagedPhysical = sortedPhysical.slice((physicalPage - 1) * physicalPageSize, physicalPage * physicalPageSize);
+  const pagedAward = sortedAward.slice((awardPage - 1) * awardPageSize, awardPage * awardPageSize);
+  const pagedDeeds = sortedDeeds.slice((deedsPage - 1) * deedsPageSize, deedsPage * deedsPageSize);
+
   function formatAmount(n: number | null): string {
     if (n == null) return "…";
     if (n >= 10000) return `${(n / 10000).toFixed(1)}万`;
@@ -1235,6 +1288,55 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
     { key: "通行方向", header: "进出状态", render: r => r.通行方向 ? <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap" style={{ background: r.通行方向==="进"?"rgba(16,185,129,0.08)":"rgba(239,68,68,0.08)", color: r.通行方向==="进"?"#059669":"#dc2626" }}>{r.通行方向}入</span> : <span className="text-gray-300">—</span> },
     { key: "打卡设备", header: "打卡设备", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#6b7280" }}>{r.打卡设备 || "—"}</span> },
   ], []);
+
+  const cadreeCols = useMemo((): ColumnDef<StudentCadreeRecord>[] => [
+    { key: "录入学期", header: "学期", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.录入学期 || "—"}</span> },
+    { key: "姓名", header: "姓名", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.姓名 || "—"}</span> },
+    { key: "班级名称", header: "班级", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.班级名称 || "—"}</span> },
+    { key: "职务", header: "职务", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.职务 || "—"}</span> },
+    { key: "任职开始时间", header: "开始时间", render: r => <span style={{ fontSize: 15, color: "#6b7280" }}>{r.任职开始时间?.slice(0, 10) || "—"}</span> },
+    { key: "任职结束时间", header: "结束时间", render: r => <span style={{ fontSize: 15, color: "#6b7280" }}>{r.任职结束时间?.slice(0, 10) || "—"}</span> },
+    { key: "班主任", header: "班主任", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.班主任 || "—"}</span> },
+    { key: "提交时间", header: "提交时间", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#6b7280" }}>{r.提交时间?.slice(0, 16) || "—"}</span> },
+  ], []);
+
+  const physicalCols = useMemo((): ColumnDef<PhysicalTestRecord>[] => [
+    { key: "录入学期", header: "学期", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.录入学期 || "—"}</span> },
+    { key: "姓名", header: "姓名", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.姓名 || "—"}</span> },
+    { key: "班级名称", header: "班级", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.班级名称 || "—"}</span> },
+    { key: "身高", header: "身高", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.身高 || "—"}</span> },
+    { key: "体重", header: "体重", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.体重 || "—"}</span> },
+    { key: "肺活量", header: "肺活量", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.肺活量 || "—"}</span> },
+    { key: "50米跑", header: "50米跑", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r["50米跑"] || "—"}</span> },
+    { key: "提交时间", header: "提交时间", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#6b7280" }}>{r.提交时间?.slice(0, 16) || "—"}</span> },
+  ], []);
+
+  const awardCols = useMemo((): ColumnDef<StudentAwardRecord>[] => [
+    { key: "学期", header: "学期", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.学期 || "—"}</span> },
+    { key: "学生姓名", header: "姓名", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.学生姓名 || "—"}</span> },
+    { key: "班级名称", header: "班级", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.班级名称 || "—"}</span> },
+    { key: "参与比赛名称", header: "比赛名称", minWidth: 140, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 140 }} title={r.参与比赛名称}>{r.参与比赛名称 || "—"}</span> },
+    { key: "获奖级别", header: "级别", render: r => r.获奖级别 ? <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold" style={{ background: "rgba(16,185,129,0.08)", color: "#059669" }}>{r.获奖级别}</span> : <span className="text-gray-300">—</span> },
+    { key: "获奖等级", header: "等级", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.获奖等级 || "—"}</span> },
+    { key: "获奖时间", header: "获奖时间", render: r => <span style={{ fontSize: 15, color: "#6b7280" }}>{r.获奖时间?.slice(0, 10) || "—"}</span> },
+    { key: "提交时间", header: "提交时间", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#6b7280" }}>{r.提交时间?.slice(0, 16) || "—"}</span> },
+  ], []);
+
+  const deedsCols = useMemo((): ColumnDef<GoodDeedsRecord>[] => [
+    { key: "学期", header: "学期", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.学期 || "—"}</span> },
+    { key: "学生姓名", header: "姓名", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.学生姓名 || "—"}</span> },
+    { key: "班级名称", header: "班级", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.班级名称 || "—"}</span> },
+    { key: "事件发生时间", header: "事件时间", render: r => <span style={{ fontSize: 15, color: "#6b7280" }}>{r.事件发生时间?.slice(0, 10) || "—"}</span> },
+    { key: "事件地点", header: "地点", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.事件地点 || "—"}</span> },
+    { key: "事件描述", header: "事件描述", minWidth: 160, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 160 }} title={r.事件描述}>{r.事件描述 || "—"}</span> },
+    { key: "班主任", header: "班主任", render: r => <span style={{ fontSize: 15, color: "#374151" }}>{r.班主任 || "—"}</span> },
+    { key: "提交时间", header: "提交时间", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#6b7280" }}>{r.提交时间?.slice(0, 16) || "—"}</span> },
+  ], []);
+
+  function exportCadree() { const h = cadreeCols.map(c => c.header); const rows = cadreeRows.map(r => cadreeCols.map(c => { const v = r[c.key as keyof StudentCadreeRecord]; return typeof v === "string" ? v : ""; })); const ws = XLSX.utils.aoa_to_sheet([h, ...rows]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "学生干部风采"); XLSX.writeFile(wb, `学生干部风采_${new Date().toISOString().slice(0, 10)}.xlsx`); }
+  function exportPhysical() { const h = physicalCols.map(c => c.header); const rows = physicalRows.map(r => physicalCols.map(c => { const v = r[c.key as keyof PhysicalTestRecord]; return typeof v === "string" ? v : ""; })); const ws = XLSX.utils.aoa_to_sheet([h, ...rows]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "体质检测"); XLSX.writeFile(wb, `体质检测_${new Date().toISOString().slice(0, 10)}.xlsx`); }
+  function exportAward() { const h = awardCols.map(c => c.header); const rows = awardRows.map(r => awardCols.map(c => { const v = r[c.key as keyof StudentAwardRecord]; return typeof v === "string" ? v : ""; })); const ws = XLSX.utils.aoa_to_sheet([h, ...rows]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "学生获奖记录"); XLSX.writeFile(wb, `学生获奖记录_${new Date().toISOString().slice(0, 10)}.xlsx`); }
+  function exportDeeds() { const h = deedsCols.map(c => c.header); const rows = deedsRows.map(r => deedsCols.map(c => { const v = r[c.key as keyof GoodDeedsRecord]; return typeof v === "string" ? v : ""; })); const ws = XLSX.utils.aoa_to_sheet([h, ...rows]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "好人好事记录"); XLSX.writeFile(wb, `好人好事记录_${new Date().toISOString().slice(0, 10)}.xlsx`); }
 
   const tableActions: { Icon: React.ElementType; tip: string }[] = [];
 
@@ -1322,18 +1424,18 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
     { key: "返校学生人数", header: "返校人数",     render: r => <span className="text-center block font-medium" style={{ fontSize: 15, color: "#059669" }}>{r.返校学生人数 ?? "—"}</span> },
     { key: "未返校学生人数", header: "未返校人数", render: r => <span className="text-center block" style={{ fontSize: 15, color: r.未返校学生人数 > 0 ? "#d97706" : "#9ca3af", fontWeight: r.未返校学生人数 > 0 ? 600 : 400 }}>{r.未返校学生人数}</span> },
     { key: "转入学生人数", header: "转入人数",     render: r => <span className="text-center block" style={{ fontSize: 15, color: "#374151" }}>{r.转入学生人数}</span> },
-    { key: "病假学生姓名", header: "病假学生姓名", minWidth: 120, render: r => <span className="block truncate" style={{ fontSize: 15, color: r.病假学生姓名 ? "#dc2626" : "#9ca3af", maxWidth: 120 }} title={r.病假学生姓名}>{r.病假学生姓名 || "—"}</span> },
+    { key: "病假学生姓名", header: "病假学生姓名", minWidth: 120, render: r => { const v = r.病假学生姓名?.join("、") || ""; return <span className="block truncate" style={{ fontSize: 15, color: v ? "#dc2626" : "#9ca3af", maxWidth: 120 }} title={v}>{v || "—"}</span>; } },
     { key: "病假学生人数", header: "病假人数",     render: r => <span className="text-center block" style={{ fontSize: 15, color: r.病假学生人数 > 0 ? "#dc2626" : "#9ca3af", fontWeight: r.病假学生人数 > 0 ? 600 : 400 }}>{r.病假学生人数}</span> },
     { key: "病假具体情况说明", header: "病假说明", minWidth: 140, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 140 }} title={r.病假具体情况说明}>{r.病假具体情况说明 || "—"}</span> },
-    { key: "事假学生姓名", header: "事假学生姓名", minWidth: 120, render: r => <span className="block truncate" style={{ fontSize: 15, color: r.事假学生姓名 ? "#d97706" : "#9ca3af", maxWidth: 120 }} title={r.事假学生姓名}>{r.事假学生姓名 || "—"}</span> },
+    { key: "事假学生姓名", header: "事假学生姓名", minWidth: 120, render: r => { const v = r.事假学生姓名?.join("、") || ""; return <span className="block truncate" style={{ fontSize: 15, color: v ? "#d97706" : "#9ca3af", maxWidth: 120 }} title={v}>{v || "—"}</span>; } },
     { key: "事假学生人数", header: "事假人数",     render: r => <span className="text-center block" style={{ fontSize: 15, color: r.事假学生人数 > 0 ? "#d97706" : "#9ca3af", fontWeight: r.事假学生人数 > 0 ? 600 : 400 }}>{r.事假学生人数}</span> },
     { key: "事假具体情况说明", header: "事假说明", minWidth: 140, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 140 }} title={r.事假具体情况说明}>{r.事假具体情况说明 || "—"}</span> },
-    { key: "在外学习培训学生姓名", header: "在外培训学生", minWidth: 120, render: r => <span className="block truncate" style={{ fontSize: 15, color: r.在外学习培训学生姓名 ? "#6366f1" : "#9ca3af", maxWidth: 120 }} title={r.在外学习培训学生姓名}>{r.在外学习培训学生姓名 || "—"}</span> },
+    { key: "在外学习培训学生姓名", header: "在外培训学生", minWidth: 120, render: r => { const v = r.在外学习培训学生姓名?.join("、") || ""; return <span className="block truncate" style={{ fontSize: 15, color: v ? "#6366f1" : "#9ca3af", maxWidth: 120 }} title={v}>{v || "—"}</span>; } },
     { key: "在外学习培训具体情况说明", header: "在外培训说明", minWidth: 140, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 140 }} title={r.在外学习培训具体情况说明}>{r.在外学习培训具体情况说明 || "—"}</span> },
-    { key: "休学学生姓名", header: "休学学生姓名", minWidth: 120, render: r => <span className="block truncate" style={{ fontSize: 15, color: r.休学学生姓名 ? "#f43f5e" : "#9ca3af", maxWidth: 120 }} title={r.休学学生姓名}>{r.休学学生姓名 || "—"}</span> },
+    { key: "休学学生姓名", header: "休学学生姓名", minWidth: 120, render: r => { const v = r.休学学生姓名?.join("、") || ""; return <span className="block truncate" style={{ fontSize: 15, color: v ? "#f43f5e" : "#9ca3af", maxWidth: 120 }} title={v}>{v || "—"}</span>; } },
     { key: "休学学生人数", header: "休学人数",     render: r => <span className="text-center block" style={{ fontSize: 15, color: r.休学学生人数 > 0 ? "#f43f5e" : "#9ca3af", fontWeight: r.休学学生人数 > 0 ? 600 : 400 }}>{r.休学学生人数}</span> },
     { key: "休学具体情况说明", header: "休学说明", minWidth: 140, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 140 }} title={r.休学具体情况说明}>{r.休学具体情况说明 || "—"}</span> },
-    { key: "流失学生姓名", header: "流失学生姓名", minWidth: 120, render: r => <span className="block truncate" style={{ fontSize: 15, color: r.流失学生姓名 ? "#f43f5e" : "#9ca3af", maxWidth: 120 }} title={r.流失学生姓名}>{r.流失学生姓名 || "—"}</span> },
+    { key: "流失学生姓名", header: "流失学生姓名", minWidth: 120, render: r => { const v = r.流失学生姓名?.join("、") || ""; return <span className="block truncate" style={{ fontSize: 15, color: v ? "#f43f5e" : "#9ca3af", maxWidth: 120 }} title={v}>{v || "—"}</span>; } },
     { key: "流失学生人数", header: "流失人数",     render: r => <span className="text-center block" style={{ fontSize: 15, color: r.流失学生人数 > 0 ? "#f43f5e" : "#9ca3af", fontWeight: r.流失学生人数 > 0 ? 600 : 400 }}>{r.流失学生人数}</span> },
     { key: "流失学生具体情况说明", header: "流失说明", minWidth: 140, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 140 }} title={r.流失学生具体情况说明}>{r.流失学生具体情况说明 || "—"}</span> },
     { key: "学期", header: "学期", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.学期 || "—"}</span> },
@@ -1368,12 +1470,15 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
     ) : <span className="text-gray-300">—</span> },
     { key: "谈心谈话内容记录", header: "谈心谈话内容记录", minWidth: 180, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 180 }} title={r.谈心谈话内容记录}>{r.谈心谈话内容记录 || "—"}</span> },
     { key: "教师指导建议", header: "教师指导建议", minWidth: 160, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 160 }} title={r.教师指导建议}>{r.教师指导建议 || "—"}</span> },
-    { key: "沟通照片",   header: "沟通照片",   render: r => (
-      <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold"
-        style={{ background: r.沟通照片 ? "rgba(16,185,129,0.08)" : "rgba(0,0,0,0.04)", color: r.沟通照片 ? "#059669" : "#9ca3af" }}>
-        {r.沟通照片 || "无"}
-      </span>
-    ) },
+    { key: "沟通照片",   header: "沟通照片",   render: r => {
+      const count = r.沟通照片?.length ?? 0;
+      return (
+        <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold"
+          style={{ background: count > 0 ? "rgba(16,185,129,0.08)" : "rgba(0,0,0,0.04)", color: count > 0 ? "#059669" : "#9ca3af" }}>
+          {count > 0 ? `${count}张` : "无"}
+        </span>
+      );
+    } },
   ], []);
 
   const studentCols = useMemo((): ColumnDef<StudentInfoRecord>[] => [
@@ -1467,11 +1572,11 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
     const rows = sortedReturn.map(r => [
       r.填报日期?.slice(0,10)||"", r.年级||"", r.班级名称||"", r.班主任||"",
       r.应到学生人数??"", r.返校学生人数??"", r.未返校学生人数??"", r.转入学生人数??"",
-      r.病假学生姓名||"", r.病假学生人数??"", r.病假具体情况说明||"",
-      r.事假学生姓名||"", r.事假学生人数??"", r.事假具体情况说明||"",
-      r.在外学习培训学生姓名||"", r.在外学习培训具体情况说明||"",
-      r.休学学生姓名||"", r.休学学生人数??"", r.休学具体情况说明||"",
-      r.流失学生姓名||"", r.流失学生人数??"", r.流失学生具体情况说明||"", r.学期||"",
+      r.病假学生姓名?.join("、")||"", r.病假学生人数??"", r.病假具体情况说明||"",
+      r.事假学生姓名?.join("、")||"", r.事假学生人数??"", r.事假具体情况说明||"",
+      r.在外学习培训学生姓名?.join("、")||"", r.在外学习培训具体情况说明||"",
+      r.休学学生姓名?.join("、")||"", r.休学学生人数??"", r.休学具体情况说明||"",
+      r.流失学生姓名?.join("、")||"", r.流失学生人数??"", r.流失学生具体情况说明||"", r.学期||"",
     ]);
     exportToExcel("学生返校情况", headers, rows);
   }
@@ -1503,7 +1608,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
     const rows = sortedTalk.map(r => [
       r.谈心教师||"", r.班级名称||"", r.学生姓名||"", r.学生身份证||"", r.学生学号||"",
       r.谈心教师学科||"", r.谈心谈话时间?.slice(0,16)||"", r.谈话内容||"",
-      r.谈心谈话内容记录||"", r.教师指导建议||"", r.沟通照片||"",
+      r.谈心谈话内容记录||"", r.教师指导建议||"", r.沟通照片?.map(f => f.url).join("\n")||"",
     ]);
     exportToExcel("谈心谈话记录", headers, rows);
   }
@@ -1966,7 +2071,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
             </div>
 
             {/* Toolbar — hidden for tabs with their own per-table toolbars, and for tab 0 which uses DashboardTable's built-in toolbar */}
-            {activeTab !== 4 && activeTab !== 2 && activeTab !== 0 && activeTab !== 3 && activeTab !== 1 && activeTab !== 5 && activeTab !== 7 && (
+            {activeTab !== 4 && activeTab !== 6 && activeTab !== 2 && activeTab !== 0 && activeTab !== 3 && activeTab !== 1 && activeTab !== 5 && activeTab !== 7 && (
             <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100"
               style={{ background: "rgba(249,250,251,0.6)" }}
               onMouseEnter={() => setHvTable(true)} onMouseLeave={() => setHvTable(false)}>
@@ -2112,12 +2217,15 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
                 </div>
               ) : activeTab === 6 ? (
                 /* ── 学生成长 ── */
-                <div className="flex flex-col items-center justify-center py-24 text-gray-400">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mb-4 opacity-30">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-                  </svg>
-                  <p className="text-base font-semibold">学生成长模块建设中</p>
-                  <p className="text-sm mt-1">Coming soon</p>
+                <div className="space-y-4">
+                  <DashboardTable title="学生干部风采" columns={cadreeCols} rows={pagedCadree} isPending={cadreePending} isError={cadreeError} sortAsc={cadreeSortAsc} onSortToggle={() => { setCadreeSortAsc(v => !v); setCadreePage(1); }}
+                    page={cadreePage} pageSize={cadreePageSize} totalRows={sortedCadree.length} onPageChange={setCadreePage} onPageSizeChange={n => { setCadreePageSize(n); setCadreePage(1); }} onRefresh={cadreeRefetch} onExport={exportCadree} onRowClick={setSelectedCadree} />
+                  <DashboardTable title="体质检测情况" columns={physicalCols} rows={pagedPhysical} isPending={physicalPending} isError={physicalError} sortAsc={physicalSortAsc} onSortToggle={() => { setPhysicalSortAsc(v => !v); setPhysicalPage(1); }}
+                    page={physicalPage} pageSize={physicalPageSize} totalRows={sortedPhysical.length} onPageChange={setPhysicalPage} onPageSizeChange={n => { setPhysicalPageSize(n); setPhysicalPage(1); }} onRefresh={physicalRefetch} onExport={exportPhysical} onRowClick={setSelectedPhysical} />
+                  <DashboardTable title="学生获奖记录" columns={awardCols} rows={pagedAward} isPending={awardPending} isError={awardError} sortAsc={awardSortAsc} onSortToggle={() => { setAwardSortAsc(v => !v); setAwardPage(1); }}
+                    page={awardPage} pageSize={awardPageSize} totalRows={sortedAward.length} onPageChange={setAwardPage} onPageSizeChange={n => { setAwardPageSize(n); setAwardPage(1); }} onRefresh={awardRefetch} onExport={exportAward} onRowClick={setSelectedAward} />
+                  <DashboardTable title="好人好事记录" columns={deedsCols} rows={pagedDeeds} isPending={deedsPending} isError={deedsError} sortAsc={deedsSortAsc} onSortToggle={() => { setDeedsSortAsc(v => !v); setDeedsPage(1); }}
+                    page={deedsPage} pageSize={deedsPageSize} totalRows={sortedDeeds.length} onPageChange={setDeedsPage} onPageSizeChange={n => { setDeedsPageSize(n); setDeedsPage(1); }} onRefresh={deedsRefetch} onExport={exportDeeds} onRowClick={setSelectedDeeds} />
                 </div>
               ) : activeTab === 7 ? (
                 /* ── 一生一案谈心谈话记录表 ── */
@@ -2181,6 +2289,10 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
       <HeartToHeartTalkDrawer record={selectedTalk} onClose={() => setSelectedTalk(null)} />
       <ConsumeDrawer record={selectedConsume} onClose={() => setSelectedConsume(null)} />
       <AccessDrawer record={selectedAccess} onClose={() => setSelectedAccess(null)} />
+      <GenericDrawer record={selectedCadree} onClose={() => setSelectedCadree(null)} title="学生干部风采" />
+      <GenericDrawer record={selectedPhysical} onClose={() => setSelectedPhysical(null)} title="体质检测情况" />
+      <GenericDrawer record={selectedAward} onClose={() => setSelectedAward(null)} title="学生获奖记录" />
+      <GenericDrawer record={selectedDeeds} onClose={() => setSelectedDeeds(null)} title="好人好事记录" />
     </div>
   );
 }
