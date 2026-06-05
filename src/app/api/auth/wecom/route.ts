@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildOAuthUrl, getDevUser, encodeSession, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/wecom-auth";
+import { buildOAuthUrl, buildQrLoginUrl, getDevUser, encodeSession, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/wecom-auth";
 
 export async function GET(req: NextRequest) {
   const { searchParams, origin } = new URL(req.url);
@@ -18,8 +18,16 @@ export async function GET(req: NextRequest) {
     return res;
   }
 
-  // Production: redirect to WeCom OAuth
   const callbackUrl = `${origin}/api/auth/callback`;
-  const oauthUrl = buildOAuthUrl(callbackUrl, redirect);
-  return NextResponse.redirect(oauthUrl);
+  const ua = req.headers.get("user-agent") ?? "";
+
+  // Inside WeChat Work app or WeChat — silent OAuth
+  if (ua.includes("wxwork") || ua.includes("MicroMessenger")) {
+    const oauthUrl = buildOAuthUrl(callbackUrl, redirect);
+    return NextResponse.redirect(oauthUrl);
+  }
+
+  // Browser — QR code login page
+  const qrUrl = buildQrLoginUrl(callbackUrl, redirect);
+  return NextResponse.redirect(qrUrl);
 }

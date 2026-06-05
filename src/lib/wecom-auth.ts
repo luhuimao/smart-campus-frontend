@@ -96,3 +96,18 @@ export function buildOAuthUrl(redirectUri: string, state = "/"): string {
   });
   return `https://open.weixin.qq.com/connect/oauth2/authorize?${params.toString()}#wechat_redirect`;
 }
+
+// Browser QR code login (non-WeChat browser)
+export function buildQrLoginUrl(redirectUri: string, state = "/"): string {
+  const corpId = process.env.WECOM_CORP_ID;
+  const agentId = process.env.WECOM_AGENT_ID;
+  if (!corpId || !agentId) throw new Error("WECOM_CORP_ID or WECOM_AGENT_ID not configured");
+
+  const params = new URLSearchParams({
+    appid: corpId,
+    agentid: agentId,
+    redirect_uri: redirectUri,
+    state,
+  });
+  return `https://open.work.weixin.qq.com/wwopen/sso/qrConnect?${params.toString()}`;
+}
