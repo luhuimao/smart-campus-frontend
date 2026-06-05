@@ -51,7 +51,7 @@ export async function getAccessToken(): Promise<string> {
     `${WECOM_API}/gettoken?corpid=${corpId}&corpsecret=${secret}`
   );
   const data = await res.json();
-  if (data.errcode !== 0) throw new Error(`gettoken failed: ${data.errmsg}`);
+  if (data.errcode !== 0) throw new Error(`gettoken: errcode=${data.errcode} errmsg=${data.errmsg}`);
   return data.access_token as string;
 }
 
@@ -63,7 +63,7 @@ export async function getUserByCode(code: string): Promise<WecomUser> {
     `${WECOM_API}/user/getuserinfo?access_token=${token}&code=${code}`
   );
   const info = await infoRes.json();
-  if (info.errcode !== 0) throw new Error(`getuserinfo failed: ${info.errmsg}`);
+  if (info.errcode !== 0) throw new Error(`getuserinfo: errcode=${info.errcode} errmsg=${info.errmsg} userId=${info.UserId ?? "none"}`);
   const userId: string = info.UserId;
 
   // Step 2: UserId → user detail (name, avatar)
@@ -71,6 +71,8 @@ export async function getUserByCode(code: string): Promise<WecomUser> {
     `${WECOM_API}/user/get?access_token=${token}&userid=${userId}`
   );
   const detail = await detailRes.json();
+  if (detail.errcode !== undefined && detail.errcode !== 0) throw new Error(`user/get: errcode=${detail.errcode} errmsg=${detail.errmsg}`);
+
   const name: string = detail.name ?? userId;
   const avatar: string | undefined = detail.avatar || undefined;
 
