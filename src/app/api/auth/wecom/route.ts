@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildOAuthUrl, getDevUser, encodeSession, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/wecom-auth";
+import { getDevUser, encodeSession, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/wecom-auth";
 
 export async function GET(req: NextRequest) {
   const { searchParams, origin } = new URL(req.url);
@@ -18,8 +18,8 @@ export async function GET(req: NextRequest) {
     return res;
   }
 
-  // Production: redirect to WeCom OAuth
-  const callbackUrl = `${origin}/api/auth/callback`;
-  const oauthUrl = buildOAuthUrl(callbackUrl, redirect);
-  return NextResponse.redirect(oauthUrl);
+  // Production (auth disabled): redirect directly to target page
+  // const callbackUrl = `${origin}/api/auth/callback`;
+  // const oauthUrl = buildOAuthUrl(callbackUrl, redirect);
+  return NextResponse.redirect(new URL(redirect, origin));
 }
