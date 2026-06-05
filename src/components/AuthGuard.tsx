@@ -8,23 +8,25 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    const publicPaths = ["/api/auth/"];
-    if (publicPaths.some(p => pathname.startsWith(p))) {
-      setChecked(true);
-      return;
-    }
+    // const publicPaths = ["/api/auth/"];
+    // if (publicPaths.some(p => pathname.startsWith(p))) {
+    //   setChecked(true);
+    //   return;
+    // }
 
-    fetch("/api/auth/session")
-      .then(r => r.json())
-      .then((data: { authenticated: boolean }) => {
-        if (!data.authenticated) {
-          const redirect = encodeURIComponent(pathname);
-          window.location.href = `/api/auth/wecom?redirect=${redirect}`;
-        } else {
-          setChecked(true);
-        }
-      })
-      .catch(() => setChecked(true)); // fail open on network error
+    // fetch("/api/auth/session")
+    //   .then(r => r.json())
+    //   .then((data: { authenticated: boolean }) => {
+    //     if (!data.authenticated) {
+    //       const redirect = encodeURIComponent(pathname);
+    //       window.location.href = `/api/auth/wecom?redirect=${redirect}`;
+    //     } else {
+    //       setChecked(true);
+    //     }
+    //   })
+    //   .catch(() => setChecked(true)); // fail open on network error
+
+    setChecked(true);
   }, [pathname]);
 
   if (!checked) {
