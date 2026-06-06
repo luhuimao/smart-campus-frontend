@@ -9,21 +9,25 @@ const SESSION_MAX_AGE = 8 * 60 * 60; // 8 hours in seconds
 
 // ── Session encoding ──────────────────────────────────────────────
 
+// Use hex encoding to avoid both Buffer (Node-only) and btoa (Latin1-only).
+// Next.js SSR may compile Buffer/btoa into edge-compatible forms that reject
+// non-Latin1 characters (e.g. Chinese names in the JSON payload).
+
 export function encodeSession(user: WecomUser): string {
   const json = JSON.stringify(user);
-  // Use TextEncoder + btoa to handle Chinese characters safely
-  // (Buffer.from().toString("base64") may be compiled to btoa() which rejects non-Latin1)
   const bytes = new TextEncoder().encode(json);
-  let binary = "";
-  bytes.forEach(b => binary += String.fromCharCode(b));
-  return btoa(binary);
+  let hex = "";
+  bytes.forEach(b => hex += b.toString(16).padStart(2, "0"));
+  return hex;
 }
 
 export function decodeSession(value: string): WecomUser | null {
   try {
-    const binary = atob(value);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    if (value.length % 2 !== 0) return null;
+    const bytes = new Uint8Array(value.length / 2);
+    for (let i = 0; i < value.length; i += 2) {
+      bytes[i / 2] = parseInt(value.substring(i, i + 2), 16);
+    }
     const json = new TextDecoder().decode(bytes);
     const parsed = JSON.parse(json);
     if (typeof parsed.userId === "string" && typeof parsed.name === "string") {
