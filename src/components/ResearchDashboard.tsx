@@ -123,7 +123,7 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
       </header>
 
       {/* Scrollable Main */}
-      <div className="flex-1 overflow-y-auto bg-[#f5f5f7]">
+      <div id="page-scroll" className="flex-1 overflow-y-auto bg-[#f5f5f7]">
         <main className="max-w-7xl mx-auto p-6 md:p-10 space-y-10">
 
           {/* Tech Banner */}
@@ -497,6 +497,18 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
 
                     function SubjectDistCard() {
                       const [modalOpen, setModalOpen] = React.useState(false);
+                      React.useEffect(() => {
+                        if (!modalOpen) return;
+                        const el = document.getElementById("page-scroll");
+                        if (!el) return;
+                        const prevent = (e: Event) => e.preventDefault();
+                        el.addEventListener("wheel", prevent, { passive: false });
+                        el.addEventListener("touchmove", prevent, { passive: false });
+                        return () => {
+                          el.removeEventListener("wheel", prevent);
+                          el.removeEventListener("touchmove", prevent);
+                        };
+                      }, [modalOpen]);
                       const allList = researchData?.subjectDistribution ?? [];
                       const displayList = allList.slice(0, 6);
                       const max = Math.max(1, ...allList.map(d => d.value));
@@ -548,7 +560,7 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                           {/* 全量展开 Modal */}
                           {modalOpen && (
                             <div
-                              className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden"
+                              className="fixed inset-0 z-50 flex items-center justify-center"
                               style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(6px)" }}
                               onClick={() => setModalOpen(false)}
                             >
