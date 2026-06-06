@@ -4,8 +4,8 @@ import { QueryProvider } from "./providers";
 import { AuthGuard } from "@/components/AuthGuard";
 
 export const metadata: Metadata = {
-  title: "应用首页 - 教职工管理",
-  description: "教职工管理系统 - 个人档案看板",
+  title: "Smart Campus",
+  description: "Smart Campus Management System",
 };
 
 export default function RootLayout({
