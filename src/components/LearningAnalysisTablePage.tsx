@@ -57,7 +57,7 @@ function FSelect({ value, onChange, options, placeholder }: { value: string; onC
   return (<div className="relative"><select value={value} onChange={(e) => onChange(e.target.value)} className="form-input appearance-none" style={{ color: value ? "#1d1d1f" : "#9ca3af" }} onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)} onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)}><option value="" disabled>{placeholder ?? ""}</option>{options.map((o) => <option key={o}>{o}</option>)}</select><ChevronDown className="w-4 h-4 absolute right-3.5 top-3 text-gray-400 pointer-events-none" /></div>);
 }
 
-function ImageField({ files, onChange, label }: { files: File[]; onChange: (f: File[]) => void; label: string }) {
+function ImageField({ files, onChange, label, existingUrls }: { files: File[]; onChange: (f: File[]) => void; label: string; existingUrls?: string[] }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const previews = useMemo(() => files.map(f => URL.createObjectURL(f)), [files]);
 
@@ -68,6 +68,13 @@ function ImageField({ files, onChange, label }: { files: File[]; onChange: (f: F
   return (
     <div>
       <div className="flex flex-wrap gap-2 mb-2">
+        {/* Existing remote images (edit mode) */}
+        {(existingUrls ?? []).map((url, i) => (
+          <div key={`existing-${i}`} className="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 shrink-0">
+            <img src={url} alt="" className="w-full h-full object-cover" />
+          </div>
+        ))}
+        {/* New local file previews */}
         {previews.map((url, i) => (
           <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 group shrink-0">
             <img src={url} alt="" className="w-full h-full object-cover" />
@@ -239,6 +246,8 @@ export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => v
   const { raw: courseList } = useCourses();
 
   const isEditMode = editRecord !== null;
+  const existingGoodUrls = useMemo(() => isEditMode ? editRecord!.掌握较好的知识点.map(f => f.url) : [], [editRecord, isEditMode]);
+  const existingWeakUrls = useMemo(() => isEditMode ? editRecord!.掌握不足的知识点.map(f => f.url) : [], [editRecord, isEditMode]);
   const subjectOptions = useMemo(() => [...new Set(courseList.map((c) => c.教研学科名 || c.科目).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh")), [courseList]);
 
   // Click outside for sort dropdown
@@ -510,12 +519,12 @@ export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => v
                 {/* Row 2: 知识点分析 — full width image fields */}
                 <div className="space-y-6">
                   <Field label="掌握较好的知识点" required>
-                    <ImageField files={goodPhotos} onChange={f => { setGoodPhotos(f); clearError("goodPhotos"); }} label="上传截图或照片，单张 20MB 以内" />
+                    <ImageField files={goodPhotos} onChange={f => { setGoodPhotos(f); clearError("goodPhotos"); }} label="上传截图或照片，单张 20MB 以内" existingUrls={existingGoodUrls} />
                     {errors.goodPhotos && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.goodPhotos}</p>}
                   </Field>
 
                   <Field label="掌握不足的知识点" required>
-                    <ImageField files={weakPhotos} onChange={f => { setWeakPhotos(f); clearError("weakPhotos"); }} label="上传截图或照片，单张 20MB 以内" />
+                    <ImageField files={weakPhotos} onChange={f => { setWeakPhotos(f); clearError("weakPhotos"); }} label="上传截图或照片，单张 20MB 以内" existingUrls={existingWeakUrls} />
                     {errors.weakPhotos && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.weakPhotos}</p>}
                   </Field>
                 </div>

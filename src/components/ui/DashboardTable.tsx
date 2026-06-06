@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Upload, RefreshCw, ArrowUpDown, Maximize2 } from "lucide-react";
 
 // ── ActionBar ─────────────────────────────────────────────────────────────────
@@ -127,8 +128,8 @@ export function ImageLightbox({ images, index, onClose }: {
     return () => document.removeEventListener("keydown", onKey);
   }, [images.length, onClose]);
 
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center"
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-auto"
       style={{ background: "rgba(0,0,0,0.85)" }} onClick={onClose}>
       <button className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white z-10" onClick={onClose}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -162,7 +163,8 @@ export function ImageLightbox({ images, index, onClose }: {
           {cur + 1} / {images.length}
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 }
 

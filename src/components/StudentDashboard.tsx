@@ -5,7 +5,7 @@ import { Users, PlusCircle, User, Menu, RefreshCw, ArrowUpDown, Maximize2, Chevr
 import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
 import { useStudentInfo, useStudentLeave, useStudentLeaveCount, useHealthCheck, useStudentReturnSchool, useStudentSupport, useHeartToHeartTalk, useTransactionsToday, useAccessLogsToday, useTransactionStats, useAccessStats, useStudentCadree, usePhysicalTest, useStudentAward, useGoodDeeds, type StudentInfoFilters, type StudentLeaveFilters, type HealthCheckFilters, type StudentReturnSchoolFilters, type StudentSupportFilters, type HeartToHeartTalkFilters } from "@/hooks/use-research-dashboard";
-import { DashboardTable } from "@/components/ui/DashboardTable";
+import { DashboardTable, PhotoList, ImageLightbox } from "@/components/ui/DashboardTable";
 import type { ColumnDef } from "@/components/ui/DashboardTable";
 import type { StudentInfoRecord, StudentLeaveRecord, HealthCheckRecord, StudentReturnSchoolRecord, StudentSupportRecord, HeartToHeartTalkRecord, TransactionsRecord, AccessLogRecord, StudentCadreeRecord, PhysicalTestRecord, StudentAwardRecord, GoodDeedsRecord } from "@/hooks/use-research-dashboard";
 import { UserAvatarMenu } from "@/components/ui/UserAvatarMenu";
@@ -631,6 +631,7 @@ function StudentSupportDrawer({ record, onClose }: { record: StudentSupportRecor
 
 // ── HeartToHeartTalkDrawer ────────────────────────────────────────
 function HeartToHeartTalkDrawer({ record, onClose }: { record: HeartToHeartTalkRecord | null; onClose: () => void }) {
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   useEffect(() => {
     if (!record) return;
     function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
@@ -721,14 +722,24 @@ function HeartToHeartTalkDrawer({ record, onClose }: { record: HeartToHeartTalkR
               )}
               {record.沟通照片.length > 0 && (
                 <section>
-                  <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">沟通照片</p>
-                  <div className="flex flex-wrap gap-2">{record.沟通照片.map((f, i) => <img key={i} src={f.url} alt="" className="w-20 h-20 object-cover rounded-lg border border-gray-200" />)}</div>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">沟通照片（{record.沟通照片.length} 张）</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {record.沟通照片.map((f, i) => (
+                      <button key={i} onClick={() => setLightboxIndex(i)}
+                        className="block rounded-lg overflow-hidden aspect-square bg-gray-100 hover:opacity-80 transition-opacity cursor-zoom-in">
+                        <img src={f.url} alt={f.name} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
                 </section>
               )}
             </div>
           </>
         )}
       </div>
+      {lightboxIndex !== null && record && (
+        <ImageLightbox images={record.沟通照片} index={lightboxIndex} onClose={() => setLightboxIndex(null)} />
+      )}
     </>
   );
 }
@@ -1470,21 +1481,10 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
     { key: "学生学号",   header: "学生学号",   render: r => <span style={{ fontSize: 15, color: "#9ca3af" }}>{r.学生学号 || "—"}</span> },
     { key: "谈心教师学科", header: "谈心教师学科", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.谈心教师学科 || "—"}</span> },
     { key: "谈心谈话时间", header: "谈心谈话时间", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.谈心谈话时间 ? r.谈心谈话时间.slice(0, 16) : "—"}</span> },
-    { key: "谈话内容",   header: "谈话内容",   render: r => r.谈话内容 ? (
-      <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-        style={{ background: "rgba(99,102,241,0.08)", color: "#4f46e5" }}>{r.谈话内容}</span>
-    ) : <span className="text-gray-300">—</span> },
+    { key: "谈话内容",   header: "谈话内容",   minWidth: 140, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 140 }} title={r.谈话内容 || undefined}>{r.谈话内容 || "—"}</span> },
     { key: "谈心谈话内容记录", header: "谈心谈话内容记录", minWidth: 180, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 180 }} title={r.谈心谈话内容记录}>{r.谈心谈话内容记录 || "—"}</span> },
     { key: "教师指导建议", header: "教师指导建议", minWidth: 160, render: r => <span className="block truncate" style={{ fontSize: 15, color: "#374151", maxWidth: 160 }} title={r.教师指导建议}>{r.教师指导建议 || "—"}</span> },
-    { key: "沟通照片",   header: "沟通照片",   render: r => {
-      const count = r.沟通照片?.length ?? 0;
-      return (
-        <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold"
-          style={{ background: count > 0 ? "rgba(16,185,129,0.08)" : "rgba(0,0,0,0.04)", color: count > 0 ? "#059669" : "#9ca3af" }}>
-          {count > 0 ? `${count}张` : "无"}
-        </span>
-      );
-    } },
+    { key: "沟通照片",   header: "沟通照片",   minWidth: 80, render: r => <PhotoList photos={r.沟通照片} /> },
   ], []);
 
   const studentCols = useMemo((): ColumnDef<StudentInfoRecord>[] => [
