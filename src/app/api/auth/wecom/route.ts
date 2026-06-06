@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildOAuthUrl, buildQrLoginUrl, getDevUser, encodeSession, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/wecom-auth";
+import { buildOAuthUrl, buildQrLoginUrl, getBaseUrl, getDevUser, encodeSession, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/wecom-auth";
 
 export async function GET(req: NextRequest) {
-  const { searchParams, origin } = new URL(req.url);
+  const { searchParams } = new URL(req.url);
   const redirect = searchParams.get("redirect") ?? "/";
+  const baseUrl = getBaseUrl(req);
 
   // Dev mode: skip OAuth, write a fake session and redirect
   const devUser = getDevUser();
   if (devUser) {
-    const res = NextResponse.redirect(new URL(redirect, origin));
+    const res = NextResponse.redirect(new URL(redirect, baseUrl));
     res.cookies.set(SESSION_COOKIE, encodeSession(devUser), {
       httpOnly: true,
       sameSite: "lax",
@@ -18,7 +19,7 @@ export async function GET(req: NextRequest) {
     return res;
   }
 
-  const callbackUrl = `${origin}/api/auth/callback`;
+  const callbackUrl = `${baseUrl}/api/auth/callback`;
   const ua = req.headers.get("user-agent") ?? "";
 
   // Inside WeChat Work app or WeChat — silent OAuth

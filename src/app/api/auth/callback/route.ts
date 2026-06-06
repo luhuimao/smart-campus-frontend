@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserByCode, encodeSession, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/wecom-auth";
+import { getUserByCode, getBaseUrl, encodeSession, SESSION_COOKIE, SESSION_MAX_AGE } from "@/lib/wecom-auth";
 
 export async function GET(req: NextRequest) {
-  const { searchParams, origin } = new URL(req.url);
+  const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
   const state = searchParams.get("state") ?? "/";
+  const baseUrl = getBaseUrl(req);
 
   if (!code) {
     return NextResponse.json({ error: "missing code" }, { status: 400 });
@@ -12,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const user = await getUserByCode(code);
-    const res = NextResponse.redirect(new URL(state, origin));
+    const res = NextResponse.redirect(new URL(state, baseUrl));
     res.cookies.set(SESSION_COOKIE, encodeSession(user), {
       httpOnly: true,
       sameSite: "lax",

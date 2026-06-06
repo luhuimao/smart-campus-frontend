@@ -29,6 +29,19 @@ export function decodeSession(value: string): WecomUser | null {
 
 export { SESSION_COOKIE, SESSION_MAX_AGE };
 
+// ── Base URL helper ───────────────────────────────────────────────
+
+/** Get canonical public URL (handles Nginx/EdgeOne proxy) */
+export function getBaseUrl(req?: { headers: Headers }): string {
+  if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL;
+  if (req) {
+    const proto = req.headers.get("x-forwarded-proto") ?? "https";
+    const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "localhost:3000";
+    return `${proto}://${host}`;
+  }
+  return "http://localhost:3000";
+}
+
 // ── Dev mode ──────────────────────────────────────────────────────
 
 export function getDevUser(): WecomUser | null {
