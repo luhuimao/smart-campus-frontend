@@ -44,9 +44,11 @@ import { SemesterConfigPage } from "@/components/SemesterConfigPage";
 import { GradeConfigPage } from "@/components/GradeConfigPage";
 import type { PageKey } from "./page";
 import type { WecomUser } from "@/lib/wecom-auth";
+import { decodeSession } from "@/lib/wecom-auth";
 import { UserProvider } from "@/lib/user-context";
 
-export function HomeClient({ currentUser }: { currentUser: WecomUser | null }) {
+export function HomeClient({ sessionValue }: { sessionValue: string | null }) {
+  const currentUser: WecomUser | null = sessionValue ? decodeSession(sessionValue) : null;
   const [activePage, setActivePage] = useState<PageKey>("research-dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [allowedPages, setAllowedPages] = useState<Set<PageKey>>();

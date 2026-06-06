@@ -1,7 +1,7 @@
-// Server Component — reads session cookie and passes user to client shell
+// Server Component — reads session cookie, passes raw value to client
+// (raw base64 avoids btoa Chinese-character crash in Next.js SSR serialization)
 import { cookies } from "next/headers";
-import { decodeSession, getDevUser } from "@/lib/wecom-auth";
-import type { WecomUser } from "@/lib/wecom-auth";
+import { getDevUser, encodeSession, SESSION_COOKIE } from "@/lib/wecom-auth";
 import { HomeClient } from "./HomeClient";
 
 export type PageKey =
@@ -19,11 +19,13 @@ export type PageKey =
   | "elective-subject" | "semester-config" | "grade-config";
 
 export default async function Home() {
-  let currentUser: WecomUser | null = getDevUser();
-  if (!currentUser) {
-    const jar = await cookies();
-    const val = jar.get("wecom_session")?.value;
-    if (val) currentUser = decodeSession(val);
+  // Dev mode: encode dev user and pass as sessionValue (avoids RSC boundary issue)
+  const devUser = getDevUser();
+  if (devUser) {
+    return <HomeClient sessionValue={encodeSession(devUser)} />;
   }
-  return <HomeClient currentUser={currentUser} />;
+
+  const jar = await cookies();
+  const sessionValue = jar.get(SESSION_COOKIE)?.value ?? null;
+  return <HomeClient sessionValue={sessionValue} />;
 }
