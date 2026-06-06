@@ -11,12 +11,20 @@ const SESSION_MAX_AGE = 8 * 60 * 60; // 8 hours in seconds
 
 export function encodeSession(user: WecomUser): string {
   const json = JSON.stringify(user);
-  return Buffer.from(json).toString("base64url");
+  // Use TextEncoder + btoa to handle Chinese characters safely
+  // (Buffer.from().toString("base64") may be compiled to btoa() which rejects non-Latin1)
+  const bytes = new TextEncoder().encode(json);
+  let binary = "";
+  bytes.forEach(b => binary += String.fromCharCode(b));
+  return btoa(binary);
 }
 
 export function decodeSession(value: string): WecomUser | null {
   try {
-    const json = Buffer.from(value, "base64url").toString("utf-8");
+    const binary = atob(value);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const json = new TextDecoder().decode(bytes);
     const parsed = JSON.parse(json);
     if (typeof parsed.userId === "string" && typeof parsed.name === "string") {
       return parsed as WecomUser;
