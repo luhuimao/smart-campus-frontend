@@ -37,9 +37,10 @@ function StudentInfoDrawer({ record, onClose }: { record: StudentInfoRecord | nu
       <div className="fixed inset-0 z-40 transition-opacity duration-300"
         style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
         onClick={onClose} />
-      <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col"
         style={{
           width: 520, maxWidth: "100vw", background: "#fff",
+          boxShadow: record ? "0 25px 50px -12px rgba(0,0,0,0.25)" : "none",
           transform: record ? "translateX(0)" : "translateX(100%)",
           transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)",
         }}>
@@ -218,9 +219,10 @@ function StudentLeaveDrawer({ record, onClose }: { record: StudentLeaveRecord | 
       <div className="fixed inset-0 z-40 transition-opacity duration-300"
         style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
         onClick={onClose} />
-      <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col"
         style={{
           width: 480, maxWidth: "100vw", background: "#fff",
+          boxShadow: record ? "0 25px 50px -12px rgba(0,0,0,0.25)" : "none",
           transform: record ? "translateX(0)" : "translateX(100%)",
           transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)",
         }}>
@@ -315,9 +317,10 @@ function HealthCheckDrawer({ record, onClose }: { record: HealthCheckRecord | nu
       <div className="fixed inset-0 z-40 transition-opacity duration-300"
         style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
         onClick={onClose} />
-      <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col"
         style={{
           width: 520, maxWidth: "100vw", background: "#fff",
+          boxShadow: record ? "0 25px 50px -12px rgba(0,0,0,0.25)" : "none",
           transform: record ? "translateX(0)" : "translateX(100%)",
           transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)",
         }}>
@@ -432,9 +435,10 @@ function StudentReturnSchoolDrawer({ record, onClose }: { record: StudentReturnS
       <div className="fixed inset-0 z-40 transition-opacity duration-300"
         style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
         onClick={onClose} />
-      <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col"
         style={{
           width: 520, maxWidth: "100vw", background: "#fff",
+          boxShadow: record ? "0 25px 50px -12px rgba(0,0,0,0.25)" : "none",
           transform: record ? "translateX(0)" : "translateX(100%)",
           transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)",
         }}>
@@ -542,9 +546,10 @@ function StudentSupportDrawer({ record, onClose }: { record: StudentSupportRecor
       <div className="fixed inset-0 z-40 transition-opacity duration-300"
         style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
         onClick={onClose} />
-      <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col"
         style={{
           width: 480, maxWidth: "100vw", background: "#fff",
+          boxShadow: record ? "0 25px 50px -12px rgba(0,0,0,0.25)" : "none",
           transform: record ? "translateX(0)" : "translateX(100%)",
           transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)",
         }}>
@@ -638,9 +643,10 @@ function HeartToHeartTalkDrawer({ record, onClose }: { record: HeartToHeartTalkR
       <div className="fixed inset-0 z-40 transition-opacity duration-300"
         style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
         onClick={onClose} />
-      <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+      <div className="fixed top-0 right-0 h-full z-50 flex flex-col"
         style={{
           width: 520, maxWidth: "100vw", background: "#fff",
+          boxShadow: record ? "0 25px 50px -12px rgba(0,0,0,0.25)" : "none",
           transform: record ? "translateX(0)" : "translateX(100%)",
           transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)",
         }}>
@@ -740,8 +746,8 @@ function ConsumeDrawer({ record, onClose }: { record: TransactionsRecord | null;
     <div className="fixed inset-0 z-40 transition-opacity duration-300"
       style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
       onClick={onClose} />
-    <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
-      style={{ width: 480, maxWidth: "100vw", background: "#fff", transform: record ? "translateX(0)" : "translateX(100%)", transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)" }}>
+    <div className="fixed top-0 right-0 h-full z-50 flex flex-col"
+      style={{ width: 480, maxWidth: "100vw", background: "#fff", boxShadow: record ? "0 25px 50px -12px rgba(0,0,0,0.25)" : "none", transform: record ? "translateX(0)" : "translateX(100%)", transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)" }}>
       {record && (<>
         <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0">
           <div className="flex-1 min-w-0 pr-4">
@@ -796,8 +802,8 @@ function AccessDrawer({ record, onClose }: { record: AccessLogRecord | null; onC
     <div className="fixed inset-0 z-40 transition-opacity duration-300"
       style={{ background: record ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: record ? "auto" : "none" }}
       onClick={onClose} />
-    <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
-      style={{ width: 480, maxWidth: "100vw", background: "#fff", transform: record ? "translateX(0)" : "translateX(100%)", transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)" }}>
+    <div className="fixed top-0 right-0 h-full z-50 flex flex-col"
+      style={{ width: 480, maxWidth: "100vw", background: "#fff", boxShadow: record ? "0 25px 50px -12px rgba(0,0,0,0.25)" : "none", transform: record ? "translateX(0)" : "translateX(100%)", transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)" }}>
       {record && (<>
         <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0">
           <div className="flex-1 min-w-0 pr-4">
@@ -961,7 +967,7 @@ function GenericDrawer({ record, onClose, title }: { record: object | null; onCl
   const entries = r ? Object.entries(r).filter(([k]) => !k.startsWith("_") && k !== "id") : [];
   return (<>
     <div className="fixed inset-0 z-40 transition-opacity duration-300" style={{ background: r ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: r ? "auto" : "none" }} onClick={onClose} />
-    <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl" style={{ width: 480, maxWidth: "100vw", background: "#fff", transform: r ? "translateX(0)" : "translateX(100%)", transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)" }}>
+    <div className="fixed top-0 right-0 h-full z-50 flex flex-col" style={{ width: 480, maxWidth: "100vw", background: "#fff", boxShadow: r ? "0 25px 50px -12px rgba(0,0,0,0.25)" : "none", transform: r ? "translateX(0)" : "translateX(100%)", transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)" }}>
       {r && (<>
         <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0">
           <h2 className="text-base font-bold text-gray-900">{title}</h2>
@@ -1621,7 +1627,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
       {/* Top Nav */}
       <header
         className="flex items-center justify-between px-4 md:px-8 shrink-0 border-b border-gray-200/30"
-        style={{ height: 64, background: "rgba(255,255,255,0.8)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", zIndex: 10 }}
+        style={{ height: 64, background: "rgba(255,255,255,0.95)", zIndex: 10 }}
       >
         <div className="flex items-center gap-3">
           <button className="md:hidden p-2 -ml-1 rounded-xl hover:bg-gray-100 transition-colors" onClick={onMenuOpen}>
