@@ -124,9 +124,14 @@ module.exports = {
 };
 EOF
 
-# 构建 + 启动
+# 构建
 npm install
 npm run build
+
+# 确保静态文件复制到 standalone 目录（Next.js 构建有时遗漏）
+cp -r .next/static .next/standalone/.next/
+
+# 启动
 pm2 start ecosystem.config.js
 pm2 save
 pm2 startup
@@ -232,6 +237,7 @@ cd /var/www/smart-campus
 git pull
 npm install
 npm run build
+cp -r .next/static .next/standalone/.next/
 pm2 restart smart-campus
 
 # 修改环境变量后重启
