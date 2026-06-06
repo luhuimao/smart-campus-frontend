@@ -72,7 +72,10 @@ const roles = (...names: RoleName[]): PermSpec => ({
 });
 
 /** 混合权限：角色 + 部门 + 具体成员，三者 OR 关系 */
-export const perm = (s: PermSpec): PermSpec => s;
+export function perm(s: PermSpec): PermSpec { return s; }
+
+/** 提取角色编号数组（用于 perm 内嵌） */
+const roleIds = (...names: RoleName[]): number[] => names.map(n => R[n]);
 
 // ── 部门别名 — dept_no from config/department_list.json ──
 export const D = {
@@ -269,52 +272,51 @@ export const FORM_PERMISSIONS: Record<
 };
 
 // ── 菜单可见性 — PageKey → PermSpec, 未配置的默认所有人可见 ──
-import type { PageKey } from "@/app/page";
 
-export const MENU_PERMISSIONS: Partial<Record<PageKey, PermSpec>> = {
-  // 一生一案
-  "student-dashboard":       roles("学生发展处核心领导", "学校核心领导", "校长", "技术"),
-  "student-home":            roles("教官队", "学生发展处核心领导", "学校核心领导", "技术"),
-  "student-roster":          roles("人事科", "招生核心领导", "学生发展处核心领导", "学校核心领导", "技术"),
-  "talk-record":             roles("学生发展处核心领导", "学校核心领导", "技术"),
-  "student-award":           roles("学生发展处核心领导", "学校核心领导", "技术"),
-  "good-deeds":              roles("学生发展处核心领导", "学校核心领导", "技术"),
-  "physical-test":           roles("学生发展处核心领导", "学校核心领导", "技术"),
-  "student-cadree":          roles("学生发展处核心领导", "学校核心领导", "技术"),
-  "return-register":         roles("学生发展处核心领导", "学校核心领导", "技术"),
-  "withdrawal-form":         roles("学生发展处核心领导", "学校核心领导", "技术"),
-  "class-transfer":          roles("学生发展处核心领导", "学校核心领导", "技术"),
-  "dorm-attendance":         roles("教官队", "学生发展处核心领导", "学校核心领导", "技术"),
-  "learning-analysis-stats": roles("学生发展处核心领导", "学校核心领导", "校长", "技术"),
-  "learning-analysis-table": roles("学生发展处核心领导", "学校核心领导", "校长", "技术"),
-  "student-score":           roles("课程教学处分管校领导", "课程教学处负责人", "课程教学处中层领导", "学生发展处核心领导", "学校核心领导", "技术"),
+export const MENU_PERMISSIONS = {
+  // ═══ 一生一案 ═══
+  "student-dashboard":          perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "校长"), depts: [], members: ["卢辉茂"] }), // 学生管理看板
+  "student-home":               perm({ roles: roleIds("教官队", "学生发展处核心领导", "学校核心领导"), depts: [], members: ["卢辉茂"] }), // 宿舍考勤看板
+  "student-roster":             perm({ roles: roleIds("人事科", "招生核心领导", "学生发展处核心领导", "学校核心领导", "技术"), depts: [], members: ["卢辉茂"] }), // 学生花名册
+  "talk-record":                perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "技术"), depts: [], members: ["卢辉茂"] }), // 一生一案谈心谈话记录表
+  "student-award":              perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "技术"), depts: [], members: ["卢辉茂"] }), // 学生获奖记录
+  "good-deeds":                 perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "技术"), depts: [], members: ["卢辉茂"] }), // 好人好事记录
+  "physical-test":              perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "技术"), depts: [], members: ["卢辉茂"] }), // 体质检测录入
+  "student-cadree":             perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "技术"), depts: [], members: ["卢辉茂"] }), // 学生干部风采
+  "return-register":            perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "技术"), depts: [], members: ["卢辉茂"] }), // 返校登记表
+  "withdrawal-form":            perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "技术"), depts: [], members: ["卢辉茂"] }), // 学生退/转/休学申请表
+  "class-transfer":             perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "技术"), depts: [], members: ["卢辉茂"] }), // 转科（班）申请表
+  "dorm-attendance":            perm({ roles: roleIds("教官队", "学生发展处核心领导", "学校核心领导", "技术"), depts: [], members: ["卢辉茂"] }), // 宿舍考勤记录
+  "learning-analysis-stats":    perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "校长", "技术"), depts: [], members: ["卢辉茂"] }), // 学情分析统计表
+  "learning-analysis-table":    perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "校长", "技术"), depts: [], members: ["卢辉茂"] }), // 学情分析表
+  "student-score":              perm({ roles: roleIds("课程教学处分管校领导", "课程教学处负责人", "课程教学处中层领导", "学生发展处核心领导", "学校核心领导", "技术"), depts: [], members: ["卢辉茂"] }), // 学生成绩表
 
-  // 一师一案
-  "research-dashboard":      roles("教研组长", "师资管理", "学校核心领导", "技术"),
-  "teacher-cert":            roles("人事科", "师资管理", "技术"),
-  "title-info":              roles("人事科", "师资管理", "技术"),
-  "honor-title":             roles("人事科", "师资管理", "技术"),
-  "award-record":            roles("人事科", "师资管理", "技术"),
-  "paper":                   roles("人事科", "师资管理", "技术"),
-  "project":                 roles("人事科", "师资管理", "技术"),
-  "works":                   roles("人事科", "师资管理", "技术"),
-  "teacher-training":        roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "技术"),
-  "work-history":            roles("人事科", "师资管理", "技术"),
-  "education":               roles("人事科", "师资管理", "技术"),
-  "part-time":               roles("人事科", "师资管理", "技术"),
-  "class-rank":              roles("师资管理", "学校核心领导", "技术"),
-  "civilized-class":         roles("学生发展处核心领导", "学校核心领导", "技术"),
-  "civilized-dorm":          roles("学生发展处核心领导", "学校核心领导", "技术"),
-  "science-fest-dashboard":  roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "技术"),
-  "science-fest-form":       roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "技术"),
-  "lesson-prep-record":      roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "技术"),
-  "lesson-prep-analysis":    roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "技术"),
-  "research-activity-analysis": roles("教研组长", "师资管理", "学校核心领导", "技术"),
-  "research-activity-record":   roles("教研组长", "师资管理", "技术"),
+  // ═══ 一师一案 ═══
+  "research-dashboard":         perm({ roles: roleIds("教研组长", "师资管理", "学校核心领导", "技术"), depts: [], members: ["卢辉茂"] }), // 教师看板
+  "teacher-cert":               perm({ roles: roleIds("人事科", "师资管理"), depts: [], members: ["卢辉茂"] }), // 教师资格证
+  "title-info":                 perm({ roles: roleIds("人事科", "师资管理", "技术"), depts: [], members: ["卢辉茂"] }), // 职称信息
+  "honor-title":                perm({ roles: roleIds("人事科", "师资管理", "技术"), depts: [], members: ["卢辉茂"] }), // 荣誉称号
+  "award-record":               perm({ roles: roleIds("人事科", "师资管理", "技术"), depts: [], members: ["卢辉茂"] }), // 获奖记录
+  "paper":                      perm({ roles: roleIds("人事科", "师资管理", "技术"), depts: [], members: ["卢辉茂"] }), // 论文
+  "project":                    perm({ roles: roleIds("人事科", "师资管理", "技术"), depts: [], members: ["卢辉茂"] }), // 课题
+  "works":                      perm({ roles: roleIds("人事科", "师资管理", "技术"), depts: [], members: ["卢辉茂"] }), // 著作
+  "teacher-training":           perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "技术"), depts: [], members: ["卢辉茂"] }), // 教师培训
+  "work-history":               perm({ roles: roleIds("人事科", "师资管理", "技术"), depts: [], members: ["卢辉茂"] }), // 工作履历
+  "education":                  perm({ roles: roleIds("人事科", "师资管理", "技术"), depts: [], members: ["卢辉茂"] }), // 教育经历
+  "part-time":                  perm({ roles: roleIds("人事科", "师资管理", "技术"), depts: [], members: ["卢辉茂"] }), // 教学兼职
+  "class-rank":                 perm({ roles: roleIds("师资管理", "学校核心领导", "技术"), depts: [], members: ["卢辉茂"] }), // 教师所带班级排名
+  "civilized-class":            perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "技术"), depts: [], members: ["卢辉茂"] }), // 班主任所带文明班级
+  "civilized-dorm":             perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "技术"), depts: [], members: ["卢辉茂"] }), // 班主任所带文明宿舍
+  "science-fest-dashboard":     perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "技术"), depts: [], members: ["卢辉茂"] }), // 科技节活动看板
+  "science-fest-form":          perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "技术"), depts: [], members: ["卢辉茂"] }), // 科技节活动登记
+  "lesson-prep-record":         perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "技术"), depts: [], members: ["卢辉茂"] }), // 备课组活动记录
+  "lesson-prep-analysis":       perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "技术"), depts: [], members: ["卢辉茂"] }), // 备课活动数据分析
+  "research-activity-analysis": perm({ roles: roleIds("教研组长", "师资管理", "学校核心领导", "技术"), depts: [], members: ["卢辉茂"] }), // 教研活动数据分析
+  "research-activity-record":   perm({ roles: roleIds("教研组长", "师资管理", "技术"), depts: [], members: ["卢辉茂"] }), // 教研活动记录
 
-  // 基础数据
-  "subject-config":   roles("师资管理", "技术"),
-  "elective-subject": roles("师资管理", "技术"),
-  "semester-config":  roles("师资管理", "技术"),
-  "grade-config":     roles("师资管理", "技术"),
+  // ═══ 基础数据 ═══
+  "subject-config":             perm({ roles: roleIds("师资管理", "技术"), depts: [], members: ["卢辉茂"] }), // 科目
+  "elective-subject":           perm({ roles: roleIds("师资管理", "技术"), depts: [], members: ["卢辉茂"] }), // 选考科目
+  "semester-config":            perm({ roles: roleIds("师资管理", "技术"), depts: [], members: ["卢辉茂"] }), // 学期
+  "grade-config":               perm({ roles: roleIds("师资管理", "技术"), depts: [], members: ["卢辉茂"] }), // 年级
 };

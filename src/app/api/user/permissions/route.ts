@@ -15,15 +15,15 @@ export async function GET() {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  // Dev mode: every menu item visible
+  // Dev mode: use test-permissions user if set, otherwise show all pages
   if (getDevUser()) {
-    const allPages = Object.keys(MENU_PERMISSIONS) as PageKey[];
-    return NextResponse.json({
-      name: user.name,
-      roles: [],
-      depts: [],
-      allowedPages: allPages,
-    });
+    const testUser = process.env.WECOM_DEV_PERMISSION_USER;
+    if (!testUser) {
+      const allPages = Object.keys(MENU_PERMISSIONS) as PageKey[];
+      return NextResponse.json({ name: user.name, roles: [], depts: [], allowedPages: allPages });
+    }
+    // Override user name for permission testing
+    user.name = testUser;
   }
 
   // Collect all role_nos and dept_nos referenced in any permissions config

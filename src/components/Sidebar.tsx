@@ -149,7 +149,8 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose, allowedPa
     return pk ? allowedPages.has(pk) : false;
   };
   const hasVisibleChild = (children: (string | { label: string; children?: string[] })[] | undefined): boolean => {
-    if (!allowedPages || !children) return true;
+    if (!allowedPages) return true;   // permissions not loaded yet
+    if (!children) return false;      // leaf item: no children to check
     return children.some(c => {
       const l = typeof c === "string" ? c : c.label;
       return canShow(l) || (typeof c !== "string" && hasVisibleChild(c.children));
