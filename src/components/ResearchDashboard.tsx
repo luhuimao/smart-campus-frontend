@@ -496,23 +496,12 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                     }
 
                     function SubjectDistCard() {
-                      const [modalOpen, setModalOpen] = React.useState(false);
-                      React.useEffect(() => {
-                        if (!modalOpen) return;
-                        const el = document.getElementById("page-scroll");
-                        if (!el) return;
-                        const prevent = (e: Event) => e.preventDefault();
-                        el.addEventListener("wheel", prevent, { passive: false });
-                        el.addEventListener("touchmove", prevent, { passive: false });
-                        return () => {
-                          el.removeEventListener("wheel", prevent);
-                          el.removeEventListener("touchmove", prevent);
-                        };
-                      }, [modalOpen]);
+                      const [subjectPage, setSubjectPage] = React.useState(1);
+                      const PAGE_SIZE = 6;
                       const allList = researchData?.subjectDistribution ?? [];
-                      const displayList = allList.slice(0, 6);
+                      const totalPages = Math.max(1, Math.ceil(allList.length / PAGE_SIZE));
+                      const paged = allList.slice((subjectPage - 1) * PAGE_SIZE, subjectPage * PAGE_SIZE);
                       const max = Math.max(1, ...allList.map(d => d.value));
-                      const hasMore = allList.length > 6;
 
                       function BarRow({ label, value, color }: { label: string; value: number; color: string }) {
                         return (
@@ -530,68 +519,32 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                       }
 
                       return (
-                        <>
-                          <MidGlassCard title="教研活动学科分布" actions={[
-                            { Icon: RefreshCw, tip: "刷新" },
-                            { Icon: ArrowUpDown, tip: "排序" },
-                            { Icon: Maximize2, tip: "展开全部", onClick: () => setModalOpen(true) },
-                          ]}>
-                            <div className="flex-1 flex flex-col justify-center gap-2.5 py-2">
+                        <MidGlassCard title="教研活动学科分布" actions={[
+                          { Icon: RefreshCw, tip: "刷新" },
+                          { Icon: ArrowUpDown, tip: "排序" },
+                          { Icon: Maximize2, tip: "放大" },
+                        ]}>
+                          <div className="flex-1 flex flex-col justify-between">
+                            <div className="flex flex-col gap-2.5 py-2">
                               {allList.length === 0
                                 ? <div className="text-center text-xs text-gray-400">{researchPending ? "加载中…" : researchError ? "加载失败" : "暂无数据"}</div>
-                                : displayList.map(({ label, value, color }) => (
+                                : paged.map(({ label, value, color }) => (
                                     <BarRow key={label} label={label} value={value} color={color} />
                                   ))
                               }
-                              {hasMore && (
-                                <button
-                                  className="mt-1 text-xs font-medium transition-colors"
-                                  style={{ color: "#3b82f6" }}
-                                  onClick={e => { e.stopPropagation(); setModalOpen(true); }}
-                                  onMouseDown={e => e.stopPropagation()}
-                                  onMouseUp={e => e.stopPropagation()}
-                                >
-                                  还有 {allList.length - 6} 个学科 · 点击查看全部 →
-                                </button>
-                              )}
                             </div>
-                          </MidGlassCard>
-
-                          {/* 全量展开 Modal */}
-                          {modalOpen && (
-                            <div
-                              className="fixed inset-0 z-50 flex items-center justify-center"
-                              style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(6px)" }}
-                              onClick={() => setModalOpen(false)}
-                            >
-                              <div
-                                className="w-full max-w-md mx-4 rounded-[28px] shadow-2xl flex flex-col overflow-hidden"
-                                style={{ background: "rgba(255,255,255,0.97)", border: "1px solid rgba(255,255,255,0.4)", maxHeight: "80vh" }}
-                                onClick={e => e.stopPropagation()}
-                              >
-                                <div className="flex items-center justify-between px-6 pt-6 pb-4 shrink-0">
-                                  <div>
-                                    <p className="text-base font-bold text-gray-800">教研活动学科分布</p>
-                                    <p className="text-xs text-gray-400 mt-0.5">共 {allList.length} 个学科</p>
-                                  </div>
-                                  <button
-                                    onClick={() => setModalOpen(false)}
-                                    className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400"
-                                  >
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                                    </svg>
-                                  </button>
-                                </div>
-                                <div className="flex flex-col gap-3 overflow-y-auto px-6 pb-6" style={{ scrollbarWidth: "thin", scrollbarColor: "#e5e7eb transparent" }}>
-                                  {allList.map(({ label, value, color }) => (
-                                    <BarRow key={label} label={label} value={value} color={color} />
-                                  ))}
-                                </div>
+                            {/* Pagination */}
+                            {allList.length > PAGE_SIZE && (
+                              <div className="flex items-center justify-center gap-1 pt-2 border-t border-gray-100/60">
+                                <button onClick={e => { e.stopPropagation(); setSubjectPage(1); }} onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()} disabled={subjectPage === 1} className="flex items-center justify-center w-7 h-7 border border-gray-200 rounded text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-colors text-xs font-mono">⟪</button>
+                                <button onClick={e => { e.stopPropagation(); setSubjectPage(p => Math.max(1, p - 1)); }} onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()} disabled={subjectPage === 1} className="flex items-center justify-center w-7 h-7 border border-gray-200 rounded text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-colors text-xs font-mono">‹</button>
+                                <div className="flex items-center border border-gray-200 rounded px-2.5 h-7 mx-1 gap-1"><span className="text-xs text-gray-600">{subjectPage}</span><span className="text-gray-300 text-xs">/</span><span className="text-xs text-gray-600">{totalPages}</span></div>
+                                <button onClick={e => { e.stopPropagation(); setSubjectPage(p => Math.min(totalPages, p + 1)); }} onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()} disabled={subjectPage === totalPages} className="flex items-center justify-center w-7 h-7 border border-gray-200 rounded text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-colors text-xs font-mono">›</button>
+                                <button onClick={e => { e.stopPropagation(); setSubjectPage(totalPages); }} onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()} disabled={subjectPage === totalPages} className="flex items-center justify-center w-7 h-7 border border-gray-200 rounded text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-colors text-xs font-mono">⟫</button>
                               </div>
-                            </div>
-                          )}
-                        </>
+                            )}
+                          </div>
+                        </MidGlassCard>
                       );
                     }
 
