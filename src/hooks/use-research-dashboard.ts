@@ -601,11 +601,16 @@ export function useDormAttendance(filters?: DormAttendanceFilters) {
   const { data: allRecords, isPending, isError, error, refetch } = useQuery({
     queryKey: ["dorm-attendance", "list"],
     queryFn: async () => {
+      const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
       const records = await jdyListAll({
         app_id: JDY_CONFIG.DORM_ATTENDANCE.app_id,
         entry_id: JDY_CONFIG.DORM_ATTENDANCE.entry_id,
         pageSize: 100,
         maxPages: 50,
+        filter: {
+          rel: "and",
+          cond: [{ field: "createTime", method: "gte", value: [ninetyDaysAgo] }],
+        },
       });
       return records.map(normalizeDormAttendanceRecord);
     },
