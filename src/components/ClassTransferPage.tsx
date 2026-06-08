@@ -252,7 +252,7 @@ export function ClassTransferPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
             <button onClick={handleSubmit} disabled={submitting}
               className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px disabled:opacity-60"
               style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}>
-              {submitting ? "提交中..." : "提交"}
+              {submitting ? "提交中..." : "提交流程"}
             </button>
           </div>
         </main>

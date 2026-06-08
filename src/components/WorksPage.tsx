@@ -499,7 +499,7 @@ export function WorksPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
               onClick={handleSubmit}
               disabled={submitting}
             >
-              {submitting ? "提交中..." : "提交"}
+              {submitting ? "提交中..." : "提交流程"}
             </button>
           </div>
         </main>
