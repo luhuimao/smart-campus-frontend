@@ -39,22 +39,48 @@ async function jdyFetchV5(path: string, body: unknown): Promise<unknown> {
   return res.json();
 }
 
+export interface DeptInfo {
+  dept_no: number;
+  name: string;
+  parent_no: number;
+}
+
+let cachedDeptList: DeptInfo[] = [];
+
 async function fetchAllDepts(): Promise<number[]> {
-  const res = await fetch(`${JDY_V6}/department/list`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey()}`,
-    },
-    body: JSON.stringify({ has_internal: true, has_sync: true }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`JDY dept list API failed (${res.status}): ${text}`);
+  const rawDepts: Array<{ dept_no: number; status: number; name: string; parent_no: number }> = [];
+  let skip = 0;
+  const limit = 200;
+  while (true) {
+    const res = await fetch(`${JDY_V6}/department/list`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey()}`,
+      },
+      body: JSON.stringify({ dept_no: 1, has_child: true, skip, limit }),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`JDY dept list API failed (${res.status}): ${text}`);
+    }
+    const data = (await res.json()) as { departments: typeof rawDepts };
+    const batch = (data.departments ?? []);
+    rawDepts.push(...batch);
+    if (batch.length < limit) break;
+    skip += limit;
   }
-  const data = (await res.json()) as { departments: Array<{ dept_no: number; status: number }> };
   allDeptsFetchedAt = Date.now();
-  return (data.departments ?? []).filter(d => d.status === 1).map(d => d.dept_no);
+  cachedDeptList = rawDepts.filter(d => d.status === 1).map(d => ({ dept_no: d.dept_no, name: d.name, parent_no: d.parent_no }));
+  return cachedDeptList.map(d => d.dept_no);
+}
+
+/** Get all active department names (fetched from V6 API, cached) */
+export async function getDeptList(): Promise<DeptInfo[]> {
+  if (cachedDeptList.length === 0 || Date.now() - allDeptsFetchedAt > TTL_MS) {
+    await fetchAllDepts();
+  }
+  return cachedDeptList;
 }
 
 async function fetchDeptMembers(deptNo: number): Promise<Set<string>> {

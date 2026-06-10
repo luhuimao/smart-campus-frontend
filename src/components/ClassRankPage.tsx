@@ -4,11 +4,11 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import * as XLSX from "xlsx";
 import { Trash2, Clock, Search, ChevronDown } from "lucide-react";
 import { PageHeader } from "./PageHeader";
-import { StaffPicker } from "./ui/StaffPicker";
 import { DataTable, type ColDef } from "./DataTable";
 import { useClassRank, useTermInfo, useGradeInfo, useCourses, useDepartmentMembers, type ClassRankRecord } from "@/hooks/use-research-dashboard";
 import { useFormPermissions } from "@/hooks/use-form-permissions";
 import { JDY_CONFIG, CLASS_RANK_WIDGET_IDS, jdyCreate, jdyUpdate, jdyDelete } from "@/lib/jdy-api";
+import { DeptStaffPicker } from "@/components/ui/DeptStaffPicker";
 import { useCurrentUser } from "@/lib/user-context";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -511,7 +511,11 @@ export function ClassRankPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
               </div>
               <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
                 <Field label="教师姓名" required error={errors.teacherName}>
-                  <StaffPicker value={teacherName} onChange={v => { setTeacherName(v); clearError("teacherName"); }} />
+                  <DeptStaffPicker
+                    staffList={staffList}
+                    value={teacherName}
+                    onChange={v => { setTeacherName(v); clearError("teacherName"); }}
+                  />
                 </Field>
                 <Field label="学科" required error={errors.subject}>
                   <SelectField value={subject} onChange={v => { setSubject(v); clearError("subject"); }} options={courseOptions} />
