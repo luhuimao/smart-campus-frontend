@@ -148,11 +148,13 @@ function derive(records: ResearchRecord[]): DashboardData {
   const weekMap = new Map<string, number>();
   for (const r of records) {
     if (!r.周次) continue;
-    weekMap.set(r.周次, (weekMap.get(r.周次) ?? 0) + 1);
+    const n = parseInt(r.周次.replace(/\D/g, ""), 10);
+    if (!n) continue;
+    const label = `第${n}周`;
+    weekMap.set(label, (weekMap.get(label) ?? 0) + 1);
   }
   const weekStats = Array.from(weekMap.entries())
-    .sort(([a], [b]) => a.localeCompare(b, "zh"))
-    .slice(0, 8)
+    .sort(([a], [b]) => (parseInt(a.replace(/\D/g, "")) || 0) - (parseInt(b.replace(/\D/g, "")) || 0))
     .map(([label, value]) => ({ label, value }));
 
   const monthStats = trendByMonth.slice(-6).map(({ month, value }) => ({
@@ -323,11 +325,13 @@ function deriveBeike(records: BeikeRecord[]): DashboardData {
   const weekMap = new Map<string, number>();
   for (const r of records) {
     if (!r.周次) continue;
-    weekMap.set(r.周次, (weekMap.get(r.周次) ?? 0) + 1);
+    const n = parseInt(r.周次.replace(/\D/g, ""), 10);
+    if (!n) continue;
+    const label = `第${n}周`;
+    weekMap.set(label, (weekMap.get(label) ?? 0) + 1);
   }
   const weekStats = Array.from(weekMap.entries())
-    .sort(([a], [b]) => a.localeCompare(b, "zh"))
-    .slice(0, 8)
+    .sort(([a], [b]) => (parseInt(a.replace(/\D/g, "")) || 0) - (parseInt(b.replace(/\D/g, "")) || 0))
     .map(([label, value]) => ({ label, value }));
 
   const monthStats = trendByMonth.slice(-6).map(({ month, value }) => ({

@@ -187,65 +187,8 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
             </div>
           </section>
 
-          {/* Filters */}
-          {(() => {
-            const valueSelectStyle = {
-              backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "right 0.6rem center",
-              backgroundSize: "0.85rem",
-              paddingRight: "1.6rem",
-            };
-
-            type FilterKey = "semester" | "group" | "subject";
-            const filterDefs: { label: string; key: FilterKey; options: string[] }[] = [
-              { label: "学期", key: "semester", options: filterOptions.semesters },
-              { label: "教研组", key: "group", options: filterOptions.groups },
-              { label: "学科分类", key: "subject", options: filterOptions.subjects },
-            ];
-
-            function FilterCard({ label, filterKey, options }: { label: string; filterKey: FilterKey; options: string[] }) {
-              const value = activeFilters[filterKey];
-              return (
-                <div className="px-4 pt-4 pb-5 rounded-[20px] apple-hover border border-white/60 flex flex-col gap-3" style={glass}>
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <p className="text-sm font-black text-gray-400 uppercase tracking-wider flex-1 min-w-0 truncate">{label}</p>
-                    {value && (
-                      <button
-                        onClick={() => setActiveFilters(f => ({ ...f, [filterKey]: "" }))}
-                        className="shrink-0 text-xs text-gray-400 hover:text-gray-600 transition-colors px-1"
-                        title="清除筛选"
-                      >✕</button>
-                    )}
-                  </div>
-                  <select
-                    value={value}
-                    onChange={e => setActiveFilters(f => ({ ...f, [filterKey]: e.target.value }))}
-                    className="w-full appearance-none bg-white/40 border-none rounded-xl px-3 py-2.5 text-base font-bold text-gray-700 outline-none cursor-pointer"
-                    style={valueSelectStyle as React.CSSProperties}
-                  >
-                    <option value="">全部</option>
-                    {options.map(o => <option key={o} value={o}>{o}</option>)}
-                  </select>
-                </div>
-              );
-            }
-
-            return (
-              <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filterDefs.map(({ label, key, options }) => (
-                  <FilterCard key={key} label={label} filterKey={key} options={options} />
-                ))}
-              </section>
-            );
-          })()}
-
-
-
-
-
           {/* Main Data View */}
-          <section className="rounded-[40px] shadow-sm overflow-hidden flex flex-col" style={{ ...glass, minHeight: 500 }}>
+          <section className="rounded-[40px] shadow-sm flex flex-col" style={{ ...glass, minHeight: 500, overflow: "visible" }}>
             <div className="flex items-center px-10 pt-8 border-b border-gray-100/50">
               <div className="flex gap-4">
                 <button
@@ -276,6 +219,47 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
               {/* ── 教研记录 Tab ── */}
               {activeTab === "research" && (
                 <div className="space-y-6">
+
+                  {/* 教研筛选器 */}
+                  {(() => {
+                    const valueSelectStyle = {
+                      backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")",
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "right 0.6rem center",
+                      backgroundSize: "0.85rem",
+                      paddingRight: "1.6rem",
+                    };
+                    type FilterKey = "semester" | "group" | "subject";
+                    const filterDefs: { label: string; key: FilterKey; options: string[] }[] = [
+                      { label: "学期", key: "semester", options: filterOptions.semesters },
+                      { label: "教研组", key: "group", options: filterOptions.groups },
+                      { label: "学科分类", key: "subject", options: filterOptions.subjects },
+                    ];
+                    function FilterCard({ label, filterKey, options }: { label: string; filterKey: FilterKey; options: string[] }) {
+                      const value = activeFilters[filterKey];
+                      return (
+                        <div className="px-4 pt-4 pb-5 rounded-[20px] apple-hover border border-white/60 flex flex-col gap-3" style={glass}>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <p className="text-sm font-black text-gray-400 uppercase tracking-wider flex-1 min-w-0 truncate">{label}</p>
+                            {value && (
+                              <button onClick={() => setActiveFilters(f => ({ ...f, [filterKey]: "" }))} className="shrink-0 text-xs text-gray-400 hover:text-gray-600 transition-colors px-1" title="清除筛选">✕</button>
+                            )}
+                          </div>
+                          <select value={value} onChange={e => setActiveFilters(f => ({ ...f, [filterKey]: e.target.value }))} className="w-full appearance-none bg-white/40 border-none rounded-xl px-3 py-2.5 text-base font-bold text-gray-700 outline-none cursor-pointer" style={valueSelectStyle as React.CSSProperties}>
+                            <option value="">全部</option>
+                            {options.map(o => <option key={o} value={o}>{o}</option>)}
+                          </select>
+                        </div>
+                      );
+                    }
+                    return (
+                      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {filterDefs.map(({ label, key, options }) => (
+                          <FilterCard key={key} label={label} filterKey={key} options={options} />
+                        ))}
+                      </section>
+                    );
+                  })()}
 
                   {/* 顶部：教研活动总数 + 教研次数（复用 GlassCard 交互效果） */}
                   {(() => {
@@ -693,9 +677,9 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                                   opacity: 0.85,
                                 }} />
                               </div>
-                              {/* 标签区域，固定高度 */}
-                              <div style={{ height: 32, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: 3, width: "100%" }}>
-                                <span className="text-center leading-tight" style={{ fontSize: 9, color: "#9ca3af", display: "block", width: "100%", wordBreak: "break-all" }}>{labels[i]}</span>
+                              {/* 标签区域 */}
+                              <div style={{ display: "flex", justifyContent: "center", paddingTop: 3, lineHeight: 1.3, height: 36 }}>
+                                <span style={{ fontSize: 9, color: "#9ca3af" }} dangerouslySetInnerHTML={{ __html: labels[i].replace(/(\d+)/g, "<br>$1<br>").replace(/^<br>|<br>$/g, "").replace(/<br><br>/g, "<br>") }} />
                               </div>
                             </div>
                           ))}
@@ -736,17 +720,21 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                     function ResearchStatGroup() {
                       const [sel, setSel] = React.useState<string | null>(null);
                       const [semesterPage, setSemesterPage] = React.useState(1);
+                      const [weekPage, setWeekPage] = React.useState(1);
 
                       const semesterList = researchData?.semesterStats ?? [];
                       const semesterTotal = Math.max(1, Math.ceil(semesterList.length / PAGE_SIZE));
                       const semesterSlice = semesterList.slice((semesterPage - 1) * PAGE_SIZE, semesterPage * PAGE_SIZE);
+                      const weekList = researchData?.weekStats ?? [];
+                      const weekTotal = Math.max(1, Math.ceil(weekList.length / PAGE_SIZE));
+                      const weekSlice = weekList.slice((weekPage - 1) * PAGE_SIZE, weekPage * PAGE_SIZE);
 
                       const charts: Record<string, { content: React.ReactNode; pagination?: { page: number; total: number; onPage: (p: number) => void } }> = {
                         "每周学科教研次数": {
-                          content: researchPending ? <ChartSkeleton /> : (() => {
-                            const list = researchData?.weekStats ?? [];
-                            return list.length ? <MiniBarChart bars={list.map(d => d.value)} labels={list.map(d => d.label)} color="#818cf8" /> : <div className="flex items-center justify-center h-28 text-xs text-gray-400">暂无数据</div>;
-                          })(),
+                          content: researchPending ? <ChartSkeleton /> : (
+                            weekList.length ? <MiniBarChart bars={weekSlice.map(d => d.value)} labels={weekSlice.map(d => d.label)} color="#818cf8" /> : <div className="flex items-center justify-center h-28 text-xs text-gray-400">暂无数据</div>
+                          ),
+                          pagination: weekList.length > PAGE_SIZE ? { page: weekPage, total: weekTotal, onPage: setWeekPage } : undefined,
                         },
                         "每月学科教研次数": {
                           content: researchPending ? <ChartSkeleton /> : (() => {
@@ -809,14 +797,28 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                     };
                     type BeikeKey = "semester" | "group" | "subject";
                     const { semesters: beikeSemesters, groups: beikeGroups, subjects: beikeSubjects } = beikeFilterOptions;
-                    const defs: { label: string; key: BeikeKey; options: string[] }[] = [
-                      { label: "学期", key: "semester", options: beikeSemesters },
-                      { label: "备课组", key: "group", options: beikeGroups },
-                      { label: "学科分类", key: "subject", options: beikeSubjects },
-                    ];
+
+                    // Group 备课组 options by grade prefix
+                    const GRADE_PREFIXES = ["高一", "高二", "高三", "初一", "初二", "初三"];
+                    const groupedBeikeGroups = (() => {
+                      const groups: Record<string, string[]> = {};
+                      const other: string[] = [];
+                      for (const o of beikeGroups) {
+                        const prefix = GRADE_PREFIXES.find(p => o.startsWith(p));
+                        if (prefix) { (groups[prefix] ??= []).push(o); }
+                        else { other.push(o); }
+                      }
+                      const sorted = GRADE_PREFIXES.filter(p => groups[p]);
+                      return { sorted, groups, other };
+                    })();
+
                     return (
                       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {defs.map(({ label, key, options }) => (
+                        {([
+                          { label: "学期", key: "semester" as BeikeKey, options: beikeSemesters },
+                          { label: "备课组", key: "group" as BeikeKey, options: beikeGroups },
+                          { label: "学科分类", key: "subject" as BeikeKey, options: beikeSubjects },
+                        ]).map(({ label, key, options }) => (
                           <div key={key} className="px-4 pt-4 pb-5 rounded-[20px] apple-hover border border-white/60 flex flex-col gap-3" style={glass}>
                             <div className="flex items-center gap-1.5 min-w-0">
                               <p className="text-sm font-black text-gray-400 uppercase tracking-wider flex-1 min-w-0 truncate">{label}</p>
@@ -824,14 +826,26 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                                 <button onClick={() => setBeikeFilters(f => ({ ...f, [key]: "" }))} className="shrink-0 text-xs text-gray-400 hover:text-gray-600 transition-colors px-1" title="清除筛选">✕</button>
                               )}
                             </div>
-                            <select
-                              value={beikeFilters[key]}
-                              onChange={e => setBeikeFilters(f => ({ ...f, [key]: e.target.value }))}
+                            <select value={beikeFilters[key]} onChange={e => setBeikeFilters(f => ({ ...f, [key]: e.target.value }))}
                               className="w-full appearance-none bg-white/40 border-none rounded-xl px-3 py-2.5 text-base font-bold text-gray-700 outline-none cursor-pointer"
-                              style={valueSelectStyle as React.CSSProperties}
-                            >
+                              style={valueSelectStyle as React.CSSProperties}>
                               <option value="">全部</option>
-                              {options.map(o => <option key={o} value={o}>{o}</option>)}
+                              {key === "group" ? (
+                                <>
+                                  {groupedBeikeGroups.sorted.map(grade => (
+                                    <optgroup key={grade} label={grade}>
+                                      {groupedBeikeGroups.groups[grade].map(o => <option key={o} value={o}>{o}</option>)}
+                                    </optgroup>
+                                  ))}
+                                  {groupedBeikeGroups.other.length > 0 && (
+                                    <optgroup label="其他">
+                                      {groupedBeikeGroups.other.map(o => <option key={o} value={o}>{o}</option>)}
+                                    </optgroup>
+                                  )}
+                                </>
+                              ) : (
+                                options.map(o => <option key={o} value={o}>{o}</option>)
+                              )}
                             </select>
                           </div>
                         ))}
@@ -1020,9 +1034,10 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                       100% { transform: scale(4);   opacity: 0; }
                     }`;
 
-                    function StatCard({ title, highlight, selected, onSelect, chartContent }: {
+                    function StatCard({ title, highlight, selected, onSelect, chartContent, pagination }: {
                       title: string; highlight?: boolean;
                       selected: boolean; onSelect: () => void; chartContent?: React.ReactNode;
+                      pagination?: { page: number; total: number; onPage: (p: number) => void };
                     }) {
                       const ref = React.useRef<HTMLDivElement>(null);
                       const [tilt, setTilt] = React.useState({ rx: 0, ry: 0, gx: 50, gy: 50, active: false });
@@ -1163,17 +1178,15 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                             {chartContent}
                           </div>
                           {/* 分页 */}
-                          <div className="px-4 py-3 border-t border-gray-100/60 flex items-center justify-center gap-1 relative z-10">
-                            {["⟪", "‹", null, "›", "⟫"].map((btn, i) => (
-                              btn === null
-                                ? <div key="page" className="flex items-center border border-gray-200 rounded px-2.5 h-7 mx-1 gap-1">
-                                    <span className="text-xs text-gray-600">1</span>
-                                    <span className="text-gray-300 text-xs">/</span>
-                                    <span className="text-xs text-gray-600">1</span>
-                                  </div>
-                                : <button key={i} className="flex items-center justify-center w-7 h-7 border border-gray-200 rounded text-gray-400 hover:bg-gray-50 transition-colors text-xs font-mono">{btn}</button>
-                            ))}
-                          </div>
+                          {pagination && pagination.total > 1 && (
+                            <div className="px-4 py-3 border-t border-gray-100/60 flex items-center justify-center gap-1 relative z-10">
+                              <button onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); pagination.onPage(1); }} disabled={pagination.page === 1} className="flex items-center justify-center w-7 h-7 border border-gray-200 rounded text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-colors text-xs font-mono">⟪</button>
+                              <button onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); pagination.onPage(Math.max(1, pagination.page - 1)); }} disabled={pagination.page === 1} className="flex items-center justify-center w-7 h-7 border border-gray-200 rounded text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-colors text-xs font-mono">‹</button>
+                              <div className="flex items-center border border-gray-200 rounded px-2.5 h-7 mx-1 gap-1"><span className="text-xs text-gray-600">{pagination.page}</span><span className="text-gray-300 text-xs">/</span><span className="text-xs text-gray-600">{pagination.total}</span></div>
+                              <button onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); pagination.onPage(Math.min(pagination.total, pagination.page + 1)); }} disabled={pagination.page === pagination.total} className="flex items-center justify-center w-7 h-7 border border-gray-200 rounded text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-colors text-xs font-mono">›</button>
+                              <button onMouseDown={e => e.stopPropagation()} onMouseUp={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); pagination.onPage(pagination.total); }} disabled={pagination.page === pagination.total} className="flex items-center justify-center w-7 h-7 border border-gray-200 rounded text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-colors text-xs font-mono">⟫</button>
+                            </div>
+                          )}
                         </div>
                       );
                     }
@@ -1189,8 +1202,8 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                                 <span style={{ fontSize: 10, color: "#374151", fontWeight: 700, lineHeight: 1, marginBottom: 2 }}>{v}</span>
                                 <div className="w-full rounded-t" style={{ height: `${(v / max) * 72}px`, background: color, minHeight: 4, opacity: 0.85 }} />
                               </div>
-                              <div style={{ height: 32, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: 3, width: "100%" }}>
-                                <span className="text-center leading-tight" style={{ fontSize: 9, color: "#9ca3af", display: "block", width: "100%", wordBreak: "break-all" }}>{labels[i]}</span>
+                              <div style={{ display: "flex", justifyContent: "center", paddingTop: 3, lineHeight: 1.3, height: 36 }}>
+                                <span style={{ fontSize: 9, color: "#9ca3af" }} dangerouslySetInnerHTML={{ __html: labels[i].replace(/(\d+)/g, "<br>$1<br>").replace(/^<br>|<br>$/g, "").replace(/<br><br>/g, "<br>") }} />
                               </div>
                             </div>
                           ))}
@@ -1224,11 +1237,8 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                       </div>
                     );
 
+                    const BK_PAGE = 6;
                     const lessonCharts: Record<string, React.ReactNode> = {
-                      "每周备课组备课次数": beikePending ? <ChartSkeleton2 /> : (() => {
-                        const list = beikeData?.weekStats ?? [];
-                        return list.length ? <LessonMiniBar bars={list.map(d => d.value)} labels={list.map(d => d.label)} color="#60a5fa" /> : <div className="flex items-center justify-center h-28 text-xs text-gray-400">暂无数据</div>;
-                      })(),
                       "每月备课组备课次数": beikePending ? <ChartSkeleton2 /> : (() => {
                         const list = beikeData?.monthStats ?? [];
                         return list.length ? <LessonMiniBar bars={list.map(d => d.value)} labels={list.map(d => d.label)} color="#818cf8" /> : <div className="flex items-center justify-center h-28 text-xs text-gray-400">暂无数据</div>;
@@ -1246,6 +1256,10 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                     // StatCardGroup：持有共享 selectedTitle，实现互斥选中
                     function StatCardGroup() {
                       const [selectedTitle, setSelectedTitle] = React.useState<string | null>(null);
+                      const [beikeWeekPage, setBeikeWeekPage] = React.useState(1);
+                      const beikeWeekList = beikeData?.weekStats ?? [];
+                      const beikeWeekTotal = Math.max(1, Math.ceil(beikeWeekList.length / BK_PAGE));
+                      const beikeWeekSlice = beikeWeekList.slice((beikeWeekPage - 1) * BK_PAGE, beikeWeekPage * BK_PAGE);
                       function handleSelect(title: string) {
                         setSelectedTitle(prev => prev === title ? null : title);
                       }
@@ -1258,16 +1272,27 @@ export function ResearchDashboard({ onMenuOpen, onNavigate }: { onMenuOpen?: () 
                               { title: "每月备课组备课次数" },
                               { title: "备课组备课次数" },
                               { title: "备课教师参与次数" },
-                            ].map(({ title }) => (
-                              <StatCard
-                                key={title}
-                                title={title}
-                                highlight={undefined}
-                                selected={selectedTitle === title}
-                                onSelect={() => handleSelect(title)}
-                                chartContent={lessonCharts[title]}
-                              />
-                            ))}
+                            ].map(({ title }) => {
+                              const content = title === "每周备课组备课次数"
+                                ? (beikePending ? <ChartSkeleton2 /> : (beikeWeekList.length
+                                  ? <LessonMiniBar bars={beikeWeekSlice.map(d => d.value)} labels={beikeWeekSlice.map(d => d.label)} color="#60a5fa" />
+                                  : <div className="flex items-center justify-center h-28 text-xs text-gray-400">暂无数据</div>))
+                                : lessonCharts[title];
+                              const pagination = title === "每周备课组备课次数" && beikeWeekList.length > BK_PAGE
+                                ? { page: beikeWeekPage, total: beikeWeekTotal, onPage: setBeikeWeekPage }
+                                : undefined;
+                              return (
+                                <StatCard
+                                  key={title}
+                                  title={title}
+                                  highlight={undefined}
+                                  selected={selectedTitle === title}
+                                  onSelect={() => handleSelect(title)}
+                                  chartContent={content}
+                                  pagination={pagination}
+                                />
+                              );
+                            })}
                           </div>
                         </>
                       );
