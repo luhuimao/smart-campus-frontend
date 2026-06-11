@@ -3,8 +3,8 @@
 import { Plus, ClipboardList, Trash2 } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useCurrentUser } from "@/lib/user-context";
-import { StaffPicker } from "./ui/StaffPicker";
-import { useStaffDirectory, useDepartmentMembers, type StaffDirectoryRecord } from "@/hooks/use-research-dashboard";
+import { DeptStaffPicker } from "@/components/ui/DeptStaffPicker";
+import { useStaffDirectory, useDepartmentMembers } from "@/hooks/use-research-dashboard";
 import { JDY_CONFIG, TEACHER_TEACHING_EXPERIENCE_WIDGET_IDS, jdyCreate } from "@/lib/jdy-api";
 import { useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "./PageHeader";
@@ -232,7 +232,7 @@ export function WorkHistoryPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   // ── Staff ──────────────────────────────────────────────────
 
   useEffect(() => {
-    if (teacherName && staffList.length > 0 && !idCard) {
+    if (teacherName && staffList.length > 0) {
       const match = staffList.find((s) => s.教职工姓名 === teacherName);
       if (match) {
         setIdCard(match.身份证号);
@@ -243,26 +243,8 @@ export function WorkHistoryPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
         setSubject(match.担任学科);
       }
     }
-  }, [teacherName, staffList, idCard]);
+  }, [teacherName, staffList]);
 
-  const handleSelectStaff = (record: StaffDirectoryRecord | null) => {
-    if (record) {
-      setIdCard(record.身份证号);
-      setDepartment(record.部门);
-      setPosition(record.岗位);
-      setPositionType(record.岗位类型);
-      setPhone(record.手机号码);
-      setSubject(record.担任学科);
-    } else {
-      setIdCard("");
-      setDepartment("");
-      setPosition("");
-      setPositionType("");
-      setPartyJob("");
-      setPhone("");
-      setSubject("");
-    }
-  };
 
   // ── Render ─────────────────────────────────────────────────
 
@@ -298,7 +280,7 @@ export function WorkHistoryPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
 
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="教师姓名" required>
-                <StaffPicker value={teacherName} onChange={setTeacherName} onSelectRecord={handleSelectStaff} />
+                <DeptStaffPicker staffList={deptMembers} value={teacherName} onChange={(v) => setTeacherName(v as string)} />
                 {submitted && !teacherName && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}
               </Field>
               <Field label="身份证号码" required>

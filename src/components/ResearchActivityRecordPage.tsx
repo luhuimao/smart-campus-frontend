@@ -1,15 +1,16 @@
 "use client";
 
 import { useState, useRef, useMemo, useEffect } from "react";
-import { Plus, X, Search, Upload, Image as ImageIcon, FileText, Menu, ChevronDown, Trash2, Clock } from "lucide-react";
+import { X, Search, Upload, Image as ImageIcon, FileText, Menu, ChevronDown, Trash2, Clock } from "lucide-react";
 import * as XLSX from "xlsx";
-import { useStaffDirectory, useCourses, useTeachingResearchGroups, useTermInfo, useResearchDashboard, useDepartmentMembers, type ResearchRecord, type DeptMemberRecord } from "@/hooks/use-research-dashboard";
+import { useCourses, useTeachingResearchGroups, useTermInfo, useResearchDashboard, useDepartmentMembers, type ResearchRecord } from "@/hooks/use-research-dashboard";
 import { useFormPermissions } from "@/hooks/use-form-permissions";
 import { JDY_CONFIG, WIDGET_IDS, jdyCreate, jdyUpdate, jdyDelete, jdyBatchDelete, jdyUploadFiles } from "@/lib/jdy-api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCurrentUser } from "@/lib/user-context";
 import { DataTable, type ColDef } from "./DataTable";
 import { PageHeader } from "./PageHeader";
+import { DeptStaffPicker } from "@/components/ui/DeptStaffPicker";
 
 const teal = "#00b095";
 const focusStyle = { borderColor: teal, boxShadow: "0 0 0 4px rgba(0,176,149,0.1)" };
@@ -153,64 +154,6 @@ function WeekInput({ value, onChange }: { value: string; onChange: (v: string) =
 
 function Textarea({ value, onChange, rows = 6 }: { value: string; onChange: (v: string) => void; rows?: number }) {
   return (<textarea rows={rows} value={value} onChange={(e) => onChange(e.target.value)} className="form-input resize-none" onFocus={(e) => Object.assign(e.currentTarget.style, focusStyle)} onBlur={(e) => Object.assign(e.currentTarget.style, blurStyle)} />);
-}
-
-function MiniStaffPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { raw: staffList } = useStaffDirectory();
-  const filtered = useMemo(() => { const q = query.trim(); const list = q ? staffList.filter((s) => s.教职工姓名.includes(q)) : staffList; return list.slice(0, 30); }, [staffList, query]);
-  const initial = value ? value.slice(0, 1) : "?";
-  return (<div ref={containerRef} className="relative">
-    {value ? (<div className="border border-dashed border-gray-300 bg-white rounded-[10px] px-3 py-2 min-h-[44px] flex items-center flex-wrap gap-2"><div className="flex items-center bg-red-50 text-red-600 px-2 py-1 rounded-lg text-sm border border-red-100 gap-1.5"><div className="w-5 h-5 bg-rose-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">{initial}</div>{value}<X className="w-3.5 h-3.5 opacity-50 hover:opacity-100 cursor-pointer transition-opacity" onClick={() => onChange("")} /></div></div>) : (<button type="button" className="w-full border border-dashed border-gray-300 bg-white rounded-[10px] px-3.5 py-2.5 flex items-center justify-center gap-2 text-base text-gray-500 transition-all hover:border-[#00b095] hover:text-[#00b095]" style={{ minHeight: 44 }} onClick={() => setOpen(true)}><Plus size={15} className="opacity-70" /> 选择成员</button>)}
-    {open && (<>
-      <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-      <div className="absolute top-full left-0 mt-2 z-50 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden" style={{ width: 320, maxHeight: 360 }}><div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-100"><Search className="w-4 h-4 text-gray-400 shrink-0" /><input autoFocus type="text" placeholder="搜索教职工姓名..." value={query} onChange={(e) => setQuery(e.target.value)} className="flex-1 outline-none text-base text-gray-700 placeholder-gray-400" />{query && <button onClick={() => setQuery("")} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>}</div><div className="overflow-y-auto" style={{ maxHeight: 288 }}>{filtered.length === 0 ? <p className="text-base text-gray-400 text-center py-8">无匹配结果</p> : filtered.map((s) => (<button key={s._id} type="button" className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left" onClick={() => { onChange(s.教职工姓名); setOpen(false); }}><div className="w-8 h-8 rounded-full bg-rose-500 text-white flex items-center justify-center text-xs font-bold shrink-0">{s.教职工姓名.slice(0, 1)}</div><div className="flex-1 min-w-0"><p className="text-base font-medium text-gray-800 truncate">{s.教职工姓名}</p><p className="text-xs text-gray-400 truncate">{[s.部门, s.担任学科].filter(Boolean).join(" · ") || "—"}</p></div></button>))}</div></div>
-    </>)}
-  </div>);
-}
-
-function RecorderPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const [open, setOpen] = useState(false); const [query, setQuery] = useState(""); const containerRef = useRef<HTMLDivElement>(null);
-  const { raw: members } = useDepartmentMembers();
-  const filtered = useMemo(() => { const q = query.trim(); const list = q ? members.filter(m => m.name.includes(q)) : members; return list.slice(0, 30); }, [members, query]);
-  const initial = value ? value.slice(0, 1) : "?";
-  return (<div ref={containerRef} className="relative">
-    {value ? (<div className="border border-dashed border-gray-300 bg-white rounded-[10px] px-3 py-2 min-h-[44px] flex items-center flex-wrap gap-2"><div className="flex items-center bg-blue-50 text-blue-600 px-2 py-1 rounded-lg text-sm border border-blue-100 gap-1.5"><div className="w-5 h-5 bg-blue-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">{initial}</div>{value}<X className="w-3.5 h-3.5 opacity-50 hover:opacity-100 cursor-pointer transition-opacity" onClick={() => onChange("")} /></div></div>) : (<button type="button" className="w-full border border-dashed border-gray-300 bg-white rounded-[10px] px-3.5 py-2.5 flex items-center justify-center gap-2 text-base text-gray-500 transition-all hover:border-[#00b095] hover:text-[#00b095]" style={{ minHeight: 44 }} onClick={() => setOpen(true)}><Plus size={15} className="opacity-70" /> 选择成员</button>)}
-    {open && (<><div className="fixed inset-0 z-40" onClick={() => setOpen(false)} /><div className="absolute top-full left-0 mt-2 z-50 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden" style={{ width: 320, maxHeight: 360 }}><div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-100"><Search className="w-4 h-4 text-gray-400 shrink-0" /><input autoFocus type="text" placeholder="搜索成员..." value={query} onChange={e => setQuery(e.target.value)} className="flex-1 outline-none text-base text-gray-700 placeholder-gray-400" />{query && <button onClick={() => setQuery("")} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>}</div><div className="overflow-y-auto" style={{ maxHeight: 288 }}>{filtered.length === 0 ? <p className="text-base text-gray-400 text-center py-8">无匹配结果</p> : filtered.map(m => (<button key={m.username} type="button" className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left" onClick={() => { onChange(m.name); setOpen(false); }}><div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold shrink-0">{m.name.slice(0, 1)}</div><div className="flex-1 min-w-0"><p className="text-base font-medium text-gray-800 truncate">{m.name}</p></div></button>))}</div></div></>)}
-  </div>);
-}
-
-function DeptMultiPicker({ selected, onChange }: { selected: string[]; onChange: (names: string[]) => void }) {
-  const [open, setOpen] = useState(false); const [query, setQuery] = useState(""); const containerRef = useRef<HTMLDivElement>(null);
-  const { raw: members } = useDepartmentMembers();
-  const filtered = useMemo(() => { const q = query.trim(); const list = q ? members.filter(m => m.name.includes(q)) : members; return list.slice(0, 30); }, [members, query]);
-  const toggle = (name: string) => { if (selected.includes(name)) onChange(selected.filter(n => n !== name)); else onChange([...selected, name]); };
-  return (<div ref={containerRef} className="relative">
-    <div className="border border-dashed border-gray-300 bg-white rounded-[10px] px-3 py-2 min-h-[72px] flex items-start flex-wrap gap-2 cursor-pointer" onClick={() => setOpen(true)}>
-      {selected.length === 0 ? <span className="text-base text-gray-400 flex items-center gap-1.5 py-2"><Plus size={15} className="opacity-70" /> 选择成员</span> : selected.map(name => (<span key={name} className="flex items-center gap-1 px-2 py-1 rounded-lg text-sm" style={{ background: "#f3f4f6", color: "#374151", border: "1px solid #e5e7eb" }}><span className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-[10px] text-white font-bold shrink-0">{name.slice(0, 1)}</span>{name}<X className="w-3 h-3 text-gray-400 cursor-pointer hover:text-gray-600" onClick={e => { e.stopPropagation(); toggle(name); }} /></span>))}
-    </div>
-    {open && (<><div className="fixed inset-0 z-40" onClick={() => setOpen(false)} /><div className="absolute top-full left-0 mt-2 z-50 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden" style={{ width: 340, maxHeight: 360 }}><div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-100"><Search className="w-4 h-4 text-gray-400 shrink-0" /><input autoFocus type="text" placeholder="搜索成员..." value={query} onChange={e => setQuery(e.target.value)} className="flex-1 outline-none text-base text-gray-700 placeholder-gray-400" />{query && <button onClick={() => setQuery("")} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>}</div><div className="overflow-y-auto" style={{ maxHeight: 288 }}>{filtered.length === 0 ? <p className="text-base text-gray-400 text-center py-8">无匹配结果</p> : filtered.map(m => { const isSel = selected.includes(m.name); return (<button key={m.username} type="button" className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left" onClick={() => toggle(m.name)}><div className="w-5 h-5 rounded border-2 flex items-center justify-center shrink-0" style={{ borderColor: isSel ? teal : "#d1d5db", backgroundColor: isSel ? teal : "transparent" }}>{isSel && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}</div><div className="flex-1 min-w-0"><p className="text-base font-medium text-gray-800 truncate">{m.name}</p></div></button>); })}</div></div></>)}
-  </div>);
-}
-
-function MultiStaffPicker({ selected, onChange }: { selected: string[]; onChange: (names: string[]) => void }) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { raw: staffList } = useStaffDirectory();
-  const filtered = useMemo(() => { const q = query.trim(); const list = q ? staffList.filter((s) => s.教职工姓名.includes(q)) : staffList; return list.slice(0, 30); }, [staffList, query]);
-  const toggle = (name: string) => { if (selected.includes(name)) onChange(selected.filter((n) => n !== name)); else onChange([...selected, name]); };
-  return (<div ref={containerRef} className="relative">
-    <div className="border border-dashed border-gray-300 bg-white rounded-[10px] px-3 py-2 min-h-[72px] flex items-start flex-wrap gap-2 cursor-pointer" onClick={() => setOpen(true)}>
-      {selected.length === 0 ? <span className="text-base text-gray-400 flex items-center gap-1.5 py-2"><Plus size={15} className="opacity-70" /> 选择成员</span> : selected.map((name) => (<span key={name} className="flex items-center gap-1 px-2 py-1 rounded-lg text-sm" style={{ background: "#f3f4f6", color: "#374151", border: "1px solid #e5e7eb" }}><span className="w-5 h-5 rounded-full bg-rose-500 flex items-center justify-center text-[10px] text-white font-bold shrink-0">{name.slice(0, 1)}</span>{name}<X className="w-3 h-3 text-gray-400 cursor-pointer hover:text-gray-600" onClick={(e) => { e.stopPropagation(); toggle(name); }} /></span>))}
-    </div>
-    {open && (<>
-      <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-      <div className="absolute top-full left-0 mt-2 z-50 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden" style={{ width: 340, maxHeight: 360 }}><div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-100"><Search className="w-4 h-4 text-gray-400 shrink-0" /><input autoFocus type="text" placeholder="搜索教职工姓名..." value={query} onChange={(e) => setQuery(e.target.value)} className="flex-1 outline-none text-base text-gray-700 placeholder-gray-400" />{query && <button onClick={() => setQuery("")} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>}</div><div className="overflow-y-auto" style={{ maxHeight: 288 }}>{filtered.length === 0 ? <p className="text-base text-gray-400 text-center py-8">无匹配结果</p> : filtered.map((s) => { const isSel = selected.includes(s.教职工姓名); return (<button key={s._id} type="button" className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left" onClick={() => toggle(s.教职工姓名)}><div className="w-5 h-5 rounded border-2 flex items-center justify-center shrink-0" style={{ borderColor: isSel ? teal : "#d1d5db", backgroundColor: isSel ? teal : "transparent" }}>{isSel && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}</div><div className="flex-1 min-w-0"><p className="text-base font-medium text-gray-800 truncate">{s.教职工姓名}</p><p className="text-xs text-gray-400 truncate">{[s.部门, s.担任学科].filter(Boolean).join(" · ") || "—"}</p></div></button>); })}</div></div>
-    </>)}
-  </div>);
 }
 
 function FileUpload({ files, onChange, accept, hint }: { files: File[]; onChange: (f: File[]) => void; accept: string; hint: string }) {
@@ -598,12 +541,12 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
             </div>
 
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
-              <Field label="教研组长" required error={submitted && !groupLeader ? "此项为必填项" : undefined}><MiniStaffPicker value={groupLeader} onChange={setGroupLeader} /></Field>
-              <Field label="主持人" required error={submitted && !host ? "此项为必填项" : undefined}><RecorderPicker value={host} onChange={setHost} /></Field>
+              <Field label="教研组长" required error={submitted && !groupLeader ? "此项为必填项" : undefined}><DeptStaffPicker staffList={deptMembers} value={groupLeader} onChange={(v) => setGroupLeader(v as string)} /></Field>
+              <Field label="主持人" required error={submitted && !host ? "此项为必填项" : undefined}><DeptStaffPicker staffList={deptMembers} value={host} onChange={(v) => setHost(v as string)} /></Field>
             </div>
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
-              <Field label="记录人" required error={submitted && !recorder ? "此项为必填项" : undefined}><RecorderPicker value={recorder} onChange={setRecorder} /></Field>
-              <Field label="参与人员" required error={submitted && participants.length === 0 ? "此项为必填项" : undefined}><DeptMultiPicker selected={participants} onChange={setParticipants} /></Field>
+              <Field label="记录人" required error={submitted && !recorder ? "此项为必填项" : undefined}><DeptStaffPicker staffList={deptMembers} value={recorder} onChange={(v) => setRecorder(v as string)} /></Field>
+              <Field label="参与人员" required error={submitted && participants.length === 0 ? "此项为必填项" : undefined}><DeptStaffPicker staffList={deptMembers} value={participants} onChange={(v) => setParticipants(v as string[])} multi /></Field>
             </div>
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="应到人数" required error={submitted && !expectedCount ? "此项为必填项" : undefined}><Input value={expectedCount} onChange={setExpectedCount} /></Field>

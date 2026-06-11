@@ -514,7 +514,7 @@ export function ClassRankPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                   <DeptStaffPicker
                     staffList={staffList}
                     value={teacherName}
-                    onChange={v => { setTeacherName(v); clearError("teacherName"); }}
+                    onChange={v => { setTeacherName(v as string); clearError("teacherName"); }}
                   />
                 </Field>
                 <Field label="学科" required error={errors.subject}>
