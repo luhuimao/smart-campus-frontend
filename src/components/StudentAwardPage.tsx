@@ -4,9 +4,10 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import * as XLSX from "xlsx";
 import { ChevronDown, Trash2, Clock, Search, X, Plus } from "lucide-react";
 import { PageHeader } from "./PageHeader";
-import { StudentPicker } from "./ui/StudentPicker";
+import { StudentTreePicker } from "./ui/StudentTreePicker";
+import { DeptStaffPicker } from "@/components/ui/DeptStaffPicker";
 import { DataTable, type ColDef } from "./DataTable";
-import { useStudentAward, useTermInfo, useGradeInfo, useStaffDirectory, useDepartmentMembers, type StudentAwardRecord, type StudentInfoRecord } from "@/hooks/use-research-dashboard";
+import { useStudentAward, useTermInfo, useGradeInfo, useDepartmentMembers, type StudentAwardRecord, type StudentInfoRecord } from "@/hooks/use-research-dashboard";
 import { JDY_CONFIG, STUDENT_AWARD_WIDGET_IDS, jdyCreate, jdyUpdate, jdyDelete } from "@/lib/jdy-api";
 import { useCurrentUser } from "@/lib/user-context";
 import { useQueryClient } from "@tanstack/react-query";
@@ -66,19 +67,6 @@ function SelectField({ value, onChange, options }: { value: string; onChange: (v
     <option value="" disabled />{options.map(o => <option key={o}>{o}</option>)}
     {value && !options.includes(value) && <option value={value}>{value}</option>}
   </select></div>);
-}
-
-function MiniStaffPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const [open, setOpen] = useState(false); const [query, setQuery] = useState("");
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { raw: staffList } = useStaffDirectory();
-  const filtered = useMemo(() => { const q = query.trim(); const list = q ? staffList.filter(s => s.教职工姓名.includes(q)) : staffList; return list.slice(0, 30); }, [staffList, query]);
-  useEffect(() => { if (!open) return; function h(e: MouseEvent) { if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false); } document.addEventListener("mousedown", h); return () => document.removeEventListener("mousedown", h); }, [open]);
-  return (<div ref={containerRef} className="relative">
-    {value ? (<div className="w-full bg-white border border-gray-200 rounded-[10px] px-2.5 py-1.5 flex items-center min-h-[44px]"><span className="flex items-center gap-1 px-2 py-0.5 rounded text-xs border" style={{ background: "#ecfdf5", color: "#059669", borderColor: "#a7f3d0" }}><span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">{value.slice(0, 1)}</span>{value}<button className="ml-1 opacity-60 hover:opacity-100" onClick={() => onChange("")}><X className="w-3 h-3" /></button></span></div>)
-      : (<button type="button" className="w-full border-2 border-dashed border-gray-300 rounded-lg py-2 flex items-center justify-center gap-1 hover:border-emerald-400 transition-colors bg-white" style={{ color: "#9ca3af", minHeight: 44 }} onClick={() => setOpen(true)}><Plus size={16} /><span className="text-sm">选择教师</span></button>)}
-    {open && (<><div className="fixed inset-0 z-40" onClick={() => setOpen(false)} /><div className="absolute top-full left-0 mt-2 z-50 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden" style={{ width: 320, maxHeight: 360 }}><div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-100"><Search className="w-4 h-4 text-gray-400 shrink-0" /><input autoFocus type="text" placeholder="搜索教职工姓名..." value={query} onChange={e => setQuery(e.target.value)} className="flex-1 outline-none text-base text-gray-700 placeholder-gray-400" />{query && <button onClick={() => setQuery("")} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>}</div><div className="overflow-y-auto" style={{ maxHeight: 288 }}>{filtered.length === 0 ? <p className="text-base text-gray-400 text-center py-8">无匹配结果</p> : filtered.map(s => (<button key={s._id} type="button" className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left" onClick={() => { onChange(s.教职工姓名); setOpen(false); }}><div className="w-8 h-8 rounded-full bg-rose-500 text-white flex items-center justify-center text-xs font-bold shrink-0">{s.教职工姓名.slice(0, 1)}</div><div className="flex-1 min-w-0"><p className="text-base font-medium text-gray-800 truncate">{s.教职工姓名}</p><p className="text-xs text-gray-400 truncate">{[s.部门, s.担任学科].filter(Boolean).join(" · ") || "—"}</p></div></button>))}</div></div></>)}
-  </div>);
 }
 
 // ── Toolbar helpers ──────────────────────────────────────────────
@@ -403,7 +391,7 @@ export function StudentAwardPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     {errors.className && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.className}</p>}
                   </Field>
                   <Field label="学生姓名" required>
-                    <StudentPicker value={studentName} onChange={setStudentName} onSelectRecord={handleSelectStudent} />
+                    <StudentTreePicker value={studentName} onChange={v => setStudentName(v as string)} onSelectRecord={handleSelectStudent} />
                     {errors.studentName && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.studentName}</p>}
                   </Field>
                   <Field label="学生学号" required>
@@ -449,7 +437,7 @@ export function StudentAwardPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                 {/* 指导老师 */}
                 <div className="max-w-md">
                   <Field label="指导老师" required>
-                    <MiniStaffPicker value={teacher} onChange={v => { setTeacher(v); clearError("teacher"); }} />
+                    <DeptStaffPicker staffList={deptMembers} value={teacher} onChange={v => { setTeacher(v as string); clearError("teacher"); }} />
                     {errors.teacher && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.teacher}</p>}
                   </Field>
                 </div>

@@ -2,11 +2,12 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import * as XLSX from "xlsx";
-import { ChevronDown, Trash2, Clock, Search, X, Plus } from "lucide-react";
+import { ChevronDown, Trash2, Clock, Search } from "lucide-react";
 import { PageHeader } from "./PageHeader";
-import { StudentPicker } from "./ui/StudentPicker";
+import { StudentTreePicker } from "./ui/StudentTreePicker";
+import { DeptStaffPicker } from "@/components/ui/DeptStaffPicker";
 import { DataTable, type ColDef } from "./DataTable";
-import { useGoodDeeds, useTermInfo, useGradeInfo, useStaffDirectory, useDepartmentMembers, type GoodDeedsRecord, type StudentInfoRecord } from "@/hooks/use-research-dashboard";
+import { useGoodDeeds, useTermInfo, useGradeInfo, useDepartmentMembers, type GoodDeedsRecord, type StudentInfoRecord } from "@/hooks/use-research-dashboard";
 import { JDY_CONFIG, GOOD_DEEDS_WIDGET_IDS, jdyCreate, jdyUpdate, jdyDelete } from "@/lib/jdy-api";
 import { useCurrentUser } from "@/lib/user-context";
 import { useQueryClient } from "@tanstack/react-query";
@@ -63,19 +64,6 @@ function SelectField({ value, onChange, options }: { value: string; onChange: (v
     <option value="" disabled />{options.map(o => <option key={o}>{o}</option>)}
     {value && !options.includes(value) && <option value={value}>{value}</option>}
   </select></div>);
-}
-
-function MiniStaffPicker({ value, onChange, placeholder = "选择成员" }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
-  const [open, setOpen] = useState(false); const [query, setQuery] = useState("");
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { raw: staffList } = useStaffDirectory();
-  const filtered = useMemo(() => { const q = query.trim(); const list = q ? staffList.filter(s => s.教职工姓名.includes(q)) : staffList; return list.slice(0, 30); }, [staffList, query]);
-  useEffect(() => { if (!open) return; function h(e: MouseEvent) { if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false); } document.addEventListener("mousedown", h); return () => document.removeEventListener("mousedown", h); }, [open]);
-  return (<div ref={containerRef} className="relative">
-    {value ? (<div className="w-full bg-white border border-gray-200 rounded-[10px] px-2.5 py-1.5 flex items-center min-h-[44px]"><span className="flex items-center gap-1 px-2 py-0.5 rounded text-xs border" style={{ background: "#ecfdf5", color: "#059669", borderColor: "#a7f3d0" }}><span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">{value.slice(0, 1)}</span>{value}<button className="ml-1 opacity-60 hover:opacity-100" onClick={() => onChange("")}><X className="w-3 h-3" /></button></span></div>)
-      : (<button type="button" className="w-full border-2 border-dashed border-gray-300 rounded-lg py-2 flex items-center justify-center gap-1 hover:border-emerald-400 transition-colors bg-white" style={{ color: "#9ca3af", minHeight: 44 }} onClick={() => setOpen(true)}><Plus size={16} /><span className="text-sm">{placeholder}</span></button>)}
-    {open && (<><div className="fixed inset-0 z-40" onClick={() => setOpen(false)} /><div className="absolute top-full left-0 mt-2 z-50 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden" style={{ width: 320, maxHeight: 360 }}><div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-100"><Search className="w-4 h-4 text-gray-400 shrink-0" /><input autoFocus type="text" placeholder="搜索教职工姓名..." value={query} onChange={e => setQuery(e.target.value)} className="flex-1 outline-none text-base text-gray-700 placeholder-gray-400" />{query && <button onClick={() => setQuery("")} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>}</div><div className="overflow-y-auto" style={{ maxHeight: 288 }}>{filtered.length === 0 ? <p className="text-base text-gray-400 text-center py-8">无匹配结果</p> : filtered.map(s => (<button key={s._id} type="button" className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left" onClick={() => { onChange(s.教职工姓名); setOpen(false); }}><div className="w-8 h-8 rounded-full bg-rose-500 text-white flex items-center justify-center text-xs font-bold shrink-0">{s.教职工姓名.slice(0, 1)}</div><div className="flex-1 min-w-0"><p className="text-base font-medium text-gray-800 truncate">{s.教职工姓名}</p><p className="text-xs text-gray-400 truncate">{[s.部门, s.担任学科].filter(Boolean).join(" · ") || "—"}</p></div></button>))}</div></div></>)}
-  </div>);
 }
 
 // ── Toolbar helpers ──────────────────────────────────────────────
@@ -211,8 +199,19 @@ export function GoodDeedsPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   // ── API logic ────────────────────────────────────────────────
 
   const handleSelectStudent = (record: StudentInfoRecord | null) => {
-    if (record) { setClassName(record.班级名称 || ""); setStuId(record.宏德学号 || ""); }
-    else { setClassName(""); setStuId(""); }
+    if (record) {
+      setClassName(record.班级名称 || "");
+      setStuId(record.宏德学号 || "");
+      setGrade(record.年级名称 || "");
+      setGradeLevel(record.级部 || "");
+      setClassTeacher(record.班主任 || "");
+    } else {
+      setClassName("");
+      setStuId("");
+      setGrade("");
+      setGradeLevel("");
+      setClassTeacher("");
+    }
   };
 
   const toMemberUsername = (name: string) => {
@@ -391,7 +390,7 @@ export function GoodDeedsPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                     {errors.fillDate && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.fillDate}</p>}
                   </Field>
                   <Field label="填报人" required>
-                    <MiniStaffPicker value={filler} onChange={v => { setFiller(v); clearError("filler"); }} />
+                    <DeptStaffPicker staffList={deptMembers} value={filler} onChange={v => { setFiller(v as string); clearError("filler"); }} />
                     {errors.filler && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.filler}</p>}
                   </Field>
                   <Field label="年级" required>
@@ -412,7 +411,7 @@ export function GoodDeedsPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                 {/* 学生与事件信息 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
                   <Field label="学生姓名" required>
-                    <StudentPicker value={studentName} onChange={setStudentName} onSelectRecord={handleSelectStudent} />
+                    <StudentTreePicker value={studentName} onChange={v => setStudentName(v as string)} onSelectRecord={handleSelectStudent} />
                     {errors.studentName && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.studentName}</p>}
                   </Field>
                   <Field label="学生学号" required>
@@ -452,11 +451,11 @@ export function GoodDeedsPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                 {/* 负责人 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
                   <Field label="班主任" required>
-                    <MiniStaffPicker value={classTeacher} onChange={v => { setClassTeacher(v); clearError("classTeacher"); }} />
+                    <DeptStaffPicker staffList={deptMembers} value={classTeacher} onChange={v => { setClassTeacher(v as string); clearError("classTeacher"); }} />
                     {errors.classTeacher && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.classTeacher}</p>}
                   </Field>
                   <Field label="级部主任">
-                    <MiniStaffPicker value={gradeDirector} onChange={setGradeDirector} placeholder="选择级部主任" />
+                    <DeptStaffPicker staffList={deptMembers} value={gradeDirector} onChange={v => setGradeDirector(v as string)} />
                   </Field>
                 </div>
 

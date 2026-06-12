@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { StudentPicker } from "./ui/StudentPicker";
+import { StudentTreePicker } from "./ui/StudentTreePicker";
 import type { StudentInfoRecord } from "@/hooks/use-research-dashboard";
 import { PageHeader } from "./PageHeader";
 import { JDY_CONFIG, STUDENT_CHANGING_MAJORS_CLASSES_WIDGET_IDS, jdyCreate } from "@/lib/jdy-api";
@@ -179,7 +179,7 @@ export function ClassTransferPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
                   <TextInput value={studentClass} onChange={setStudentClass} />
                 </Field>
                 <Field label="学生姓名" required>
-                  <StudentPicker value={studentName} onChange={v => { setStudentName(v); clearError("studentName"); }} onSelectRecord={handleSelectStudent} />
+                  <StudentTreePicker value={studentName} onChange={v => { setStudentName(v as string); clearError("studentName"); }} onSelectRecord={handleSelectStudent} />
                   {(submitted && !studentName || errors.studentName) && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.studentName || "此项为必填项"}</p>}
                 </Field>
                 <Field label="变更类型" required>

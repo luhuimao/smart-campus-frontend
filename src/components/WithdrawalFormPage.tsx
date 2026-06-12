@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Plus } from "lucide-react";
-import { StudentPicker } from "./ui/StudentPicker";
+import { StudentTreePicker } from "./ui/StudentTreePicker";
 import type { StudentInfoRecord } from "@/hooks/use-research-dashboard";
 import { PageHeader } from "./PageHeader";
 import { JDY_CONFIG, STUDENT_WITHDRAWAL_TRANSFER_LEAVE_WIDGET_IDS, jdyCreate } from "@/lib/jdy-api";
@@ -196,7 +196,7 @@ export function WithdrawalFormPage({ onMenuOpen }: { onMenuOpen?: () => void }) 
                   {(submitted && !cls || errors.cls) && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.cls || "此项为必填项"}</p>}
                 </Field>
                 <Field label="学生姓名" required>
-                  <StudentPicker value={studentName} onChange={v => { setStudentName(v); clearError("studentName"); }} onSelectRecord={handleSelectStudent} />
+                  <StudentTreePicker value={studentName} onChange={v => { setStudentName(v as string); clearError("studentName"); }} onSelectRecord={handleSelectStudent} />
                   {(submitted && !studentName || errors.studentName) && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.studentName || "此项为必填项"}</p>}
                 </Field>
                 <Field label="联系电话" required>

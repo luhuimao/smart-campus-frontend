@@ -5,7 +5,7 @@ import * as XLSX from "xlsx";
 import { ChevronDown, Trash2, Clock, Search, X, Plus, Image } from "lucide-react";
 import { PageHeader } from "./PageHeader";
 import { DatePicker } from "./ui/DatePicker";
-import { StudentPicker } from "./ui/StudentPicker";
+import { StudentTreePicker } from "./ui/StudentTreePicker";
 import { DataTable, type ColDef } from "./DataTable";
 import { useLearningAnalysis, useCourses, type LearningAnalysisRecord, type StudentInfoRecord } from "@/hooks/use-research-dashboard";
 import { JDY_CONFIG, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS, jdyCreate, jdyUpdate, jdyDelete, jdyUploadFiles } from "@/lib/jdy-api";
@@ -489,7 +489,7 @@ export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => v
                   </Field>
 
                   <Field label="学生姓名" required>
-                    <StudentPicker value={studentName} onChange={setStudentName} onSelectRecord={handleSelectStudent} />
+                    <StudentTreePicker value={studentName} onChange={v => setStudentName(v as string)} onSelectRecord={handleSelectStudent} />
                     {errors.studentName && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.studentName}</p>}
                   </Field>
 

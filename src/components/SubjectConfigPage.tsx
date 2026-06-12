@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import { PageHeader } from "./PageHeader";
 
@@ -28,23 +28,58 @@ export function SubjectConfigPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [researchSubjectName, setResearchSubjectName] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
+  // Restore draft
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("subject-config-draft");
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      if (d.subject) setSubject(d.subject);
+      if (d.nationalSubject) setNationalSubject(d.nationalSubject);
+      if (d.nationalGroup) setNationalGroup(d.nationalGroup);
+      if (d.stage) setStage(d.stage);
+      if (d.stageSubjectName) setStageSubjectName(d.stageSubjectName);
+      if (d.researchSubjectName) setResearchSubjectName(d.researchSubjectName);
+    } catch {}
+  }, []);
+
+  const handleClearForm = () => {
+    setSubject(""); setNationalSubject(""); setNationalGroup("");
+    setStage(""); setStageSubjectName(""); setResearchSubjectName("");
+    setSubmitted(false);
+    localStorage.removeItem("subject-config-draft");
+  };
+
+  const handleSaveDraft = () => {
+    localStorage.setItem("subject-config-draft", JSON.stringify({
+      subject, nationalSubject, nationalGroup, stage, stageSubjectName, researchSubjectName,
+    }));
+  };
+
   const handleSubmit = () => { setSubmitted(true); if ([subject, nationalSubject, nationalGroup, stage, stageSubjectName, researchSubjectName].find((f) => !f)) window.scrollTo({ top: 0, behavior: "smooth" }); };
 
   return (<div className="flex flex-col h-full overflow-hidden" style={{ color: "#1d1d1f" }}>
     <PageHeader breadcrumbs={[{ label: "基础数据" }, { label: "科目", active: true }]} onMenuOpen={onMenuOpen} />
 
-    <div className="flex-1 overflow-y-auto bg-[#f5f5f7] pb-24"><div className="max-w-5xl mx-auto mt-4 md:mt-10 px-3 md:px-6"><div className="rounded-2xl md:rounded-[28px] shadow-sm border border-gray-100 bg-white px-6 md:px-10 py-8">
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-        <Field label="科目" required><Input value={subject} onChange={setSubject} placeholder="请输入科目" />{submitted && !subject && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
-        <Field label="学科（国标）" required><SelectField value={nationalSubject} onChange={setNationalSubject} options={["语文", "数学", "外语", "物理", "化学", "生物", "历史", "地理", "政治", "体育", "音乐", "美术", "信息技术"]} />{submitted && !nationalSubject && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
-        <Field label="分组（国标）" required><SelectField value={nationalGroup} onChange={setNationalGroup} options={["人文与社会", "数学与自然", "艺术与体育", "综合实践"]} />{submitted && !nationalGroup && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
-        <Field label="学段" required><SelectField value={stage} onChange={setStage} options={["小学", "初中", "高中", "中职"]} />{submitted && !stage && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
-        <Field label="学段科目名" required><Input value={stageSubjectName} onChange={setStageSubjectName} placeholder="请输入学段科目名" />{submitted && !stageSubjectName && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
-        <Field label="教研学科名" required><Input value={researchSubjectName} onChange={setResearchSubjectName} placeholder="请输入教研学科名" />{submitted && !researchSubjectName && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
-      </div>
-    </div></div></div>
-
-    <div className="form-footer shrink-0 flex gap-3 px-6 md:px-10 py-4"><button className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px" style={{ background: "#10b981", boxShadow: "0 4px 12px rgba(16,185,129,0.15)" }} onClick={handleSubmit}>提交</button><button className="btn-secondary">保存草稿</button></div>
+    <div className="flex-1 overflow-y-auto bg-[#f5f5f7]">
+      <main className="max-w-5xl mx-auto mt-4 md:mt-10 px-3 md:px-6 pb-24">
+        <div className="rounded-2xl md:rounded-[28px] shadow-sm border border-gray-100 bg-white px-6 md:px-10 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+            <Field label="科目" required><Input value={subject} onChange={setSubject} placeholder="请输入科目" />{submitted && !subject && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
+            <Field label="学科（国标）" required><SelectField value={nationalSubject} onChange={setNationalSubject} options={["语文", "数学", "外语", "物理", "化学", "生物", "历史", "地理", "政治", "体育", "音乐", "美术", "信息技术"]} />{submitted && !nationalSubject && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
+            <Field label="分组（国标）" required><SelectField value={nationalGroup} onChange={setNationalGroup} options={["人文与社会", "数学与自然", "艺术与体育", "综合实践"]} />{submitted && !nationalGroup && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
+            <Field label="学段" required><SelectField value={stage} onChange={setStage} options={["小学", "初中", "高中", "中职"]} />{submitted && !stage && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
+            <Field label="学段科目名" required><Input value={stageSubjectName} onChange={setStageSubjectName} placeholder="请输入学段科目名" />{submitted && !stageSubjectName && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
+            <Field label="教研学科名" required><Input value={researchSubjectName} onChange={setResearchSubjectName} placeholder="请输入教研学科名" />{submitted && !researchSubjectName && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field>
+          </div>
+        </div>
+        <div className="form-footer shrink-0 flex gap-3 px-6 md:px-10 py-4 mt-4 rounded-[28px]">
+          <button className="btn-secondary" onClick={handleClearForm}>清空数据</button>
+          <button className="btn-secondary" onClick={handleSaveDraft}>保存草稿</button>
+          <div className="flex-1" />
+          <button onClick={handleSubmit} className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px" style={{ background: "#10b981", boxShadow: "0 4px 12px rgba(16,185,129,0.15)" }}>提交</button>
+        </div>
+      </main>
+    </div>
   </div>);
 }

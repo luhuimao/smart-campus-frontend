@@ -357,7 +357,7 @@ export function Sidebar({ onNavigate, activePage, mobileOpen, onClose, allowedPa
                       {children && expanded[label] && (
                         <div className="flex flex-col gap-0.5 mt-0.5 mb-0.5" style={{ paddingLeft: 14 }}>
                           {children.map(({ label: childLabel, children: grandChildren }) => {
-                            if (allowedPages && !canShow(childLabel)) return null;
+                            if (allowedPages && !canShow(childLabel) && !hasVisibleChild(grandChildren)) return null;
                             const yishengChildPageMap: Record<string, PageKey> = { "学情分析表": "learning-analysis-table", "学生花名册": "student-roster", "一生一案谈心谈话记录表": "talk-record", "学生获奖记录": "student-award", "好人好事记录": "good-deeds", "体质检测录入": "physical-test", "学生干部风采": "student-cadree", "返校登记表": "return-register", "学生退/转/休学申请表": "withdrawal-form", "转科（班）申请表": "class-transfer", "学情分析统计表": "learning-analysis-stats", "科目": "subject-config", "选考科目": "elective-subject", "学期": "semester-config", "年级": "grade-config" };
                             const childPage   = yishengChildPageMap[childLabel];
                             const childActive = activeLabel === childLabel;
