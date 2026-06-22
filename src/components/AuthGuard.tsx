@@ -8,7 +8,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    const publicPaths = ["/api/auth/"];
+    const publicPaths = ["/api/auth/", "/sign/"];
     if (publicPaths.some(p => pathname.startsWith(p))) {
       setChecked(true);
       return;

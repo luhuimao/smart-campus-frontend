@@ -66,11 +66,6 @@ export interface PermSpec {
   members?: string[];
 }
 
-/** 纯角色权限 — 最常用，向后兼容 */
-const roles = (...names: RoleName[]): PermSpec => ({
-  roles: names.map(n => R[n]),
-});
-
 /** 混合权限：角色 + 部门 + 具体成员，三者 OR 关系 */
 export function perm(s: PermSpec): PermSpec { return s; }
 
@@ -118,156 +113,156 @@ export const FORM_PERMISSIONS: Record<
 > = {
   // 一师一案 教研活动
   [JDY_CONFIG.JIAOYAN_ACTIVITY.entry_id]: {
-    create: roles("师资管理", "学校核心领导"),
-    // delete: perm({
-    //   roles:   roles("师资管理"),
-    //   depts:   [D.教官队部门],
-    //   members: ["韦晓明", "关胜军"],
-    // }),
-    update: roles("师资管理"),
-    delete: roles("师资管理"),
-    export: roles("师资管理"),
-    view: roles("师资管理"),
-    batch_print: roles("师资管理", "学校核心领导"),
-    batch_update: roles("师资管理"),
-    copy: roles("师资管理"),
+    create: perm({ roles: roleIds("师资管理", "学校核心领导"), depts: [], members: ["卢辉茂"] }),
+    update: perm({ roles: roleIds("师资管理"), depts: [], members: ["卢辉茂"] }),
+    delete: perm({ roles: roleIds("师资管理"), depts: [], members: ["卢辉茂"] }),
+    export: perm({ roles: roleIds("师资管理"), depts: [], members: ["卢辉茂"] }),
+    view: perm({ roles: roleIds("师资管理"), depts: [], members: ["卢辉茂"] }),
+    batch_print: perm({ roles: roleIds("师资管理", "学校核心领导"), depts: [], members: ["卢辉茂"] }),
+    batch_update: perm({ roles: roleIds("师资管理"), depts: [], members: ["卢辉茂"] }),
+    copy: perm({ roles: roleIds("师资管理"), depts: [], members: ["卢辉茂"] }),
   },
 
   // 一师一案 备课活动
   [JDY_CONFIG.BEIKE_ACTIVITY.entry_id]: {
-    create: roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"),
-    update: roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"),
-    delete: roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"),
-    export: roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "校长"),
-    view: roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "校长"),
-    batch_print: roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "校长"),
-    batch_update: roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"),
-    copy: roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"),
+    create: perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"), depts: [], members: ["卢辉茂"] }),
+    update: perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"), depts: [], members: ["卢辉茂"] }),
+    delete: perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"), depts: [], members: ["卢辉茂"] }),
+    export: perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "校长"), depts: [], members: ["卢辉茂"] }),
+    view: perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "校长"), depts: [], members: ["卢辉茂"] }),
+    batch_print: perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "校长"), depts: [], members: ["卢辉茂"] }),
+    batch_update: perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"), depts: [], members: ["卢辉茂"] }),
+    copy: perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"), depts: [], members: ["卢辉茂"] }),
   },
 
   // 一师一案 科技节活动记录
   [JDY_CONFIG.SCIENCE_FEST_ACTIVITY.entry_id]: {
-    create: roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"),
-    update: roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"),
-    delete: roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"),
-    export: roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "校长", "师资培养处干事"),
-    view: roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "校长", "师资培养处干事"),
-    batch_print: roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "校长", "师资培养处干事"),
-    batch_update: roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"),
-    copy: roles("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"),
+    create: perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"), depts: [], members: ["卢辉茂"] }),
+    update: perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"), depts: [], members: ["卢辉茂"] }),
+    delete: perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"), depts: [], members: ["卢辉茂"] }),
+    export: perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "校长", "师资培养处干事"), depts: [], members: ["卢辉茂"] }),
+    view: perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "校长", "师资培养处干事"), depts: [], members: ["卢辉茂"] }),
+    batch_print: perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导", "校长", "师资培养处干事"), depts: [], members: ["卢辉茂"] }),
+    batch_update: perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"), depts: [], members: ["卢辉茂"] }),
+    copy: perm({ roles: roleIds("师资培养处分管校领导", "师资培养处负责人", "师资培养处中层领导"), depts: [], members: ["卢辉茂"] }),
   },
 
   // 一师一案 教师所带班级排名
   [JDY_CONFIG.CLASS_RANK.entry_id]: {
-    create: roles("师资管理"),
-    update: roles("师资管理"),
-    delete: roles("师资管理"),
-    import: roles("师资管理"),
-    export: roles("师资管理"),
-    view: roles("师资管理", "学校核心领导"),
-    batch_print: roles("师资管理", "学校核心领导"),
+    create: perm({ roles: roleIds("师资管理"), depts: [], members: ["卢辉茂"] }),
+    update: perm({ roles: roleIds("师资管理"), depts: [], members: ["卢辉茂"] }),
+    delete: perm({ roles: roleIds("师资管理"), depts: [], members: ["卢辉茂"] }),
+    import: perm({ roles: roleIds("师资管理"), depts: [], members: ["卢辉茂"] }),
+    export: perm({ roles: roleIds("师资管理"), depts: [], members: ["卢辉茂"] }),
+    view: perm({ roles: roleIds("师资管理", "学校核心领导"), depts: [], members: ["卢辉茂"] }),
+    batch_print: perm({ roles: roleIds("师资管理", "学校核心领导"), depts: [], members: [] }),
   },
 
   // 宿舍考勤
   [JDY_CONFIG.DORM_ATTENDANCE.entry_id]: {
-    create: roles("教官队"),
-    update: roles("教官队"),
-    delete: roles("教官队负责人", "教官队副队长", "教官队"),
+    create: perm({ roles: roleIds("教官队"), depts: [], members: [] }),
+    update: perm({ roles: roleIds("教官队"), depts: [], members: [] }),
+    delete: perm({ roles: roleIds("教官队负责人", "教官队副队长", "教官队"), depts: [], members: [] }),
   },
 
   // 一生一案 学生成绩表
   [JDY_CONFIG.STUDENT_SCORE.entry_id]: {
-    view: roles("课程教学处分管校领导", "课程教学处负责人", "课程教学处中层领导", "学生发展处分管校领导", "学生发展处负责人", "学生发展处中层领导", "校长"),
-    create: roles("课程教学处分管校领导", "课程教学处负责人", "课程教学处中层领导"),
-    delete: roles("课程教学处分管校领导", "课程教学处负责人", "课程教学处中层领导"),
-    import: roles("课程教学处分管校领导", "课程教学处负责人", "课程教学处中层领导"),
-    export: roles("课程教学处分管校领导", "课程教学处负责人", "课程教学处中层领导", "学生发展处分管校领导", "学生发展处负责人", "学生发展处中层领导", "校长"),
-    batch_print: roles("校长"),
+    view: perm({ roles: roleIds("课程教学处分管校领导", "课程教学处负责人", "课程教学处中层领导", "学生发展处分管校领导", "学生发展处负责人", "学生发展处中层领导", "校长"), depts: [], members: [] }),
+    create: perm({ roles: roleIds("课程教学处分管校领导", "课程教学处负责人", "课程教学处中层领导"), depts: [], members: [] }),
+    delete: perm({ roles: roleIds("课程教学处分管校领导", "课程教学处负责人", "课程教学处中层领导"), depts: [], members: [] }),
+    import: perm({ roles: roleIds("课程教学处分管校领导", "课程教学处负责人", "课程教学处中层领导"), depts: [], members: [] }),
+    export: perm({ roles: roleIds("课程教学处分管校领导", "课程教学处负责人", "课程教学处中层领导", "学生发展处分管校领导", "学生发展处负责人", "学生发展处中层领导", "校长"), depts: [], members: [] }),
+    batch_print: perm({ roles: roleIds("校长"), depts: [], members: [] }),
   },
 
   // 一生一案 谈心谈话记录表
   [JDY_CONFIG.STUDENT_HEART_TO_HEART_TALK.entry_id]: {
-    view: roles("学生发展处核心领导", "学校核心领导", "校长"),
-    create: roles("学生发展处核心领导"),
-    update: roles("学生发展处核心领导"),
-    delete: roles("学生发展处核心领导"),
-    export: roles("学生发展处核心领导", "校长"),
-    batch_print: roles("学生发展处核心领导", "学校核心领导", "校长"),
-    batch_update: roles("学生发展处核心领导"),
-    copy: roles("学生发展处核心领导"),
+    view: perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "校长"), depts: [], members: [] }),
+    create: perm({ roles: roleIds("师资管理"), depts: [], members: ["卢辉茂"] }),
+    update: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: ["卢辉茂"] }),
+    delete: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    export: perm({ roles: roleIds("学生发展处核心领导", "校长"), depts: [], members: [] }),
+    batch_print: perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "校长"), depts: [], members: [] }),
+    batch_update: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    copy: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
   },
 
   // 一生一案 学情分析记录表
   [JDY_CONFIG.STUDENT_LEARNING_ANALYSIS.entry_id]: {
-    view: roles("学生发展处核心领导", "学校核心领导", "校长"),
-    create: roles("学生发展处核心领导"),
-    delete: roles("学生发展处核心领导"),
-    export: roles("学生发展处核心领导", "校长"),
-    batch_print: roles("学生发展处核心领导", "学校核心领导", "校长"),
+    view: perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "校长"), depts: [], members: [] }),
+    create: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    update: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    delete: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    export: perm({ roles: roleIds("学生发展处核心领导", "校长"), depts: [], members: [] }),
+    batch_print: perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "校长"), depts: [], members: [] }),
   },
 
   // 一生一案 学生获奖记录表
   [JDY_CONFIG.STUDENT_AWARD_INFO.entry_id]: {
-    view: roles("学生发展处核心领导", "学校核心领导", "校长"),
-    create: roles("学生发展处核心领导"),
-    update: roles("学生发展处核心领导"),
-    delete: roles("学生发展处核心领导"),
-    export: roles("学生发展处核心领导", "校长"),
-    batch_print: roles("学生发展处核心领导", "学校核心领导", "校长"),
-    batch_update: roles("学生发展处核心领导"),
-    copy: roles("学生发展处核心领导"),
+    view: perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "校长"), depts: [], members: [] }),
+    create: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    update: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    delete: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    export: perm({ roles: roleIds("学生发展处核心领导", "校长"), depts: [], members: [] }),
+    batch_print: perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "校长"), depts: [], members: [] }),
+    batch_update: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    copy: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
   },
 
   // 一生一案 好人好事记录
   [JDY_CONFIG.GOOD_DEEDS_INFO.entry_id]: {
-    view: roles("学生发展处核心领导", "学校核心领导", "校长"),
-    create: roles("学生发展处核心领导"),
-    update: roles("学生发展处核心领导"),
-    delete: roles("学生发展处核心领导"),
-    export: roles("学生发展处核心领导", "校长"),
-    batch_print: roles("学生发展处核心领导", "学校核心领导", "校长"),
-    batch_update: roles("学生发展处核心领导"),
-    copy: roles("学生发展处核心领导"),
+    view: perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "校长"), depts: [], members: [] }),
+    create: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    update: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    delete: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    export: perm({ roles: roleIds("学生发展处核心领导", "校长"), depts: [], members: [] }),
+    batch_print: perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "校长"), depts: [], members: [] }),
+    batch_update: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    copy: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
   },
 
   // 一生一案 体质检测录入
   [JDY_CONFIG.PHYSICAL_TEST_INFO.entry_id]: {
-    view: roles("学生发展处核心领导", "学校核心领导", "校长"),
-    create: roles("学生发展处核心领导"),
-    update: roles("学生发展处核心领导"),
-    delete: roles("学生发展处核心领导"),
-    export: roles("学生发展处核心领导"),
-    batch_print: roles("学生发展处核心领导", "学校核心领导", "校长"),
-    batch_update: roles("学生发展处核心领导"),
-    copy: roles("学生发展处核心领导"),
+    view: perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "校长"), depts: [], members: [] }),
+    create: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    update: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    delete: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    export: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    batch_print: perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "校长"), depts: [], members: [] }),
+    batch_update: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    copy: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
   },
 
   // 一生一案 学生干部
   [JDY_CONFIG.STUDENT_CADREE_INFO.entry_id]: {
-    view: roles("学生发展处核心领导", "学校核心领导", "校长"),
-    create: roles("学生发展处核心领导"),
-    update: roles("学生发展处核心领导"),
-    delete: roles("学生发展处核心领导"),
-    export: roles("学生发展处核心领导"),
-    batch_print: roles("学生发展处核心领导", "学校核心领导", "校长"),
-    batch_update: roles("学生发展处核心领导"),
-    copy: roles("学生发展处核心领导"),
+    view: perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "校长"), depts: [], members: [] }),
+    create: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    update: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    delete: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    export: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    batch_print: perm({ roles: roleIds("学生发展处核心领导", "学校核心领导", "校长"), depts: [], members: [] }),
+    batch_update: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
+    copy: perm({ roles: roleIds("学生发展处核心领导"), depts: [], members: [] }),
   },
 
   // 一生一案 学生花名册
   [JDY_CONFIG.STUDENT_INFO.entry_id]: {
-    view: roles("人事科", "招生核心领导", "财务", "学校核心领导", "校长"),
-    update: roles("人事科", "招生核心领导"),
-    create: roles("人事科", "招生核心领导"),
-    export: roles("学生发展处核心领导", "财务", "校长"),
-    batch_print: roles("人事科", "招生核心领导", "学校核心领导", "校长"),
+    view: perm({ roles: roleIds("人事科", "招生核心领导", "财务", "学校核心领导", "校长"), depts: [], members: [] }),
+    update: perm({ roles: roleIds("人事科", "招生核心领导"), depts: [], members: ["卢辉茂"] }),
+    create: perm({ roles: roleIds("人事科", "招生核心领导"), depts: [], members: ["卢辉茂"] }),
+    delete: perm({ roles: roleIds("人事科"), depts: [], members: ["卢辉茂"] }),
+    export: perm({ roles: roleIds("学生发展处核心领导", "财务", "校长"), depts: [], members: [] }),
+    batch_print: perm({ roles: roleIds("人事科", "招生核心领导", "学校核心领导", "校长"), depts: [], members: [] }),
   },
 
   // 一生一案 学生返校登记表
   [JDY_CONFIG.STUDENT_RETURN_SCHOOL.entry_id]: {
-    view: roles("学校核心领导"),
-    export: roles("校长"),
-    batch_print: roles("学校核心领导", "校长"),
+    view: perm({ roles: roleIds("学校核心领导"), depts: [], members: [] }),
+    update: perm({ roles: roleIds("人事科", "招生核心领导"), depts: [], members: ["卢辉茂"] }),
+    create: perm({ roles: roleIds("人事科", "招生核心领导"), depts: [], members: ["卢辉茂"] }),
+    delete: perm({ roles: roleIds("人事科"), depts: [], members: ["卢辉茂"] }),
+    export: perm({ roles: roleIds("校长"), depts: [], members: [] }),
+    batch_print: perm({ roles: roleIds("学校核心领导", "校长"), depts: [], members: [] }),
   },
 };
 

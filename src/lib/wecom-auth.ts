@@ -63,6 +63,11 @@ export function getDevUser(): WecomUser | null {
   return null;
 }
 
+// Dev permission testing: if set, use this name to run real FORM_PERMISSIONS checks
+export function getDevPermissionUser(): string | null {
+  return process.env.WECOM_DEV_PERMISSION_USER || null;
+}
+
 // ── WeCom API ─────────────────────────────────────────────────────
 
 const WECOM_API = "https://qyapi.weixin.qq.com/cgi-bin";

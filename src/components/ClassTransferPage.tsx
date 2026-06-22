@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { StudentTreePicker } from "./ui/StudentTreePicker";
+import { SignatureModal } from "./ui/SignatureModal";
 import type { StudentInfoRecord } from "@/hooks/use-research-dashboard";
 import { PageHeader } from "./PageHeader";
 import { JDY_CONFIG, STUDENT_CHANGING_MAJORS_CLASSES_WIDGET_IDS, jdyCreate } from "@/lib/jdy-api";
@@ -45,6 +46,9 @@ export function ClassTransferPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [signModalOpen, setSignModalOpen] = useState(false);
+  const [parentSignKey, setParentSignKey] = useState("");
+  const [parentSignPreview, setParentSignPreview] = useState("");
 
   const currentUser = useCurrentUser();
 
@@ -112,7 +116,7 @@ export function ClassTransferPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
       [H.新选科科目]: { value: newSubject },
       [H.新外语选科]: { value: newLang },
       [H.新班级]: { value: newClass },
-      [H.家长签名]: { value: "" },
+      [H.家长签名]: { value: parentSignKey ? [{ name: `signature-parent.png`, key: parentSignKey }] : [] },
       [H.提交人]: { value: currentUser?.name ?? "" },
       [H.提交时间]: { value: now },
     };
@@ -144,6 +148,7 @@ export function ClassTransferPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
     setStudentClass(""); setStudentName(""); setChangeType("变更选科和班级"); setReason("");
     setOldSubject(""); setOldLang(""); setOldClass("");
     setNewSubject(""); setNewLang(""); setNewClass("");
+    setParentSignKey(""); setParentSignPreview("");
     setErrors({}); setSubmitted(false);
     localStorage.removeItem("class-transfer-draft");
   };
@@ -234,10 +239,25 @@ export function ClassTransferPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
               {changeType !== "仅变更班级" && (
                 <div className="border-t border-gray-100 pt-10">
                   <Field label="家长签名">
-                    <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 hover:bg-gray-50 transition-colors bg-white"
-                      style={{ height: 100, color: "#9ca3af" }}>
-                      <span className="text-sm">请在纸质表上签字后拍照上传</span>
-                    </div>
+                    {parentSignKey ? (
+                      <div className="relative rounded-xl border border-gray-200 bg-white overflow-hidden" style={{ height: 100 }}>
+                        <button onClick={() => { setParentSignKey(""); setParentSignPreview(""); }} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-white border border-gray-200 flex items-center justify-center z-10 hover:bg-red-50">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                        {parentSignPreview ? (
+                          <img src={parentSignPreview} alt="家长签名" className="w-full h-full object-contain p-2" />
+                        ) : (
+                          <div className="flex items-center justify-center h-full text-sm text-gray-500">签名已上传</div>
+                        )}
+                      </div>
+                    ) : (
+                      <button type="button" onClick={() => setSignModalOpen(true)}
+                        className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 hover:border-teal-400 hover:text-teal-500 transition-colors bg-white"
+                        style={{ height: 100, color: "#9ca3af" }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        <span className="text-sm">点击签名（手机扫码）</span>
+                      </button>
+                    )}
                   </Field>
                 </div>
               )}
@@ -257,6 +277,14 @@ export function ClassTransferPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
           </div>
         </main>
       </div>
+
+      <SignatureModal
+        open={signModalOpen}
+        onClose={() => setSignModalOpen(false)}
+        appId={JDY_CONFIG.STUDENT_CHANGING_MAJORS_CLASSES_APPLICATION.app_id}
+        entryId={JDY_CONFIG.STUDENT_CHANGING_MAJORS_CLASSES_APPLICATION.entry_id}
+        onSigned={(imageKey, imageDataUrl) => { setParentSignKey(imageKey); setParentSignPreview(imageDataUrl); }}
+      />
     </div>
   );
 }

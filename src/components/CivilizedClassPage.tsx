@@ -213,7 +213,7 @@ const COLUMNS: ColDef<CivilizedClassRow>[] = [
   { key: "updateTime",    label: "更新时间",     minWidth: 160, textSize: "text-sm" },
 ];
 
-const DATA_MODES = ["添加数据", "管理本人创建数据", "全部有权限数据"] as const;
+const DATA_MODES = ["管理本人创建数据", "全部有权限数据"] as const;
 
 const SORT_OPTIONS: { label: string; field: keyof CivilizedClassRow }[] = [
   { label: "提交时间", field: "submitTime" },
@@ -225,7 +225,9 @@ const SORT_OPTIONS: { label: string; field: keyof CivilizedClassRow }[] = [
 
 export function CivilizedClassPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [search, setSearch] = useState("");
-  const [dataMode, setDataMode] = useState<string>(DATA_MODES[1]);
+  const [dataMode, setDataMode] = useState<string>(DATA_MODES[0]);
+  const [showForm, setShowForm] = useState(false);
+  const [previewRecord, setPreviewRecord] = useState<CivilizedClassRow | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [sortField, setSortField] = useState<keyof CivilizedClassRow>("submitTime");
@@ -281,7 +283,7 @@ export function CivilizedClassPage({ onMenuOpen }: { onMenuOpen?: () => void }) 
 
   // Restore draft when entering add mode
   useEffect(() => {
-    if (editRecord || dataMode !== DATA_MODES[0]) return;
+    if (editRecord || !showForm) return;
     try {
       const rawDraft = localStorage.getItem("civilized-class-draft");
       if (!rawDraft) return;
@@ -293,7 +295,7 @@ export function CivilizedClassPage({ onMenuOpen }: { onMenuOpen?: () => void }) 
       if (d.headTeacher) setHeadTeacher(d.headTeacher);
       if (d.gradeDirector) setGradeDirector(d.gradeDirector);
     } catch {}
-  }, [dataMode, editRecord]);
+  }, [showForm, editRecord]);
 
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
@@ -341,7 +343,8 @@ export function CivilizedClassPage({ onMenuOpen }: { onMenuOpen?: () => void }) 
       }
       localStorage.removeItem("civilized-class-draft");
       if (isEditMode) setEditRecord(null);
-      setDataMode(DATA_MODES[1]);
+      setShowForm(false);
+      setDataMode(DATA_MODES[0]);
       setYear(""); setWeek(""); setGrade(""); setClassName("");
       setHeadTeacher(""); setGradeDirector("");
     } finally {
@@ -385,8 +388,8 @@ export function CivilizedClassPage({ onMenuOpen }: { onMenuOpen?: () => void }) 
 
   // Table data
   const tableData = useMemo(() => {
-    if (dataMode === DATA_MODES[1]) return rows.filter(r => r.submitter === currentUser?.name);
-    if (dataMode === DATA_MODES[2]) return rows;
+    if (dataMode === DATA_MODES[0]) return rows.filter(r => r.submitter === currentUser?.name);
+    if (dataMode === DATA_MODES[1]) return rows;
     return rows;
   }, [rows, dataMode, currentUser]);
 
@@ -447,7 +450,7 @@ export function CivilizedClassPage({ onMenuOpen }: { onMenuOpen?: () => void }) 
                   return (
                     <button
                       key={opt}
-                      onClick={() => { if (opt !== DATA_MODES[0]) { setEditRecord(null); } else { setEditRecord(null); handleClearForm(); } setDataMode(opt); setDropdownOpen(false); }}
+                      onClick={() => { setEditRecord(null); setShowForm(false); setDataMode(opt); setDropdownOpen(false); }}
                       className="w-full text-left px-4 h-11 text-[15px] font-medium transition-colors duration-100"
                       style={{
                         color: isSelected ? teal : "#374151",
@@ -467,7 +470,7 @@ export function CivilizedClassPage({ onMenuOpen }: { onMenuOpen?: () => void }) 
         </div>
 
         {/* Form mode */}
-        {(dataMode === DATA_MODES[0] || editRecord) ? (
+        {(showForm || editRecord) ? (
           <main className="max-w-6xl mx-auto px-3 md:px-6 pb-24">
             <div className="mb-8 text-center">
               <div className="inline-flex flex-col items-center">
@@ -536,6 +539,15 @@ export function CivilizedClassPage({ onMenuOpen }: { onMenuOpen?: () => void }) 
 
               {/* 操作栏 */}
               <div className="px-4 py-2.5 flex items-center gap-2 border-b border-gray-100">
+
+                <button
+                  onClick={() => { handleClearForm(); setEditRecord(null); setShowForm(true); }}
+                  className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium transition-all hover:opacity-90 shrink-0"
+                  style={{ color: "white", background: teal }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  新增数据
+                </button>
 
                 {/* icon buttons */}
                 <div className="flex items-center gap-0.5">
@@ -643,7 +655,7 @@ export function CivilizedClassPage({ onMenuOpen }: { onMenuOpen?: () => void }) 
                 rows={sorted}
                 minWidth={1000}
                 onSelectionChange={setSelectedIds}
-                onRowClick={r => { setEditRecord(r as CivilizedClassRow); }}
+                onRowClick={r => setPreviewRecord(r as CivilizedClassRow)}
               />
 
             </div>
@@ -651,6 +663,70 @@ export function CivilizedClassPage({ onMenuOpen }: { onMenuOpen?: () => void }) 
         )}
 
       </div>
+
+      {/* Preview Drawer */}
+      {(() => {
+        const r = previewRecord;
+        return (
+          <>
+            <div className="fixed inset-0 z-40 transition-opacity duration-300"
+              style={{ background: r ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: r ? "auto" : "none" }}
+              onClick={() => setPreviewRecord(null)} />
+            <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+              style={{
+                width: 440, maxWidth: "100vw", background: "#fff",
+                transform: r ? "translateX(0)" : "translateX(100%)",
+                transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)",
+              }}>
+              {r && (
+                <>
+                  <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+                    <div className="flex-1 min-w-0 pr-4">
+                      <p className="text-xs font-semibold text-blue-500 mb-1">{r.year || "—"} · {r.week || "—"}</p>
+                      <h2 className="text-base font-bold text-gray-900 leading-snug">{r.className || "—"}</h2>
+                    </div>
+                    <button onClick={() => setPreviewRecord(null)}
+                      className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 shrink-0">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+                    <section>
+                      <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">基本信息</p>
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                        {[
+                          { label: "年级", value: r.grade }, { label: "班级", value: r.className },
+                          { label: "班主任", value: r.headTeacher }, { label: "级部主任", value: r.gradeDirector },
+                          { label: "年份", value: r.year }, { label: "周次", value: r.week },
+                          { label: "提交人", value: r.submitter },
+                          { label: "提交时间", value: r.submitTime },
+                          { label: "更新时间", value: r.updateTime },
+                        ].map(({ label, value }) => (
+                          <div key={label}>
+                            <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                            <p className="text-base font-medium text-gray-800">{value || "—"}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  </div>
+                  <div className="px-6 py-4 border-t border-gray-100 shrink-0 flex gap-3">
+                    <button onClick={() => { setEditRecord(r); setPreviewRecord(null); }}
+                      className="flex-1 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90"
+                      style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}>
+                      编辑
+                    </button>
+                    <button onClick={() => setPreviewRecord(null)}
+                      className="flex-1 py-2.5 rounded-xl text-base font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors">
+                      关闭
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 }

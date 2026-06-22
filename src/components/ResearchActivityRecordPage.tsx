@@ -183,10 +183,12 @@ const RESEARCH_COLUMNS: ColDef<ResearchRecord>[] = [
   { key: "提交人", label: "提交人", minWidth: 80 },
 ];
 
-const DATA_MODES = ["添加数据", "管理本人创建数据", "组长管理本组数据", "全部有权限数据"] as const;
+const DATA_MODES = ["管理本人创建数据", "组长管理本组数据", "全部有权限数据"] as const;
 
 export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
-  const [dataMode, setDataMode] = useState<string>("管理本人创建数据");
+  const [dataMode, setDataMode] = useState<string>(DATA_MODES[0]);
+  const [showForm, setShowForm] = useState(false);
+  const [previewRecord, setPreviewRecord] = useState<ResearchRecord | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const currentUser = useCurrentUser();
@@ -207,9 +209,9 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
   }, [allGroups, currentUser]);
 
   const tableData = useMemo(() => {
-    if (dataMode === DATA_MODES[1]) return raw.filter((r: ResearchRecord) => r.提交人 === currentUser?.name);
-    if (dataMode === DATA_MODES[2]) return raw.filter((r: ResearchRecord) => leaderGroups.includes(r.教研组));
-    if (dataMode === DATA_MODES[3]) return raw;
+    if (dataMode === DATA_MODES[0]) return raw.filter((r: ResearchRecord) => r.提交人 === currentUser?.name);
+    if (dataMode === DATA_MODES[1]) return raw.filter((r: ResearchRecord) => leaderGroups.includes(r.教研组));
+    if (dataMode === DATA_MODES[2]) return raw;
     return raw;
   }, [raw, dataMode, currentUser, leaderGroups]);
 
@@ -321,8 +323,8 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
   };
 
   useEffect(() => {
-    if (dataMode !== DATA_MODES[0]) { setEditRecord(null); setExistingPhotos([]); setExistingAttachments([]); }
-  }, [dataMode]);
+    if (!showForm) { setEditRecord(null); setExistingPhotos([]); setExistingAttachments([]); }
+  }, [showForm]);
 
   const handleClearForm = () => {
     setSemester(""); setTopic(""); setSubject(""); setDate(""); setWeek(""); setLocation("");
@@ -344,7 +346,7 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
 
   // Restore draft when entering add mode
   useEffect(() => {
-    if (editRecord || dataMode !== DATA_MODES[0]) return;
+    if (editRecord || !showForm) return;
     try {
       const raw = localStorage.getItem("research-activity-draft");
       if (!raw) return;
@@ -365,7 +367,7 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
       if (d.absentNote) setAbsentNote(d.absentNote);
       if (d.contentRecord) setContentRecord(d.contentRecord);
     } catch {}
-  }, [dataMode, editRecord]);
+  }, [showForm, editRecord]);
 
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -445,7 +447,8 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
       queryClient.invalidateQueries({ queryKey: ["research-dashboard", "activity-list"] });
       localStorage.removeItem("research-activity-draft");
       if (isEditMode) setEditRecord(null);
-      setDataMode(DATA_MODES[1]);
+      setShowForm(false);
+      setDataMode(DATA_MODES[0]);
       setSubmitted(false);
       setPhotos([]); setAttachments([]); setExistingPhotos([]); setExistingAttachments([]);
     } catch (err) {
@@ -493,11 +496,11 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
           {dropdownOpen && (
             <div className="absolute left-0 top-full mt-2 rounded-2xl overflow-hidden z-50" style={{ minWidth: 200, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 12px 32px rgba(0,0,0,0.12)" }}>
               {DATA_MODES.map((opt, i) => {
-                const disabled = opt === DATA_MODES[2] && !isGroupLeader;
+                const disabled = opt === DATA_MODES[1] && !isGroupLeader;
                 return (
                   <button
                     key={opt}
-                    onClick={() => { if (!disabled) { setDataMode(opt); setDropdownOpen(false); } }}
+                    onClick={() => { if (!disabled) { setEditRecord(null); setShowForm(false); setDataMode(opt); setDropdownOpen(false); } }}
                     className="w-full text-left px-4 h-11 text-[15px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     disabled={disabled}
                     style={{ color: dataMode === opt ? teal : "#374151", background: dataMode === opt ? "rgba(0,176,149,0.06)" : "transparent", borderTop: i > 0 ? "1px solid rgba(0,0,0,0.04)" : "none" }}
@@ -511,7 +514,7 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
         </div>
       </div>
 
-      {(dataMode === DATA_MODES[0] || editRecord) ? (
+      {(showForm || editRecord) ? (
         <main className="max-w-6xl mx-auto px-3 md:px-6 pb-24">
           <div className="mb-8 text-center">
             <div className="inline-flex flex-col items-center">
@@ -605,6 +608,14 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
           <div className="glass rounded-[32px] overflow-hidden flex flex-col shadow-sm" style={{ minHeight: 400 }}>
             {/* 工具栏 */}
             <div className="px-4 py-2.5 flex items-center gap-2 border-b border-gray-100">
+
+              {perms.canCreate && (<button onClick={() => { handleClearForm(); setEditRecord(null); setShowForm(true); }}
+                className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium transition-all hover:opacity-90 shrink-0"
+                style={{ color: "white", background: teal }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                新增数据
+              </button>)}
+
               <div className="flex items-center gap-0.5">
                 {perms.canExport && (
                   <IconDropdown
@@ -659,11 +670,36 @@ export function ResearchActivityRecordPage({ onMenuOpen }: { onMenuOpen?: () => 
             ) : isError ? (
               <div className="flex items-center justify-center py-20 text-sm text-red-400">加载失败，请稍后重试</div>
             ) : (
-              <DataTable columns={RESEARCH_COLUMNS} rows={sorted.map((r, i) => ({ ...r, id: i + 1 }))} minWidth={1000} onSelectionChange={setSelectedIds} onRowClick={r => setEditRecord(r as ResearchRecord)} />
+              <DataTable columns={RESEARCH_COLUMNS} rows={sorted.map((r, i) => ({ ...r, id: i + 1 }))} minWidth={1000} onSelectionChange={setSelectedIds} onRowClick={r => setPreviewRecord(r as ResearchRecord)} />
             )}
           </div>
         </div>
       )}
     </div>
+
+      {/* Preview Drawer */}
+      {(() => {
+        const r = previewRecord;
+        return (<>
+          <div className="fixed inset-0 z-40 transition-opacity duration-300" style={{ background: r ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: r ? "auto" : "none" }} onClick={() => setPreviewRecord(null)} />
+          <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl" style={{ width: 440, maxWidth: "100vw", background: "#fff", transform: r ? "translateX(0)" : "translateX(100%)", transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)" }}>
+            {r && (<>
+              <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+                <div className="flex-1 min-w-0 pr-4"><p className="text-xs font-semibold text-blue-500 mb-1">{r.学期||"—"}</p><h2 className="text-base font-bold text-gray-900 leading-snug">{r.教研主题||"—"}</h2></div>
+                <button onClick={() => setPreviewRecord(null)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6"><section><p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">基本信息</p>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                  {[{ label: "学期", value: r.学期 },{ label: "教研主题", value: r.教研主题 },{ label: "教研学科", value: r.教研学科 },{ label: "教研组", value: r.教研组 },{ label: "教研组长", value: r.教研组长 },{ label: "主持人", value: r.主持人 },{ label: "时间", value: r.时间?.slice(0,16)?.replace("T"," ") },{ label: "地点", value: r.地点 },{ label: "周次", value: r.周次 },{ label: "记录人", value: r.记录人 },{ label: "提交人", value: r.提交人 }].map(({ label, value }) => (<div key={label}><p className="text-sm text-gray-400 mb-0.5">{label}</p><p className="text-base font-medium text-gray-800">{value||"—"}</p></div>))}
+                </div>
+              </section></div>
+              <div className="px-6 py-4 border-t border-gray-100 shrink-0 flex gap-3">
+                {perms.canUpdate && <button onClick={() => { setEditRecord(r); setPreviewRecord(null); }} className="flex-1 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90" style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}>编辑</button>}
+                <button onClick={() => setPreviewRecord(null)} className="flex-1 py-2.5 rounded-xl text-base font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors">关闭</button>
+              </div>
+            </>)}
+          </div>
+        </>);
+      })()}
   </div>);
 }

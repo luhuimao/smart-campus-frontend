@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { decodeSession, getDevUser, SESSION_COOKIE } from "@/lib/wecom-auth";
+import { decodeSession, getDevUser, getDevPermissionUser, SESSION_COOKIE } from "@/lib/wecom-auth";
 import { FORM_PERMISSIONS, type PermAction, type PermSpec } from "@/lib/jdy-permissions";
 import { isUserInRole } from "@/lib/jdy-role-cache";
 import { isUserInDept } from "@/lib/jdy-dept-cache";
@@ -44,6 +44,22 @@ export async function GET(req: NextRequest) {
 
   if (!user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  // Dev permission test: use WECOM_DEV_PERMISSION_USER name for real permission checks
+  const permTestUser = getDevPermissionUser();
+  if (permTestUser) {
+    const formPerm = FORM_PERMISSIONS[entryId];
+    const result: Record<string, boolean> = {};
+    for (const action of ACTIONS) {
+      const spec = formPerm?.[action];
+      if (!spec || isEmpty(spec)) {
+        result[`can${action.charAt(0).toUpperCase() + action.slice(1)}`] = true;
+      } else {
+        result[`can${action.charAt(0).toUpperCase() + action.slice(1)}`] = await checkSpec(permTestUser, spec);
+      }
+    }
+    return NextResponse.json(result);
   }
 
   // Dev mode: all actions allowed

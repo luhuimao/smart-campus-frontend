@@ -453,6 +453,7 @@ export function TeacherCertPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
 
           {/* Form footer */}
           <div className="form-footer shrink-0 flex gap-3 px-6 md:px-10 py-4 mt-4 rounded-[28px]">
+            <button className="btn-secondary" onClick={handleClearForm}>清空数据</button>
             <button className="btn-secondary" onClick={handleSaveDraft}>保存草稿</button>
             <div className="flex-1" />
             <button

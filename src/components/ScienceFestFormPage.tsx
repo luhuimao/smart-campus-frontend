@@ -40,7 +40,7 @@ const SF_COLUMNS: ColDef<ScienceFestRecord>[] = [
   { key: "活动地点", label: "活动地点", minWidth: 100 },
   { key: "提交人", label: "提交人", minWidth: 80 },
 ];
-const DATA_MODES = ["添加数据", "管理本人创建数据", "组长管理本组数据", "全部有权限数据"] as const;
+const DATA_MODES = ["管理本人创建数据", "组长管理本组数据", "全部有权限数据"] as const;
 
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (<div className="space-y-1.5"><label className="block text-base font-semibold" style={{ color: "#1d1d1f" }}>{required && <span style={{ color: "#ff4d4f", marginRight: 4 }}>*</span>}{label}</label>{children}</div>);
@@ -84,7 +84,9 @@ function FileUpload({ files, onChange, accept, hint }: { files: File[]; onChange
 }
 
 export function ScienceFestFormPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
-  const [dataMode, setDataMode] = useState<string>("管理本人创建数据");
+  const [dataMode, setDataMode] = useState<string>(DATA_MODES[0]);
+  const [showForm, setShowForm] = useState(false);
+  const [previewRecord, setPreviewRecord] = useState<ScienceFestRecord | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false); const dropdownRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const currentUser = useCurrentUser();
@@ -95,7 +97,7 @@ export function ScienceFestFormPage({ onMenuOpen }: { onMenuOpen?: () => void })
 
   const isGroupLeader = useMemo(() => { if (!currentUser) return false; return allGroups.some(g => g.教研组长 === currentUser.name); }, [allGroups, currentUser]);
   const leaderGroups = useMemo(() => { if (!currentUser) return []; return allGroups.filter(g => g.教研组长 === currentUser.name).map(g => g.教研组); }, [allGroups, currentUser]);
-  const tableData = useMemo(() => { if (dataMode === DATA_MODES[1]) return raw.filter(r => r.提交人 === currentUser?.name); if (dataMode === DATA_MODES[2]) return raw.filter(r => leaderGroups.includes(r.教研组)); if (dataMode === DATA_MODES[3]) return raw; return raw; }, [raw, dataMode, currentUser, leaderGroups]);
+  const tableData = useMemo(() => { if (dataMode === DATA_MODES[0]) return raw.filter(r => r.提交人 === currentUser?.name); if (dataMode === DATA_MODES[1]) return raw.filter(r => leaderGroups.includes(r.教研组)); if (dataMode === DATA_MODES[2]) return raw; return raw; }, [raw, dataMode, currentUser, leaderGroups]);
   useEffect(() => { if (!dropdownOpen) return; function h(e: MouseEvent) { if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setDropdownOpen(false); } document.addEventListener("mousedown", h); return () => document.removeEventListener("mousedown", h); }, [dropdownOpen]);
 
   const [tbSearch, setTbSearch] = useState(""); const [sortField, setSortField] = useState<keyof ScienceFestRecord>("提交时间"); const [sortDir, setSortDir] = useState<"asc" | "desc">("desc"); const [sortOpen, setSortOpen] = useState(false); const sortRef = useRef<HTMLDivElement>(null); const [selectedIds, setSelectedIds] = useState<number[]>([]); const [editRecord, setEditRecord] = useState<ScienceFestRecord | null>(null);
@@ -113,11 +115,11 @@ export function ScienceFestFormPage({ onMenuOpen }: { onMenuOpen?: () => void })
   const { raw: groupList, isPending: groupLoading } = useTeachingResearchGroups();
   const groupOptions = useMemo(() => [...new Set(groupList.map(g => g.教研组).filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh")), [groupList]);
   const handleGroupChange = (v: string) => { setGroup(v); const match = groupList.find(g => g.教研组 === v); if (match) setGroupLeader(match.教研组长); };
-  useEffect(() => { if (dataMode !== DATA_MODES[0]) { setEditRecord(null); setExistingPhotos([]); setExistingVideos([]); } }, [dataMode]);
+  useEffect(() => { if (!showForm) { setEditRecord(null); setExistingPhotos([]); setExistingVideos([]); } }, [showForm]);
 
   const handleClearForm = () => { setActivityName(""); setGroup(""); setGroupLeader(""); setTeacher(currentUser?.name ?? ""); setDate(""); setLocation(""); setParticipants(""); setDescription(""); setPhotos([]); setVideos([]); setExistingPhotos([]); setExistingVideos([]); setRemark(""); setSubmitted(false); localStorage.removeItem("sciencefest-draft"); };
   const handleSaveDraft = () => { if (!activityName.trim() && !group.trim()) return; localStorage.setItem("sciencefest-draft", JSON.stringify({ activityName, group, groupLeader, teacher, date, location, participants, description, remark })); };
-  useEffect(() => { if (editRecord || dataMode !== DATA_MODES[0]) return; try { const raw = localStorage.getItem("sciencefest-draft"); if (!raw) return; const d = JSON.parse(raw); if (d.activityName) setActivityName(d.activityName); if (d.group) setGroup(d.group); if (d.groupLeader) setGroupLeader(d.groupLeader); if (d.teacher) setTeacher(d.teacher); if (d.date) setDate(d.date); if (d.location) setLocation(d.location); if (d.participants) setParticipants(String(d.participants)); if (d.description) setDescription(d.description); if (d.remark) setRemark(d.remark); } catch {} }, [dataMode, editRecord]);
+  useEffect(() => { if (editRecord || !showForm) return; try { const raw = localStorage.getItem("sciencefest-draft"); if (!raw) return; const d = JSON.parse(raw); if (d.activityName) setActivityName(d.activityName); if (d.group) setGroup(d.group); if (d.groupLeader) setGroupLeader(d.groupLeader); if (d.teacher) setTeacher(d.teacher); if (d.date) setDate(d.date); if (d.location) setLocation(d.location); if (d.participants) setParticipants(String(d.participants)); if (d.description) setDescription(d.description); if (d.remark) setRemark(d.remark); } catch {} }, [showForm, editRecord]);
 
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -159,7 +161,8 @@ export function ScienceFestFormPage({ onMenuOpen }: { onMenuOpen?: () => void })
       queryClient.invalidateQueries({ queryKey: ["science-fest", "activity-list"] });
       localStorage.removeItem("sciencefest-draft");
       if (isEditMode) setEditRecord(null);
-      setDataMode(DATA_MODES[1]);
+      setShowForm(false);
+      setDataMode(DATA_MODES[0]);
       setSubmitted(false); setPhotos([]); setVideos([]); setExistingPhotos([]); setExistingVideos([]);
     } catch (err) { alert(err instanceof Error ? err.message : "提交失败，请重试"); }
     finally { setSubmitting(false); }
@@ -172,10 +175,10 @@ export function ScienceFestFormPage({ onMenuOpen }: { onMenuOpen?: () => void })
     <div className="flex-1 overflow-y-auto bg-[#f5f5f7]">
       <div className="max-w-7xl mx-auto px-3 md:px-6 pt-4 md:pt-6"><div className="relative shrink-0 inline-block" ref={dropdownRef}>
         <button onClick={() => setDropdownOpen(v => !v)} className="flex items-center gap-2 h-9 px-4 text-[15px] font-semibold rounded-xl transition-all duration-150" style={{ minWidth: 200, background: "white", color: "#374151", border: "1px solid rgba(0,0,0,0.1)", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}><span className="flex-1 text-left">{dataMode}</span><ChevronDown className="w-4 h-4 shrink-0 transition-transform duration-200" style={{ color: "#9ca3af", transform: dropdownOpen ? "rotate(180deg)" : "rotate(0deg)" }} /></button>
-        {dropdownOpen && (<div className="absolute left-0 top-full mt-2 rounded-2xl overflow-hidden z-50" style={{ minWidth: 200, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 12px 32px rgba(0,0,0,0.12)" }}>{DATA_MODES.map((opt, i) => { const disabled = opt === DATA_MODES[2] && !isGroupLeader; return (<button key={opt} onClick={() => { if (!disabled) { setDataMode(opt); setDropdownOpen(false); } }} className="w-full text-left px-4 h-11 text-[15px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed" disabled={disabled} style={{ color: dataMode === opt ? teal : "#374151", background: dataMode === opt ? "rgba(0,176,149,0.06)" : "transparent", borderTop: i > 0 ? "1px solid rgba(0,0,0,0.04)" : "none" }}>{opt}</button>); })}</div>)}
+        {dropdownOpen && (<div className="absolute left-0 top-full mt-2 rounded-2xl overflow-hidden z-50" style={{ minWidth: 200, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 12px 32px rgba(0,0,0,0.12)" }}>{DATA_MODES.map((opt, i) => { const disabled = opt === DATA_MODES[1] && !isGroupLeader; return (<button key={opt} onClick={() => { if (!disabled) { setEditRecord(null); setShowForm(false); setDataMode(opt); setDropdownOpen(false); } }} className="w-full text-left px-4 h-11 text-[15px] font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed" disabled={disabled} style={{ color: dataMode === opt ? teal : "#374151", background: dataMode === opt ? "rgba(0,176,149,0.06)" : "transparent", borderTop: i > 0 ? "1px solid rgba(0,0,0,0.04)" : "none" }}>{opt}</button>); })}</div>)}
       </div></div>
 
-      {(dataMode === DATA_MODES[0] || editRecord) ? (<main className="max-w-6xl mx-auto px-3 md:px-6 pb-24">
+      {(showForm || editRecord) ? (<main className="max-w-6xl mx-auto px-3 md:px-6 pb-24">
         <div className="mb-8 text-center"><div className="inline-flex flex-col items-center"><h2 className="text-xl font-bold tracking-tight" style={{ color: "#111827" }}>{editRecord ? "编辑科技节活动" : "科技节活动登记"}</h2><div className="mt-2 h-0.5 w-12 rounded-full" style={{ background: `linear-gradient(90deg, ${teal}, #5BC8F5)` }} />{editRecord && <p className="text-xs mt-2" style={{ color: "#9ca3af" }}>修改表单字段后点击保存</p>}</div></div>
         <div className="rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white">
           <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white"><Field label="活动名称" required><Input value={activityName} onChange={setActivityName} />{submitted && !activityName && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field><Field label="教研组" required><SelectField value={group} onChange={handleGroupChange} options={groupOptions} loading={groupLoading} />{submitted && !group && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>此项为必填项</p>}</Field></div>
@@ -194,12 +197,30 @@ export function ScienceFestFormPage({ onMenuOpen }: { onMenuOpen?: () => void })
         <div className="form-footer shrink-0 flex gap-3 px-6 md:px-10 py-4 mt-4 rounded-[28px]">{editRecord ? (<button className="btn-secondary" onClick={() => { setEditRecord(null); setExistingPhotos([]); setExistingVideos([]); }}>取消编辑</button>) : (<><button className="btn-secondary" onClick={handleClearForm}>清空数据</button><button className="btn-secondary" onClick={handleSaveDraft}>保存草稿</button></>)}<div className="flex-1" /><button className="px-8 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90 active:translate-y-px disabled:opacity-60" style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }} onClick={handleSubmit} disabled={submitting}>{submitting ? "提交中..." : (editRecord ? "保存" : "提交")}</button></div>
       </main>) : (<div className="max-w-7xl mx-auto px-3 md:px-6 pt-4 md:pt-6 pb-24"><div className="glass rounded-[32px] overflow-hidden flex flex-col shadow-sm" style={{ minHeight: 400 }}>
         <div className="px-4 py-2.5 flex items-center gap-2 border-b border-gray-100">
+
+          {perms.canCreate && (<button onClick={() => { handleClearForm(); setEditRecord(null); setShowForm(true); }} className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium transition-all hover:opacity-90 shrink-0" style={{ color: "white", background: teal }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增数据</button>)}
+
           <div className="flex items-center gap-0.5">{perms.canExport && (<IconDropdown tooltip="导出" icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 14 12 9 17 14" /><line x1="12" y1="9" x2="12" y2="21" /></svg>} options={["勾选的数据", "全部数据"]} disabledOptions={selectedIds.length === 0 ? ["勾选的数据"] : undefined} onSelect={opt => { if (opt === "勾选的数据") { const idSet = new Set(selectedIds); doExport(sorted.filter((_, i) => idSet.has(i + 1))); } else { doExport(tableData); } }} />)}{perms.canDelete && (<IconDropdown tooltip="删除" icon={<Trash2 className="w-5 h-5" />} options={["勾选的数据", "全部数据"]} disabledOptions={(selectedIds.length === 0 ? ["勾选的数据"] : []).concat(deleting ? ["勾选的数据", "全部数据"] : [])} onSelect={handleDeleteSelected} />)}<IconDropdown tooltip="操作记录" icon={<Clock className="w-5 h-5" />} options={["批量修改记录", "批量打印模板记录"]} /></div>
           <div className="flex-1" /><SearchBox2 value={tbSearch} onChange={setTbSearch} />
           <button className="flex items-center gap-1 h-8 px-2.5 rounded-lg text-sm transition-all hover:bg-black/[0.05] shrink-0" style={{ color: "#8c8c8c", fontSize: 15 }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></svg>筛选</button>
           <div className="flex items-center gap-0.5 pl-2 border-l border-gray-200" style={{ color: "#9ca3af" }}><div className="relative" ref={sortRef}><Tooltip text="排序"><button onClick={() => setSortOpen(v => !v)} className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-black/[0.05] transition-all" style={{ color: sortField !== "提交时间" || sortDir !== "desc" ? teal : "#9ca3af" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M6 12h12" /><path d="M9 18h6" /></svg></button></Tooltip>{sortOpen && (<div className="absolute right-0 top-full mt-1 rounded-xl overflow-hidden z-50" style={{ minWidth: 160, background: "white", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid rgba(0,0,0,0.06)" }}><div className="px-3 py-2 border-b border-gray-100 flex items-center gap-2"><span className="text-xs font-medium" style={{ color: "#9ca3af" }}>排序字段</span><div className="flex-1" /><button onClick={() => setSortDir(d => d === "desc" ? "asc" : "desc")} className="text-xs px-2 py-0.5 rounded-md transition-colors hover:bg-black/[0.04]" style={{ color: teal }}>{sortDir === "desc" ? "降序" : "升序"}</button></div>{SORT_OPTIONS.map(opt => { const active = sortField === opt.field; return (<button key={opt.field} onClick={() => { setSortField(opt.field); setSortOpen(false); }} className="w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-black/[0.04] flex items-center gap-2" style={{ color: active ? teal : "#374151", fontWeight: active ? 600 : 400 }}>{opt.label}{active && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={teal} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="ml-auto"><polyline points="20 6 9 17 4 12" /></svg>}</button>); })}</div>)}</div><Tooltip text="刷新"><button className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-black/[0.05] transition-all" onClick={() => refetch()} disabled={isFetching}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={isFetching ? "animate-spin" : ""}><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg></button></Tooltip></div>
         </div>
-        {isPending ? (<div className="flex items-center justify-center py-20 text-sm text-gray-400">加载中...</div>) : isError ? (<div className="flex items-center justify-center py-20 text-sm text-red-400">加载失败，请稍后重试</div>) : (<DataTable columns={SF_COLUMNS} rows={sorted.map((r, i) => ({ ...r, id: i + 1 }))} minWidth={1000} onSelectionChange={setSelectedIds} onRowClick={r => setEditRecord(r as ScienceFestRecord)} />)}
+        {isPending ? (<div className="flex items-center justify-center py-20 text-sm text-gray-400">加载中...</div>) : isError ? (<div className="flex items-center justify-center py-20 text-sm text-red-400">加载失败，请稍后重试</div>) : (<DataTable columns={SF_COLUMNS} rows={sorted.map((r, i) => ({ ...r, id: i + 1 }))} minWidth={1000} onSelectionChange={setSelectedIds} onRowClick={r => setPreviewRecord(r as ScienceFestRecord)} />)}
       </div></div>)}
     </div>
-  </div>);}
+
+      {/* Preview Drawer */}
+      {(() => { const r = previewRecord; return (<>
+        <div className="fixed inset-0 z-40 transition-opacity duration-300" style={{ background: r ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: r ? "auto" : "none" }} onClick={() => setPreviewRecord(null)} />
+        <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl" style={{ width: 440, maxWidth: "100vw", background: "#fff", transform: r ? "translateX(0)" : "translateX(100%)", transition: "transform 0.3s" }}>
+          {r && (<>
+            <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0"><div className="flex-1 min-w-0 pr-4"><p className="text-xs font-semibold text-blue-500 mb-1">{r.活动时间||"—"}</p><h2 className="text-base font-bold text-gray-900 leading-snug">{r.活动名称||"—"}</h2></div><button onClick={() => setPreviewRecord(null)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6"><section><p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">基本信息</p><div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              {[{ label: "活动名称", value: r.活动名称 },{ label: "教研组", value: r.教研组 },{ label: "教研组长", value: r.教研组长 },{ label: "活动负责教师", value: r.活动负责教师 },{ label: "活动时间", value: r.活动时间 },{ label: "活动地点", value: r.活动地点 },{ label: "活动描述", value: r.活动描述 },{ label: "参与人员", value: r.参与人员 },{ label: "提交人", value: r.提交人 }].map(({ label, value }) => (<div key={label}><p className="text-sm text-gray-400 mb-0.5">{label}</p><p className="text-base font-medium text-gray-800">{value||"—"}</p></div>))}
+            </div></section></div>
+            <div className="px-6 py-4 border-t border-gray-100 shrink-0 flex gap-3">{perms.canUpdate && <button onClick={() => { setEditRecord(r); setPreviewRecord(null); }} className="flex-1 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90" style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}>编辑</button>}<button onClick={() => setPreviewRecord(null)} className="flex-1 py-2.5 rounded-xl text-base font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors">关闭</button></div>
+          </>)}
+        </div>
+      </>); })()}
+  </div>);
+}

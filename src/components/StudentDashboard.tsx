@@ -1302,7 +1302,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
     { key: "宏德学_工号", header: "学号", render: r => <span style={{ fontSize: 15, color: "#6b7280" }}>{r.宏德学_工号 || "—"}</span> },
     { key: "通行时间", header: "通行时间", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#6b7280" }}>{r.通行时间 ? r.通行时间.slice(0, 16) : "—"}</span> },
     { key: "出入场所", header: "出入场所", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#374151" }}>{r.出入场所 || "—"}</span> },
-    { key: "通行方向", header: "进出状态", render: r => r.通行方向 ? <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap" style={{ background: r.通行方向==="进"?"rgba(16,185,129,0.08)":"rgba(239,68,68,0.08)", color: r.通行方向==="进"?"#059669":"#dc2626" }}>{r.通行方向}入</span> : <span className="text-gray-300">—</span> },
+    { key: "通行方向", header: "进出状态", render: r => r.通行方向 ? <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap" style={{ background: r.通行方向==="进"?"rgba(16,185,129,0.08)":"rgba(239,68,68,0.08)", color: r.通行方向==="进"?"#059669":"#dc2626" }}>{r.通行方向}校</span> : <span className="text-gray-300">—</span> },
     { key: "打卡设备", header: "打卡设备", render: r => <span className="whitespace-nowrap" style={{ fontSize: 15, color: "#6b7280" }}>{r.打卡设备 || "—"}</span> },
   ], []);
 
@@ -1371,7 +1371,7 @@ export function StudentDashboard({ onMenuOpen }: { onMenuOpen?: () => void }) {
     const headers = accessCols.map(c => c.header);
     const rows = sortedAccess.map(r => [
       r.姓名||"", r.年级||"", r.班级||"", r.身份||"", r.宏德学_工号||"",
-      r.通行时间?.slice(0,16)||"", r.出入场所||"", `${r.通行方向||""}入`, r.打卡设备||"",
+      r.通行时间?.slice(0,16)||"", r.出入场所||"", `${r.通行方向||""}校`, r.打卡设备||"",
     ]);
     exportToExcel("学生进出数据", headers, rows);
   }

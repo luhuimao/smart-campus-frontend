@@ -36,18 +36,30 @@ interface DataTableProps<T extends { id: number }> {
 
 // ── 空状态插图 ────────────────────────────────────────────────────────────────
 function EmptyState() {
+  const c = "rgba(0,176,149,";
   return (
     <div className="flex flex-col items-center justify-center py-20">
-      <svg viewBox="0 0 200 150" className="w-56 h-40 mb-4" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M100 50 L0 80 L200 80 Z" fill="rgba(255,243,176,0.3)" />
-        <ellipse cx="100" cy="130" rx="60" ry="15" fill="rgba(230,230,230,0.5)" />
-        <path d="M90 125 L92 55 L108 55 L110 125 Z" fill="#d9e3f0" />
-        <rect x="88" y="50" width="24" height="6" fill="#bfcedd" rx="1" />
-        <circle cx="100" cy="42" r="8" fill="#d9e3f0" />
-        <circle cx="65" cy="115" r="8" fill="#e1e8f0" />
-        <rect x="64" y="122" width="2" height="10" fill="#e1e8f0" />
-        <circle cx="145" cy="120" r="6" fill="#e1e8f0" />
-        <rect x="144" y="125" width="2" height="8" fill="#e1e8f0" />
+      <svg viewBox="0 0 200 160" className="w-48 h-36 mb-5" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Ripple circles */}
+        <circle cx="55" cy="65" r="24" fill={`${c}0.04)`} />
+        <circle cx="155" cy="95" r="18" fill={`${c}0.04)`} />
+        <circle cx="150" cy="50" r="12" fill={`${c}0.06)`} />
+        {/* Document card */}
+        <rect x="58" y="52" width="84" height="66" rx="8" fill="white" stroke={`${c}0.12)`} strokeWidth="1.5" />
+        <rect x="58" y="52" width="84" height="16" rx="8" fill={`${c}0.06)`} />
+        <rect x="58" y="60" width="84" height="8" fill={`${c}0.06)`} />
+        {/* Table lines */}
+        <rect x="70" y="78" width="60" height="2" rx="1" fill={`${c}0.1)`} />
+        <rect x="70" y="86" width="52" height="2" rx="1" fill={`${c}0.1)`} />
+        <rect x="70" y="94" width="42" height="2" rx="1" fill={`${c}0.08)`} />
+        {/* Add button */}
+        <circle cx="131" cy="107" r="9" fill={`${c}0.15)`} />
+        <line x1="127" y1="107" x2="135" y2="107" stroke="#00b095" strokeWidth="1.5" strokeLinecap="round" />
+        <line x1="131" y1="103" x2="131" y2="111" stroke="#00b095" strokeWidth="1.5" strokeLinecap="round" />
+        {/* Ripple dots */}
+        <circle cx="48" cy="48" r="2.5" fill={`${c}0.2)`} />
+        <circle cx="160" cy="38" r="2" fill={`${c}0.25)`} />
+        <circle cx="42" cy="100" r="2" fill={`${c}0.15)`} />
       </svg>
       <span className="text-sm" style={{ color: "#9ca3af" }}>暂无数据</span>
     </div>

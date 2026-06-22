@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { StudentTreePicker } from "./ui/StudentTreePicker";
+import { SignatureModal } from "./ui/SignatureModal";
 import type { StudentInfoRecord } from "@/hooks/use-research-dashboard";
 import { PageHeader } from "./PageHeader";
 import { JDY_CONFIG, STUDENT_WITHDRAWAL_TRANSFER_LEAVE_WIDGET_IDS, jdyCreate } from "@/lib/jdy-api";
@@ -51,6 +52,12 @@ export function WithdrawalFormPage({ onMenuOpen }: { onMenuOpen?: () => void }) 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [signModalOpen, setSignModalOpen] = useState(false);
+  const [signModalTarget, setSignModalTarget] = useState<"student" | "parent">("student");
+  const [studentSignKey, setStudentSignKey] = useState("");
+  const [studentSignPreview, setStudentSignPreview] = useState("");
+  const [parentSignKey, setParentSignKey] = useState("");
+  const [parentSignPreview, setParentSignPreview] = useState("");
 
   const currentUser = useCurrentUser();
 
@@ -124,9 +131,9 @@ export function WithdrawalFormPage({ onMenuOpen }: { onMenuOpen?: () => void }) 
       [H.银行账号]: { value: bankAccount },
       [H.户名]: { value: bankName },
       [H.开户行]: { value: bankBranch },
-      [H.学生签字]: { value: "" },
+      [H.学生签字]: { value: studentSignKey ? [{ name: `signature-student.png`, key: studentSignKey }] : [] },
       [H.签字时间]: { value: signDate },
-      [H.家长签字]: { value: "" },
+      [H.家长签字]: { value: parentSignKey ? [{ name: `signature-parent.png`, key: parentSignKey }] : [] },
       [H.与学生关系]: { value: parentRelation },
       [H.提交人]: { value: currentUser?.name ?? "" },
       [H.提交时间]: { value: now },
@@ -159,6 +166,8 @@ export function WithdrawalFormPage({ onMenuOpen }: { onMenuOpen?: () => void }) 
     setCls(""); setStudentName(""); setPhone(""); setHandleDate(""); setAction(""); setLeaveDate("");
     setReasons(new Set()); setExtra([]); setIsNew(""); setSuggestion("");
     setBankAccount(""); setBankName(""); setBankBranch(""); setSignDate(""); setParentRelation("");
+    setStudentSignKey(""); setStudentSignPreview("");
+    setParentSignKey(""); setParentSignPreview("");
     setErrors({}); setSubmitted(false);
     localStorage.removeItem("withdrawal-form-draft");
   };
@@ -284,10 +293,25 @@ export function WithdrawalFormPage({ onMenuOpen }: { onMenuOpen?: () => void }) 
               {/* 签名 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
                 <Field label="学生签字" required>
-                  <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 hover:bg-gray-50 transition-colors bg-white"
-                    style={{ height: 100, color: "#9ca3af" }}>
-                    <span className="text-sm">请在纸质表上签字后拍照上传</span>
-                  </div>
+                  {studentSignKey ? (
+                    <div className="relative rounded-xl border border-gray-200 bg-white overflow-hidden" style={{ height: 100 }}>
+                      <button onClick={() => { setStudentSignKey(""); setStudentSignPreview(""); }} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-white border border-gray-200 flex items-center justify-center z-10 hover:bg-red-50">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      </button>
+                      {studentSignPreview ? (
+                        <img src={studentSignPreview} alt="学生签名" className="w-full h-full object-contain p-2" />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-sm text-gray-500">签名已上传</div>
+                      )}
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => { setSignModalTarget("student"); setSignModalOpen(true); }}
+                      className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 hover:border-teal-400 hover:text-teal-500 transition-colors bg-white"
+                      style={{ height: 100, color: "#9ca3af" }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                      <span className="text-sm">点击签名（手机扫码）</span>
+                    </button>
+                  )}
                 </Field>
                 <Field label="签字时间" required>
                   <input type="date" value={signDate} onChange={e => { setSignDate(e.target.value); clearError("signDate"); }} className="form-input"
@@ -296,10 +320,25 @@ export function WithdrawalFormPage({ onMenuOpen }: { onMenuOpen?: () => void }) 
                   {(submitted && !signDate || errors.signDate) && <p className="text-xs mt-1.5" style={{ color: "#ff4d4f" }}>{errors.signDate || "此项为必填项"}</p>}
                 </Field>
                 <Field label="家长签字" required>
-                  <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 hover:bg-gray-50 transition-colors bg-white"
-                    style={{ height: 100, color: "#9ca3af" }}>
-                    <span className="text-sm">请在纸质表上签字后拍照上传</span>
-                  </div>
+                  {parentSignKey ? (
+                    <div className="relative rounded-xl border border-gray-200 bg-white overflow-hidden" style={{ height: 100 }}>
+                      <button onClick={() => { setParentSignKey(""); setParentSignPreview(""); }} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-white border border-gray-200 flex items-center justify-center z-10 hover:bg-red-50">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      </button>
+                      {parentSignPreview ? (
+                        <img src={parentSignPreview} alt="家长签名" className="w-full h-full object-contain p-2" />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-sm text-gray-500">签名已上传</div>
+                      )}
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => { setSignModalTarget("parent"); setSignModalOpen(true); }}
+                      className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 hover:border-teal-400 hover:text-teal-500 transition-colors bg-white"
+                      style={{ height: 100, color: "#9ca3af" }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                      <span className="text-sm">点击签名（手机扫码）</span>
+                    </button>
+                  )}
                 </Field>
                 <Field label="与学生关系" required>
                   <SelectField value={parentRelation} onChange={v => { setParentRelation(v); clearError("parentRelation"); }} options={["父亲", "母亲", "祖父", "祖母", "其他监护人"]} />
@@ -322,6 +361,18 @@ export function WithdrawalFormPage({ onMenuOpen }: { onMenuOpen?: () => void }) 
           </div>
         </main>
       </div>
+
+      <SignatureModal
+        open={signModalOpen}
+        onClose={() => setSignModalOpen(false)}
+        appId={JDY_CONFIG.STUDENT_WITHDRAWAL_TRANSFER_LEAVE_APPLICATION.app_id}
+        entryId={JDY_CONFIG.STUDENT_WITHDRAWAL_TRANSFER_LEAVE_APPLICATION.entry_id}
+        onSigned={(imageKey, imageDataUrl) => {
+          console.log("[withdrawal-form] onSigned called, target:", signModalTarget, "imageKey:", imageKey, "dataUrl len:", imageDataUrl?.length ?? 0, "preview:", imageDataUrl?.slice(0, 50));
+          if (signModalTarget === "student") { setStudentSignKey(imageKey); setStudentSignPreview(imageDataUrl); }
+          else { setParentSignKey(imageKey); setParentSignPreview(imageDataUrl); }
+        }}
+      />
     </div>
   );
 }

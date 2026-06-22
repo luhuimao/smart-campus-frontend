@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { decodeSession, getDevUser, SESSION_COOKIE } from "@/lib/wecom-auth";
 
 // Paths that never require auth
-const PUBLIC_PREFIXES = ["/api/auth/", "/_next/", "/favicon.ico"];
+const PUBLIC_PREFIXES = ["/api/auth/", "/sign/", "/api/sign/", "/_next/", "/favicon.ico"];
 
 export function middleware(req: NextRequest) {
   const { pathname, origin } = req.nextUrl;

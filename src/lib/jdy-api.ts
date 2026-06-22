@@ -1447,8 +1447,19 @@ interface JdyUploadTokenResponse {
   token_and_url_list: { url: string; token: string }[];
 }
 
+function safeUUID(): string {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+  // Fallback for insecure contexts (HTTP mobile)
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  arr[6] = (arr[6] & 0x0f) | 0x40;
+  arr[8] = (arr[8] & 0x3f) | 0x80;
+  const hex = Array.from(arr, b => b.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+}
+
 export async function jdyGetUploadTokens(app_id: string, entry_id: string, count: number, transaction_id?: string): Promise<{ tokens: { url: string; token: string }[]; transaction_id: string }> {
-  const tid = transaction_id ?? crypto.randomUUID();
+  const tid = transaction_id ?? safeUUID();
   const res = await fetch("/api/jdy/upload-token", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -1473,7 +1484,7 @@ async function uploadOneFile(file: File, url: string, token: string): Promise<st
 }
 
 export async function jdyUploadFiles(files: File[], app_id: string, entry_id: string, transaction_id?: string): Promise<{ keys: string[]; transaction_id: string }> {
-  if (files.length === 0) return { keys: [], transaction_id: transaction_id ?? crypto.randomUUID() };
+  if (files.length === 0) return { keys: [], transaction_id: transaction_id ?? safeUUID() };
   const { tokens, transaction_id: tid } = await jdyGetUploadTokens(app_id, entry_id, files.length, transaction_id);
   const keys = await Promise.all(files.map((f, i) => uploadOneFile(f, tokens[i].url, tokens[i].token)));
   return { keys, transaction_id: tid };

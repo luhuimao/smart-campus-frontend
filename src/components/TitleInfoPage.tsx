@@ -253,7 +253,7 @@ export function TitleInfoPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
             </div>
           )}
 
-          <div className="rounded-[28px] shadow-sm border border-gray-100 bg-white">
+          <div className="rounded-[28px] overflow-hidden shadow-sm border border-gray-100 bg-white">
 
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-white">
               <Field label="教师姓名" required>
@@ -417,6 +417,7 @@ export function TitleInfoPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
           </div>
 
           <div className="form-footer shrink-0 flex gap-3 px-6 md:px-10 py-4 mt-4 rounded-[28px]">
+            <button className="btn-secondary" onClick={handleClearForm}>清空数据</button>
             <button className="btn-secondary" onClick={handleSaveDraft}>保存草稿</button>
             <div className="flex-1" />
             <button

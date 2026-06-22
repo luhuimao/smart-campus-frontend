@@ -8,6 +8,7 @@ import { DatePicker } from "./ui/DatePicker";
 import { StudentTreePicker } from "./ui/StudentTreePicker";
 import { DataTable, type ColDef } from "./DataTable";
 import { useLearningAnalysis, useCourses, type LearningAnalysisRecord, type StudentInfoRecord } from "@/hooks/use-research-dashboard";
+import { useFormPermissions } from "@/hooks/use-form-permissions";
 import { JDY_CONFIG, STUDENT_LEARNING_ANALYSIS_WIDGET_IDS, jdyCreate, jdyUpdate, jdyDelete, jdyUploadFiles } from "@/lib/jdy-api";
 import { useCurrentUser } from "@/lib/user-context";
 import { useQueryClient } from "@tanstack/react-query";
@@ -17,13 +18,7 @@ const teal = "#00b095";
 const focusStyle = { borderColor: teal, boxShadow: "0 0 0 4px rgba(0,176,149,0.1)" };
 const blurStyle  = { borderColor: "#e5e7eb", boxShadow: "none" };
 
-type Mode = "add-only" | "add-manage-own" | "all-permitted";
-
-const modeOptions: { value: Mode; label: string }[] = [
-  { value: "add-only",       label: "仅添加数据" },
-  { value: "add-manage-own", label: "添加并管理本人数据" },
-  { value: "all-permitted",  label: "全部有权限的数据" },
-];
+const DATA_MODES = ["管理本人创建数据", "全部有权限数据"] as const;
 
 const H = STUDENT_LEARNING_ANALYSIS_WIDGET_IDS;
 
@@ -180,7 +175,7 @@ function SearchBox({ value, onChange }: { value: string; onChange: (v: string) =
 
 // ── Mode selector ────────────────────────────────────────────────
 
-function ModeSelector({ value, onChange }: { value: Mode; onChange: (v: Mode) => void }) {
+function DataModeDropdown({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -189,24 +184,23 @@ function ModeSelector({ value, onChange }: { value: Mode; onChange: (v: Mode) =>
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
   }, [open]);
-  const currentLabel = modeOptions.find(o => o.value === value)?.label ?? value;
   return (
     <div className="relative shrink-0 inline-block" ref={ref}>
       <button onClick={() => setOpen(v => !v)} className="flex items-center gap-2 h-9 px-4 text-[15px] font-semibold rounded-xl transition-all duration-150 shrink-0"
         style={{ minWidth: 200, background: "white", color: "#374151", border: "1px solid rgba(0,0,0,0.1)", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-        <span className="flex-1 text-left">{currentLabel}</span>
+        <span className="flex-1 text-left">{value}</span>
         <ChevronDown className="w-4 h-4 shrink-0 transition-transform duration-200" style={{ color: "#9ca3af", transform: open ? "rotate(180deg)" : "rotate(0deg)" }} />
       </button>
       {open && (
         <div className="absolute left-0 top-full mt-2 rounded-2xl overflow-hidden z-50"
           style={{ minWidth: 200, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 12px 32px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06)" }}>
-          {modeOptions.map((opt, i) => {
-            const isSelected = opt.value === value;
+          {DATA_MODES.map((opt, i) => {
+            const isSelected = opt === value;
             return (
-              <button key={opt.value} onClick={() => { setOpen(false); onChange(opt.value); }}
+              <button key={opt} onClick={() => { setOpen(false); onChange(opt); }}
                 className="w-full text-left px-4 h-11 text-[15px] font-medium transition-colors duration-100"
                 style={{ color: isSelected ? teal : "#374151", background: isSelected ? "rgba(0,176,149,0.06)" : "transparent", borderTop: i > 0 ? "1px solid rgba(0,0,0,0.04)" : "none" }}>
-                {opt.label}
+                {opt}
               </button>
             );
           })}
@@ -219,7 +213,9 @@ function ModeSelector({ value, onChange }: { value: Mode; onChange: (v: Mode) =>
 // ── Main component ───────────────────────────────────────────────
 
 export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => void }) {
-  const [mode, setMode] = useState<Mode>("add-manage-own");
+  const [dataMode, setDataMode] = useState<string>(DATA_MODES[0]);
+  const [showForm, setShowForm] = useState(false);
+  const [previewRecord, setPreviewRecord] = useState<LearningAnalysisRecord | null>(null);
   const [search, setSearch] = useState("");
   const [sortField, setSortField] = useState<keyof LearningAnalysisRecord>("提交时间");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
@@ -243,6 +239,7 @@ export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => v
   const currentUser = useCurrentUser();
   const queryClient = useQueryClient();
   const { raw, isPending, isError, refetch, isFetching } = useLearningAnalysis();
+  const perms = useFormPermissions(JDY_CONFIG.STUDENT_LEARNING_ANALYSIS.entry_id);
   const { raw: courseList } = useCourses();
 
   const isEditMode = editRecord !== null;
@@ -273,7 +270,7 @@ export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => v
 
   // Restore draft when entering add mode (without edit record)
   useEffect(() => {
-    if (editRecord || mode !== "add-only") return;
+    if (editRecord || !showForm) return;
     try {
       const rawDraft = localStorage.getItem("learning-analysis-draft");
       if (!rawDraft) return;
@@ -285,7 +282,7 @@ export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => v
       if (d.endDate) setEndDate(new Date(d.endDate));
       if (d.guidance) setGuidance(d.guidance);
     } catch {}
-  }, [mode, editRecord]);
+  }, [dataMode, showForm, editRecord]);
 
   // ── API logic ────────────────────────────────────────────────
 
@@ -366,9 +363,11 @@ export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => v
         });
       }
       queryClient.invalidateQueries({ queryKey: ["learning-analysis", "list"] });
-      handleClearForm();
+      localStorage.removeItem("learning-analysis-draft");
       if (isEditMode) setEditRecord(null);
-      setMode("add-manage-own");
+      setShowForm(false);
+      setDataMode(DATA_MODES[0]);
+      handleClearForm();
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       alert(err instanceof Error ? err.message : "提交失败，请重试");
@@ -422,21 +421,17 @@ export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => v
 
   // ── Table data ───────────────────────────────────────────────
 
-  const handleModeChange = (newMode: Mode) => {
-    if (newMode === "add-only") {
-      setEditRecord(null);
-      clearFormFields();
-    } else {
-      setEditRecord(null);
-    }
-    setMode(newMode);
+  const handleDataModeChange = (newMode: string) => {
+    setEditRecord(null);
+    setShowForm(false);
+    setDataMode(newMode);
   };
 
   const tableData = useMemo(() => {
-    if (mode === "add-manage-own") return raw.filter(r => r.提交人 === currentUser?.name);
-    if (mode === "all-permitted") return raw;
+    if (dataMode === DATA_MODES[0]) return raw.filter(r => r.提交人 === currentUser?.name);
+    if (dataMode === DATA_MODES[1]) return raw;
     return raw;
-  }, [raw, mode, currentUser]);
+  }, [raw, dataMode, currentUser]);
 
   const filtered = tableData.filter(r =>
     r.班级.includes(search) || r.学生姓名.includes(search) || r.学科.includes(search)
@@ -462,10 +457,10 @@ export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => v
       <div className="flex-1 overflow-y-auto bg-[#f5f5f7]">
 
         <div className="max-w-7xl mx-auto px-3 md:px-6 pt-4 md:pt-6">
-          <ModeSelector value={mode} onChange={handleModeChange} />
+          <DataModeDropdown value={dataMode} onChange={handleDataModeChange} />
         </div>
 
-        {(mode === "add-only" || editRecord) ? (
+        {(showForm || editRecord) ? (
           <main className="max-w-6xl mx-auto px-3 md:px-6 pb-24">
             <div className="mb-8 text-center">
               <div className="inline-flex flex-col items-center">
@@ -569,24 +564,40 @@ export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => v
 
               {/* Toolbar */}
               <div className="px-4 py-2.5 flex items-center gap-2 border-b border-gray-100">
+
+                {perms.canCreate && (
+                  <button
+                    onClick={() => { handleClearForm(); setEditRecord(null); setShowForm(true); }}
+                    className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium transition-all hover:opacity-90 shrink-0"
+                    style={{ color: "white", background: teal }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    新增数据
+                  </button>
+                )}
+
                 <div className="flex items-center gap-0.5">
-                  <IconDropdown
-                    tooltip="导出"
-                    icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 14 12 9 17 14" /><line x1="12" y1="9" x2="12" y2="21" /></svg>}
-                    options={["勾选的数据", "全部数据"]}
-                    disabledOptions={selectedIds.length === 0 ? ["勾选的数据"] : undefined}
-                    onSelect={opt => {
-                      if (opt === "勾选的数据") { const idSet = new Set(selectedIds); doExport(raw.filter(r => idSet.has(r.id))); }
-                      else doExport(raw);
-                    }}
-                  />
-                  <IconDropdown
-                    tooltip="删除"
-                    icon={<Trash2 className="w-5 h-5" />}
-                    options={["勾选的数据", "全部数据"]}
-                    disabledOptions={selectedIds.length === 0 ? ["勾选的数据"] : undefined}
-                    onSelect={handleDeleteSelected}
-                  />
+                  {perms.canExport && (
+                    <IconDropdown
+                      tooltip="导出"
+                      icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 14 12 9 17 14" /><line x1="12" y1="9" x2="12" y2="21" /></svg>}
+                      options={["勾选的数据", "全部数据"]}
+                      disabledOptions={selectedIds.length === 0 ? ["勾选的数据"] : undefined}
+                      onSelect={opt => {
+                        if (opt === "勾选的数据") { const idSet = new Set(selectedIds); doExport(raw.filter(r => idSet.has(r.id))); }
+                        else doExport(raw);
+                      }}
+                    />
+                  )}
+                  {perms.canDelete && (
+                    <IconDropdown
+                      tooltip="删除"
+                      icon={<Trash2 className="w-5 h-5" />}
+                      options={["勾选的数据", "全部数据"]}
+                      disabledOptions={selectedIds.length === 0 ? ["勾选的数据"] : undefined}
+                      onSelect={handleDeleteSelected}
+                    />
+                  )}
                   <IconDropdown
                     tooltip="操作记录"
                     icon={<Clock className="w-5 h-5" />}
@@ -652,7 +663,7 @@ export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => v
                   rows={sorted}
                   minWidth={1200}
                   onSelectionChange={setSelectedIds}
-                  onRowClick={r => { setEditRecord(r as LearningAnalysisRecord); }}
+                  onRowClick={r => setPreviewRecord(r as LearningAnalysisRecord)}
                 />
               )}
 
@@ -660,6 +671,100 @@ export function LearningAnalysisTablePage({ onMenuOpen }: { onMenuOpen?: () => v
           </div>
         )}
       </div>
+
+      {/* Preview Drawer */}
+      {(() => {
+        const r = previewRecord;
+        return (
+          <>
+            <div className="fixed inset-0 z-40 transition-opacity duration-300"
+              style={{ background: r ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: r ? "auto" : "none" }}
+              onClick={() => setPreviewRecord(null)} />
+            <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl"
+              style={{
+                width: 480, maxWidth: "100vw", background: "#fff",
+                transform: r ? "translateX(0)" : "translateX(100%)",
+                transition: "transform 0.3s cubic-bezier(0.23,1,0.32,1)",
+              }}>
+              {r && (
+                <>
+                  <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0">
+                    <div className="flex-1 min-w-0 pr-4">
+                      <p className="text-xs font-semibold text-blue-500 mb-1">{r.学科 || "—"}</p>
+                      <h2 className="text-base font-bold text-gray-900 leading-snug">{r.学生姓名 || "—"}</h2>
+                    </div>
+                    <button onClick={() => setPreviewRecord(null)}
+                      className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 shrink-0">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+                    <section>
+                      <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">基本信息</p>
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                        {[
+                          { label: "班级", value: r.班级 },
+                          { label: "学情分析开始时间", value: r.学情分析开始时间?.slice(0, 10) },
+                          { label: "学情分析结束时间", value: r.学情分析结束时间?.slice(0, 10) },
+                          { label: "提交人", value: r.提交人 },
+                          { label: "提交时间", value: r.提交时间?.slice(0, 16)?.replace("T", " ") },
+                        ].map(({ label, value }) => (
+                          <div key={label}>
+                            <p className="text-sm text-gray-400 mb-0.5">{label}</p>
+                            <p className="text-base font-medium text-gray-800">{value || "—"}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                    <section>
+                      <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">知识点分析</p>
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm text-gray-400 mb-2">掌握较好的知识点</p>
+                          <div className="flex flex-wrap gap-2">
+                            {r.掌握较好的知识点?.length ? r.掌握较好的知识点.map((f, i) => (
+                              <div key={i} className="w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
+                                <img src={f.url} alt={f.name} className="w-full h-full object-cover" />
+                              </div>
+                            )) : <p className="text-base font-medium text-gray-800">—</p>}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-400 mb-2">掌握不足的知识点</p>
+                          <div className="flex flex-wrap gap-2">
+                            {r.掌握不足的知识点?.length ? r.掌握不足的知识点.map((f, i) => (
+                              <div key={i} className="w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
+                                <img src={f.url} alt={f.name} className="w-full h-full object-cover" />
+                              </div>
+                            )) : <p className="text-base font-medium text-gray-800">—</p>}
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+                    <section>
+                      <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">教师指导措施</p>
+                      <p className="text-base font-medium text-gray-800 whitespace-pre-wrap">{r.教师指导措施 || "—"}</p>
+                    </section>
+                  </div>
+                  <div className="px-6 py-4 border-t border-gray-100 shrink-0 flex gap-3">
+                    {perms.canUpdate && (
+                      <button onClick={() => { setEditRecord(r); setPreviewRecord(null); }}
+                        className="flex-1 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90"
+                        style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}>
+                        编辑
+                      </button>
+                    )}
+                    <button onClick={() => setPreviewRecord(null)}
+                      className="flex-1 py-2.5 rounded-xl text-base font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors">
+                      关闭
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 }

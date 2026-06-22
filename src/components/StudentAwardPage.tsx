@@ -8,6 +8,7 @@ import { StudentTreePicker } from "./ui/StudentTreePicker";
 import { DeptStaffPicker } from "@/components/ui/DeptStaffPicker";
 import { DataTable, type ColDef } from "./DataTable";
 import { useStudentAward, useTermInfo, useGradeInfo, useDepartmentMembers, type StudentAwardRecord, type StudentInfoRecord } from "@/hooks/use-research-dashboard";
+import { useFormPermissions } from "@/hooks/use-form-permissions";
 import { JDY_CONFIG, STUDENT_AWARD_WIDGET_IDS, jdyCreate, jdyUpdate, jdyDelete } from "@/lib/jdy-api";
 import { useCurrentUser } from "@/lib/user-context";
 import { useQueryClient } from "@tanstack/react-query";
@@ -16,10 +17,9 @@ const teal = "#00b095";
 const focusStyle = { borderColor: teal, boxShadow: "0 0 0 4px rgba(0,176,149,0.1)" };
 const blurStyle  = { borderColor: "#e5e7eb", boxShadow: "none" };
 
-type Mode = "add-only" | "add-manage-own" | "all-permitted";
+type Mode = "add-manage-own" | "all-permitted";
 
 const modeOptions: { value: Mode; label: string }[] = [
-  { value: "add-only",       label: "仅添加数据" },
   { value: "add-manage-own", label: "添加并管理本人数据" },
   { value: "all-permitted",  label: "全部有权限的数据" },
 ];
@@ -118,6 +118,8 @@ function ModeSelector({ value, onChange }: { value: Mode; onChange: (v: Mode) =>
 
 export function StudentAwardPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const [mode, setMode] = useState<Mode>("add-manage-own");
+  const [showForm, setShowForm] = useState(false);
+  const [previewRecord, setPreviewRecord] = useState<StudentAwardRecord | null>(null);
   const [search, setSearch] = useState("");
   const [sortField, setSortField] = useState<keyof StudentAwardRecord>("提交时间");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
@@ -146,6 +148,7 @@ export function StudentAwardPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const currentUser = useCurrentUser();
   const queryClient = useQueryClient();
   const { raw, isPending, isError, refetch, isFetching } = useStudentAward();
+  const perms = useFormPermissions(JDY_CONFIG.STUDENT_AWARD_INFO.entry_id);
   const { raw: termList } = useTermInfo();
   const { raw: gradeList } = useGradeInfo();
   const { raw: deptMembers } = useDepartmentMembers();
@@ -176,7 +179,7 @@ export function StudentAwardPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
 
   // Restore draft when entering add mode
   useEffect(() => {
-    if (editRecord || mode !== "add-only") return;
+    if (editRecord || !showForm) return;
     try {
       const rawDraft = localStorage.getItem("student-award-draft");
       if (!rawDraft) return;
@@ -195,7 +198,7 @@ export function StudentAwardPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
       if (d.groupType) setGroupType(d.groupType);
       if (d.teacher) setTeacher(d.teacher);
     } catch {}
-  }, [mode, editRecord]);
+  }, [showForm, editRecord]);
 
   // ── API logic ────────────────────────────────────────────────
 
@@ -280,6 +283,7 @@ export function StudentAwardPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
       queryClient.invalidateQueries({ queryKey: ["student-award", "list"] });
       handleClearForm();
       if (isEditMode) setEditRecord(null);
+      setShowForm(false);
       setMode("add-manage-own");
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
@@ -328,8 +332,8 @@ export function StudentAwardPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
   // ── Table data ───────────────────────────────────────────────
 
   const handleModeChange = (newMode: Mode) => {
-    if (newMode === "add-only") { setEditRecord(null); clearFormFields(); }
-    else setEditRecord(null);
+    setEditRecord(null);
+    setShowForm(false);
     setMode(newMode);
   };
 
@@ -360,7 +364,7 @@ export function StudentAwardPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
           <ModeSelector value={mode} onChange={handleModeChange} />
         </div>
 
-        {(mode === "add-only" || editRecord) ? (
+        {(showForm || editRecord) ? (
           <main className="max-w-6xl mx-auto px-3 md:px-6 pb-24">
             <div className="mb-8 text-center">
               <div className="inline-flex flex-col items-center">
@@ -467,18 +471,32 @@ export function StudentAwardPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
             <div className="glass rounded-[32px] overflow-hidden flex flex-col shadow-sm" style={{ minHeight: 500 }}>
 
               <div className="px-4 py-2.5 flex items-center gap-2 border-b border-gray-100">
+
+                {perms.canCreate && (
+                  <button onClick={() => { handleClearForm(); setEditRecord(null); setShowForm(true); }}
+                    className="flex items-center gap-1.5 h-8 px-3 rounded-lg text-sm font-medium transition-all hover:opacity-90 shrink-0"
+                    style={{ color: "white", background: teal }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    新增数据
+                  </button>
+                )}
+
                 <div className="flex items-center gap-0.5">
-                  <IconDropdown tooltip="导出"
-                    icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 14 12 9 17 14" /><line x1="12" y1="9" x2="12" y2="21" /></svg>}
-                    options={["勾选的数据", "全部数据"]}
-                    disabledOptions={selectedIds.length === 0 ? ["勾选的数据"] : undefined}
-                    onSelect={opt => { if (opt === "勾选的数据") { const idSet = new Set(selectedIds); doExport(raw.filter(r => idSet.has(r.id))); } else doExport(raw); }}
-                  />
-                  <IconDropdown tooltip="删除" icon={<Trash2 className="w-5 h-5" />}
-                    options={["勾选的数据", "全部数据"]}
-                    disabledOptions={selectedIds.length === 0 ? ["勾选的数据"] : undefined}
-                    onSelect={handleDeleteSelected}
-                  />
+                  {perms.canExport && (
+                    <IconDropdown tooltip="导出"
+                      icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 14 12 9 17 14" /><line x1="12" y1="9" x2="12" y2="21" /></svg>}
+                      options={["勾选的数据", "全部数据"]}
+                      disabledOptions={selectedIds.length === 0 ? ["勾选的数据"] : undefined}
+                      onSelect={opt => { if (opt === "勾选的数据") { const idSet = new Set(selectedIds); doExport(raw.filter(r => idSet.has(r.id))); } else doExport(raw); }}
+                    />
+                  )}
+                  {perms.canDelete && (
+                    <IconDropdown tooltip="删除" icon={<Trash2 className="w-5 h-5" />}
+                      options={["勾选的数据", "全部数据"]}
+                      disabledOptions={selectedIds.length === 0 ? ["勾选的数据"] : undefined}
+                      onSelect={handleDeleteSelected}
+                    />
+                  )}
                   <IconDropdown tooltip="操作记录" icon={<Clock className="w-5 h-5" />} options={["批量修改记录", "批量打印模板记录"]} />
                 </div>
                 <div className="flex-1" />
@@ -522,13 +540,27 @@ export function StudentAwardPage({ onMenuOpen }: { onMenuOpen?: () => void }) {
               ) : (
                 <DataTable columns={COLUMNS} rows={sorted} minWidth={1400}
                   onSelectionChange={setSelectedIds}
-                  onRowClick={r => { setEditRecord(r as StudentAwardRecord); }} />
+                  onRowClick={r => setPreviewRecord(r as StudentAwardRecord)} />
               )}
 
             </div>
           </div>
         )}
       </div>
+
+      {/* Preview Drawer */}
+      {(() => { const r = previewRecord; return (<>
+        <div className="fixed inset-0 z-40 transition-opacity duration-300" style={{ background: r ? "rgba(0,0,0,0.3)" : "transparent", pointerEvents: r ? "auto" : "none" }} onClick={() => setPreviewRecord(null)} />
+        <div className="fixed top-0 right-0 h-full z-50 flex flex-col shadow-2xl" style={{ width: 440, maxWidth: "100vw", background: "#fff", transform: r ? "translateX(0)" : "translateX(100%)", transition: "transform 0.3s" }}>
+          {r && (<>
+            <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100 shrink-0"><div className="flex-1 min-w-0 pr-4"><p className="text-xs font-semibold text-blue-500 mb-1">{r.学期||"—"}</p><h2 className="text-base font-bold text-gray-900 leading-snug">{r.参与比赛名称||"—"}</h2></div><button onClick={() => setPreviewRecord(null)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6"><section><p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">基本信息</p><div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              {[{ label: "学期", value: r.学期 },{ label: "年级", value: r.年级 },{ label: "班级", value: r.班级名称 },{ label: "学生姓名", value: r.学生姓名 },{ label: "获奖级别", value: r.获奖级别 },{ label: "获奖等级", value: r.获奖等级 },{ label: "比赛名称", value: r.参与比赛名称 },{ label: "获奖时间", value: r.获奖时间?.slice(0,10) },{ label: "颁发单位", value: r.颁发单位 },{ label: "个人/团体", value: r.个人团体获奖 },{ label: "指导老师", value: r.指导老师 },{ label: "提交人", value: r.提交人 }].map(({ label, value }) => (<div key={label}><p className="text-sm text-gray-400 mb-0.5">{label}</p><p className="text-base font-medium text-gray-800">{value||"—"}</p></div>))}
+            </div></section></div>
+            <div className="px-6 py-4 border-t border-gray-100 shrink-0 flex gap-3">{perms.canUpdate && <button onClick={() => { setEditRecord(r); setPreviewRecord(null); }} className="flex-1 py-2.5 rounded-xl text-base font-semibold text-white transition-all hover:opacity-90" style={{ backgroundColor: teal, boxShadow: "0 4px 12px rgba(0,176,149,0.15)" }}>编辑</button>}<button onClick={() => setPreviewRecord(null)} className="flex-1 py-2.5 rounded-xl text-base font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors">关闭</button></div>
+          </>)}
+        </div>
+      </>); })()}
     </div>
   );
 }

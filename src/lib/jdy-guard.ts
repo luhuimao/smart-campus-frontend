@@ -1,5 +1,5 @@
 import type { WecomUser } from "./wecom-auth";
-import { getDevUser } from "./wecom-auth";
+import { getDevUser, getDevPermissionUser } from "./wecom-auth";
 import { FORM_PERMISSIONS } from "./jdy-permissions";
 import type { PermSpec } from "./jdy-permissions";
 import { isUserInRole } from "./jdy-role-cache";
@@ -69,6 +69,17 @@ export async function checkJdyPermission(
   _appId: string,
   entryId: string,
 ): Promise<{ allowed: boolean; reason?: string }> {
+  // Dev permission test: use WECOM_DEV_PERMISSION_USER name for real permission checks
+  const permTestUser = getDevPermissionUser();
+  if (permTestUser) {
+    const spec = getPermSpec(entryId, action);
+    if (!spec || isEmpty(spec)) return { allowed: true };
+    const allowed = await checkSpec(permTestUser, spec);
+    return allowed
+      ? { allowed: true }
+      : { allowed: false, reason: `无此操作权限 (权限测试用户: ${permTestUser})` };
+  }
+
   if (getDevUser()) return { allowed: true };
 
   const spec = getPermSpec(entryId, action);
