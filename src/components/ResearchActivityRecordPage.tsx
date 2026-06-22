@@ -173,7 +173,7 @@ function FileUpload({ files, onChange, accept, hint }: { files: File[]; onChange
 
 const RESEARCH_COLUMNS: ColDef<ResearchRecord>[] = [
   { key: "学期", label: "学期", minWidth: 80 },
-  { key: "教研主题", label: "教研主题", minWidth: 160 },
+  { key: "教研主题", label: "教研主题", minWidth: 160, render: (r) => { const t = r.教研主题; return t && t.length > 20 ? t.slice(0, 20) + "…" : t; } },
   { key: "教研学科", label: "教研学科", minWidth: 80 },
   { key: "教研组", label: "教研组", minWidth: 120 },
   { key: "教研组长", label: "教研组长", minWidth: 80 },

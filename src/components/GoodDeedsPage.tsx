@@ -33,7 +33,7 @@ const COLUMNS: ColDef<GoodDeedsRecord>[] = [
   { key: "学生姓名",   label: "学生姓名" },
   { key: "事件发生时间", label: "事件时间" },
   { key: "事件地点",   label: "事件地点" },
-  { key: "事件描述",   label: "事件描述", minWidth: 200 },
+  { key: "事件描述",   label: "事件描述", minWidth: 200, render: (r) => { const t = r.事件描述; return t && t.length > 20 ? t.slice(0, 20) + "…" : t; } },
   { key: "班主任",     label: "班主任" },
   { key: "提交人",     label: "提交人", minWidth: 80 },
   { key: "提交时间",   label: "提交时间", minWidth: 160 },

@@ -33,7 +33,7 @@ const COLUMNS: ColDef<StudentAwardRecord>[] = [
   { key: "学生姓名",     label: "学生姓名" },
   { key: "获奖级别",     label: "获奖级别" },
   { key: "获奖等级",     label: "获奖等级" },
-  { key: "参与比赛名称", label: "比赛名称", minWidth: 160 },
+  { key: "参与比赛名称", label: "比赛名称", minWidth: 160, render: (r) => { const t = r.参与比赛名称; return t && t.length > 20 ? t.slice(0, 20) + "…" : t; } },
   { key: "获奖时间",     label: "获奖时间" },
   { key: "颁发单位",     label: "颁发单位" },
   { key: "个人团体获奖", label: "个人/团体" },

@@ -82,7 +82,7 @@ function SearchBox2({ value, onChange }: { value: string; onChange: (v: string) 
 }
 
 const BEIKE_COLUMNS: ColDef<BeikeRecord>[] = [
-  { key: "学期", label: "学期", minWidth: 80 }, { key: "主题", label: "主题", minWidth: 160 },
+  { key: "学期", label: "学期", minWidth: 80 }, { key: "主题", label: "主题", minWidth: 160, render: (r) => { const t = r.主题; return t && t.length > 20 ? t.slice(0, 20) + "…" : t; } },
   { key: "备课学科", label: "备课学科", minWidth: 80 }, { key: "备课组", label: "备课组", minWidth: 120 },
   { key: "备课组长", label: "备课组长", minWidth: 80 }, { key: "主持人", label: "主持人", minWidth: 80 },
   { key: "时间", label: "时间", minWidth: 140 }, { key: "地点", label: "地点", minWidth: 100 },

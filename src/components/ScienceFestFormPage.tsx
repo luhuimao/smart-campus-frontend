@@ -32,7 +32,7 @@ function SearchBox2({ value, onChange }: { value: string; onChange: (v: string) 
 }
 
 const SF_COLUMNS: ColDef<ScienceFestRecord>[] = [
-  { key: "活动名称", label: "活动名称", minWidth: 160 },
+  { key: "活动名称", label: "活动名称", minWidth: 160, render: (r) => { const t = r.活动名称; return t && t.length > 20 ? t.slice(0, 20) + "…" : t; } },
   { key: "教研组", label: "教研组", minWidth: 120 },
   { key: "教研组长", label: "教研组长", minWidth: 80 },
   { key: "活动负责教师", label: "活动负责教师", minWidth: 80 },
