@@ -28,9 +28,9 @@ const COLUMNS: ColDef<LearningAnalysisRecord>[] = [
   { key: "班级",       label: "班级" },
   { key: "学生姓名",   label: "学生姓名" },
   { key: "学科",       label: "学科" },
-  { key: "学情分析开始时间", label: "开始时间" },
-  { key: "学情分析结束时间", label: "结束时间" },
-  { key: "教师指导措施", label: "教师指导措施", minWidth: 200 },
+  { key: "学情分析开始时间", label: "开始时间", render: (r) => { const d = r.学情分析开始时间; if (!d) return "—"; const s = d.slice(0, 10); const [y, m, day] = s.split("-"); return `${y}年${parseInt(m)}月${parseInt(day)}日`; } },
+  { key: "学情分析结束时间", label: "结束时间", render: (r) => { const d = r.学情分析结束时间; if (!d) return "—"; const s = d.slice(0, 10); const [y, m, day] = s.split("-"); return `${y}年${parseInt(m)}月${parseInt(day)}日`; } },
+  { key: "教师指导措施", label: "教师指导措施", minWidth: 200, render: (r) => { const t = r.教师指导措施; return t && t.length > 20 ? t.slice(0, 20) + "…" : t; } },
   { key: "提交人",     label: "提交人", minWidth: 80 },
   { key: "提交时间",   label: "提交时间", minWidth: 160 },
 ];
